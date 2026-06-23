@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnLag Universal | Next-Gen AI Translation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/holistic/holistic.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#6366f1',
+                        secondary: '#ec4899',
+                        dark: '#0f172a',
+                        glass: 'rgba(255, 255, 255, 0.7)',
+                    },
+                    borderRadius: {
+                        '4xl': '2rem',
+                        '5xl': '3rem',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #1e293b; overflow-x: hidden; }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.3); }
+        .gradient-text { background: linear-gradient(135deg, #6366f1, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        .video-container {
+            position: relative;
+            border-radius: 2.5rem;
+            overflow: hidden;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.1);
+            background: #000;
+            width: 100%;
+            aspect-ratio: 16/9;
+        }
+        #webcam { transform: scaleX(-1); width: 100%; height: 100%; object-fit: cover; }
+        #output_canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: scaleX(-1); }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 30px -5px rgba(99, 102, 241, 0.5); }
+
+        .lang-card { transition: all 0.2s; cursor: pointer; border-radius: 1rem; }
+        .lang-card.active { background: #6366f1; color: white; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+
+        .card-modern { background: white; border-radius: 3rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01); }
+
+        /* Streaming text effect */
+        .typing-effect { border-right: 3px solid #6366f1; white-space: nowrap; overflow: hidden; animation: blink 0.75s step-end infinite; }
+        @keyframes blink { from, to { border-color: transparent } 50% { border-color: #6366f1 } }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Modern Navigation -->
+    <nav class="sticky top-0 z-50 px-8 py-5">
+        <div class="max-w-[1800px] mx-auto glass rounded-3xl px-8 py-4 flex items-center justify-between shadow-lg shadow-slate-200/50">
+            <div class="flex items-center gap-4">
+                <div class="w-11 h-11 bg-primary rounded-2xl flex items-center justify-center text-white shadow-lg shadow-primary/30">
+                    <i class="fas fa-globe-africa text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-900 tracking-tighter text-slate-900">SnLag <span class="gradient-text uppercase">Universal</span></h1>
+                    <p class="text-[9px] font-900 text-slate-400 uppercase tracking-widest">Bidirectional Translation</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 bg-slate-50 p-1.5 rounded-2xl">
+                <button onclick="setLanguage('English')" class="lang-card active px-4 py-2 text-[10px] font-900 uppercase">EN</button>
+                <button onclick="setLanguage('French')" class="lang-card px-4 py-2 text-[10px] font-900 uppercase text-slate-400">FR</button>
+                <button onclick="setLanguage('Portuguese')" class="lang-card px-4 py-2 text-[10px] font-900 uppercase text-slate-400">PT</button>
+                <button onclick="setLanguage('GSL')" class="lang-card px-4 py-2 text-[10px] font-900 uppercase text-slate-400">GSL</button>
+                <button onclick="setLanguage('Twi')" class="lang-card px-4 py-2 text-[10px] font-900 uppercase text-slate-400">TWI</button>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <div id="admin-link-container"></div>
+                <div id="connection-status" class="flex items-center gap-2 bg-emerald-50 px-4 py-2 rounded-xl">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="text-[9px] font-900 text-emerald-600 uppercase">System Online</span>
+                </div>
+                <div class="flex items-center gap-3 border-l pl-6 border-slate-100">
+                    <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-900 text-slate-700 text-sm" id="user-initial">A</div>
+                    <button onclick="logout()" class="w-10 h-10 rounded-xl hover:bg-red-50 text-slate-400 hover:text-red-500 transition-all">
+                        <i class="fas fa-power-off"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-1 max-w-[1800px] w-full mx-auto px-8 pb-8 grid grid-cols-12 gap-8 h-[calc(100vh-140px)] min-h-[600px]">
+
+        <!-- Left Column: Vision Engine -->
+        <div class="col-span-7 flex flex-col gap-6 h-full min-h-0">
+            <div class="card-modern p-6 flex flex-col h-full min-h-0 border border-slate-100">
+                <div class="flex items-center justify-between mb-4">
+                    <div>
+                        <h3 class="text-xl font-900 text-slate-900 tracking-tight">Vision Intelligence</h3>
+                        <p class="text-slate-400 text-[10px] font-700 uppercase tracking-widest">Real-time Gesture Analysis</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div id="fps-badge" class="bg-slate-50 px-3 py-1.5 rounded-xl text-[10px] font-900 text-slate-500">FPS: --</div>
+                        <div class="bg-indigo-50 text-primary px-3 py-1.5 rounded-xl text-[10px] font-900 uppercase">Live Engine</div>
+                    </div>
+                </div>
+
+                <div class="video-container relative flex-1 min-h-0 bg-slate-900 rounded-3xl overflow-hidden shadow-2xl">
+                    <video id="webcam" autoplay playsinline class="w-full h-full object-cover"></video>
+                    <canvas id="output_canvas" class="absolute inset-0 w-full h-full"></canvas>
+
+                    <div id="camera-overlay" class="absolute inset-0 bg-slate-900/90 flex flex-col items-center justify-center text-white backdrop-blur-md transition-all z-10">
+                        <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mb-4">
+                            <i class="fas fa-video-slash text-xl opacity-40"></i>
+                        </div>
+                        <p class="font-800">Engine in Standby</p>
+                        <p class="text-white/40 text-[10px] font-700 mt-1">Initialize to start translation</p>
+                    </div>
+
+                    <div id="loading-overlay" class="absolute inset-0 bg-slate-900/80 flex flex-col items-center justify-center text-white z-20 hidden">
+                        <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+                        <p class="font-800 text-[10px] uppercase tracking-widest">Loading Models...</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-12 gap-4 mt-6">
+                    <div class="col-span-8">
+                        <button id="start-btn" class="btn-primary w-full text-white font-900 py-4 rounded-2xl flex items-center justify-center gap-3 text-sm">
+                            <i class="fas fa-play text-xs"></i> START VISION PIPELINE
+                        </button>
+                        <button id="stop-btn" class="w-full bg-slate-900 text-white font-900 py-4 rounded-2xl hidden text-sm">
+                            <i class="fas fa-stop mr-2"></i> TERMINATE SESSION
+                        </button>
+                    </div>
+                    <div class="col-span-4 bg-slate-50 rounded-2xl px-5 py-2 flex items-center justify-between border border-slate-100">
+                         <div class="flex flex-col">
+                            <span class="text-[9px] font-900 text-slate-400 uppercase tracking-widest">Visual</span>
+                            <span class="text-[10px] font-800 text-slate-600">Overlays</span>
+                         </div>
+                         <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="overlay-toggle" class="sr-only peer" checked>
+                            <div class="w-10 h-5 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Translation & Avatar -->
+        <div class="col-span-5 flex flex-col gap-6 h-full min-h-0">
+            <!-- Integrated Translation Feed -->
+            <div class="card-modern p-6 flex flex-col flex-1 min-h-0 shadow-xl border border-slate-100 bg-white">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-indigo-50 text-primary rounded-lg flex items-center justify-center">
+                            <i class="fas fa-keyboard text-xs"></i>
+                        </div>
+                        <h3 class="text-lg font-900 text-slate-900 tracking-tight">Translation Feed</h3>
+                    </div>
+                    <div id="current-prediction" class="text-xl font-900 gradient-text tracking-tighter uppercase">Ready</div>
+                </div>
+
+                <!-- Live Typing Buffer -->
+                <div id="live-typing-area" class="mb-4 p-4 bg-slate-50 rounded-2xl border border-dashed border-indigo-200 hidden">
+                    <p class="text-[8px] font-900 text-indigo-400 uppercase tracking-widest mb-1">Live Tracking</p>
+                    <p id="live-typing-text" class="text-lg font-800 text-primary typing-effect inline-block"></p>
+                </div>
+
+                <div id="transcript-container" class="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-3 min-h-0">
+                    <!-- Dynamic Entries -->
+                </div>
+
+                <div class="mt-4 pt-4 border-t border-slate-50 flex justify-between items-center">
+                    <button onclick="clearHistory()" class="text-slate-400 font-900 text-[9px] uppercase tracking-widest hover:text-red-500 transition-colors">Clear History</button>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[9px] font-900 text-slate-400 uppercase">Confidence</span>
+                        <div class="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div id="confidence-fill" class="h-full bg-primary w-0 transition-all duration-500"></div>
+                        </div>
+                        <span id="confidence-text" class="text-[9px] font-900 text-primary">0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Avatar & Voice Integration -->
+            <div class="card-modern p-6 flex flex-col h-[350px] bg-slate-900 border-2 border-slate-800 shadow-2xl relative overflow-hidden">
+                <div class="absolute -right-20 -top-20 w-40 h-40 bg-primary/20 rounded-full blur-3xl"></div>
+
+                <div class="flex items-center justify-between mb-4 relative z-10">
+                    <div>
+                        <h3 class="text-base font-900 text-white tracking-tight">Neural Avatar</h3>
+                        <p class="text-slate-400 text-[8px] font-800 uppercase tracking-widest">Sign Interpretation Engine</p>
+                    </div>
+                    <div id="neural-status" class="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full">
+                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                        <span class="text-[8px] font-900 text-slate-300 uppercase">Idle</span>
+                    </div>
+                </div>
+
+                <div class="flex gap-4 flex-1 min-h-0 relative z-10">
+                    <div id="avatar-container" class="flex-1 bg-white/5 rounded-2xl relative overflow-hidden border border-white/10">
+                        <!-- 3D Canvas -->
+                    </div>
+
+                    <div class="w-1/3 flex flex-col gap-3">
+                        <div class="flex-1 bg-slate-800/50 rounded-2xl p-4 flex flex-col items-center justify-center text-center border border-white/5">
+                            <p class="text-[8px] font-900 text-slate-500 uppercase tracking-widest mb-2">Voice Output</p>
+                            <div id="voice-waves" class="flex items-center gap-1 h-4 opacity-20 transition-opacity duration-300">
+                                <div class="w-0.5 h-2 bg-primary rounded-full"></div>
+                                <div class="w-0.5 h-3 bg-primary rounded-full" style="animation-delay: 0.1s"></div>
+                                <div class="w-0.5 h-2 bg-primary rounded-full" style="animation-delay: 0.2s"></div>
+                            </div>
+                        </div>
+
+                        <button id="mic-btn" class="flex-1 bg-white text-slate-900 font-900 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all hover:bg-slate-50 group">
+                            <div class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                                <i class="fas fa-microphone text-xs"></i>
+                            </div>
+                            <span class="text-[9px] uppercase tracking-tighter">Listen</span>
+                        </button>
+
+                        <button id="mic-stop-btn" class="flex-1 bg-red-500 text-white font-900 rounded-2xl hidden flex flex-col items-center justify-center gap-2 animate-pulse">
+                            <i class="fas fa-stop text-xs"></i>
+                            <span class="text-[9px] uppercase tracking-tighter">Stop</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="toast-container" class="fixed bottom-8 right-8 z-[100] space-y-4"></div>
+
+    <!-- Auth Overlay -->
+    <div id="auth-overlay" class="fixed inset-0 z-[150] flex items-center justify-center bg-slate-900/90 backdrop-blur-xl hidden">
+        <div class="glass p-12 w-full max-w-md rounded-[3rem] border border-white/20 text-center">
+            <div class="w-20 h-20 bg-primary/10 text-primary rounded-3xl flex items-center justify-center mx-auto mb-8 text-3xl">
+                <i class="fas fa-fingerprint"></i>
+            </div>
+            <h2 class="text-3xl font-900 mb-2">Neural Access</h2>
+            <p class="text-slate-500 mb-10 font-600">Enter your credentials to proceed</p>
+            <div class="space-y-4">
+                <input type="text" id="login-user" placeholder="Username" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 outline-none focus:ring-2 ring-primary transition-all">
+                <input type="password" id="login-pass" placeholder="Password" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 outline-none focus:ring-2 ring-primary transition-all">
+                <button onclick="handleLogin()" class="btn-primary w-full text-white font-900 py-4 rounded-2xl mt-4">INITIALIZE SESSION</button>
+                <p class="text-[10px] text-slate-400 font-700 uppercase tracking-widest mt-6">Secure Bi-Directional Translation Node</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GATEWAY = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:8000'
+            : window.location.origin;
+        let TOKEN = localStorage.getItem('snlag_token');
+        let currentLang = 'English';
+        let socket, holistic, camera, mediaRecorder;
+        let audioChunks = [];
+        let showOverlays = true;
+        let CURRENT_USER_ID = 1;
+
+        window.onload = () => {
+            if (!TOKEN) {
+                document.getElementById('auth-overlay').classList.remove('hidden');
+            } else {
+                startSession();
+            }
+        };
+
+        async function handleLogin() {
+            const user = document.getElementById('login-user').value;
+            const pass = document.getElementById('login-pass').value;
+            const params = new URLSearchParams({ username: user, password: pass });
+            try {
+                const res = await fetch(`${GATEWAY}/token`, { method: 'POST', body: params });
+                const data = await res.json();
+                if (res.ok && data.access_token) {
+                    TOKEN = data.access_token;
+                    localStorage.setItem('snlag_token', TOKEN);
+                    document.getElementById('auth-overlay').classList.add('hidden');
+                    startSession();
+                } else {
+                    alert("Authentication Failed: " + (data.detail || "Invalid credentials"));
+                }
+            } catch (e) {
+                alert("Core Server Unreachable");
+            }
+        }
+        async function startSession() {
+            try {
+                const res = await fetch(`${GATEWAY}/users/me`, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+                if (res.status === 401) return logout();
+                const user = await res.json();
+
+                CURRENT_USER_ID = user.id;
+                document.getElementById('user-initial').innerText = user.username[0].toUpperCase();
+
+                if (user.role === 'admin') {
+                    document.getElementById('admin-link-container').innerHTML = `
+                        <a href="/ui/admin_dashboard/dashboard.html" class="text-[9px] font-900 text-primary uppercase tracking-widest bg-indigo-50 px-4 py-2 rounded-xl hover:bg-primary hover:text-white transition-all">
+                            <i class="fas fa-chart-line mr-1"></i> HQ Terminal
+                        </a>
+                    `;
+                }
+
+                showToast("Neural Pipeline Secure", "success");
+                connectWS(CURRENT_USER_ID);
+            } catch (e) { showToast("Gateway Connection Failed", "error"); }
+        }
+
+        function logout() { localStorage.removeItem('snlag_token'); location.reload(); }
+
+        function connectWS(userId) {
+            const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+            const host = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                ? 'localhost:8000'
+                : window.location.host;
+            socket = new WebSocket(`${proto}://${host}/ws/translate/${userId}`);
+            socket.onopen = () => showToast("Neural Link Established", "success");
+            socket.onmessage = (e) => {
+                const data = JSON.parse(e.data);
+                if (data.type === 'prediction') handleResult(data.sign, data.audio_base64, data.confidence);
+            };
+            socket.onerror = () => showToast("WebSocket Error", "error");
+            socket.onclose = () => setTimeout(() => connectWS(userId), 3000);
+        }
+
+        function handleResult(sign, audio, conf) {
+            if (!sign || sign === "nothing") return;
+
+            const disp = document.getElementById('current-prediction');
+            const status = document.getElementById('neural-status');
+            const statusDot = status.querySelector('span:first-child');
+            const liveArea = document.getElementById('live-typing-area');
+            const liveText = document.getElementById('live-typing-text');
+
+            status.querySelector('span:last-child').innerText = 'Active Inference';
+            statusDot.classList.replace('bg-slate-400', 'bg-emerald-500');
+
+            liveArea.classList.remove('hidden');
+            liveText.innerText = sign;
+
+            disp.innerText = sign;
+            disp.classList.add('animate__animated', 'animate__pulse');
+
+            document.getElementById('confidence-fill').style.width = (conf * 100) + '%';
+            document.getElementById('confidence-text').innerText = Math.round(conf * 100) + '%';
+
+            addTranscript("AI", sign.toUpperCase());
+
+            if (audio) new Audio("data:audio/wav;base64," + audio).play();
+            if (window.avatar) window.avatar.playSign(sign);
+
+            setTimeout(() => {
+                disp.classList.remove('animate__pulse');
+                status.querySelector('span:last-child').innerText = 'Idle';
+                statusDot.classList.replace('bg-emerald-500', 'bg-slate-400');
+            }, 2000);
+        }
+
+        const canvasElement = document.getElementById('output_canvas');
+        const canvasCtx = canvasElement.getContext('2d');
+        const videoElement = document.getElementById('webcam');
+        let frameCount = 0, lastTime = performance.now();
+
+        // Use Float32Array for high-speed binary transmission
+        function extractLandmarksBinary(results) {
+            const buffer = new Float32Array(1662);
+            let offset = 0;
+
+            // Pose (33 * 4)
+            if (results.poseLandmarks) {
+                for (const l of results.poseLandmarks) {
+                    buffer[offset++] = l.x; buffer[offset++] = l.y;
+                    buffer[offset++] = l.z; buffer[offset++] = l.visibility;
+                }
+            } else offset += 33 * 4;
+
+            // Face (468 * 3)
+            if (results.faceLandmarks) {
+                for (const l of results.faceLandmarks) {
+                    buffer[offset++] = l.x; buffer[offset++] = l.y; buffer[offset++] = l.z;
+                }
+            } else offset += 468 * 3;
+
+            // Left Hand (21 * 3)
+            if (results.leftHandLandmarks) {
+                for (const l of results.leftHandLandmarks) {
+                    buffer[offset++] = l.x; buffer[offset++] = l.y; buffer[offset++] = l.z;
+                }
+            } else offset += 21 * 3;
+
+            // Right Hand (21 * 3)
+            if (results.rightHandLandmarks) {
+                for (const l of results.rightHandLandmarks) {
+                    buffer[offset++] = l.x; buffer[offset++] = l.y; buffer[offset++] = l.z;
+                }
+            } else offset += 21 * 3;
+
+            return buffer;
+        }
+
+        async function onResults(results) {
+            frameCount++;
+            const now = performance.now();
+            if (now - lastTime >= 1000) {
+                document.getElementById('fps-badge').innerText = `FPS: ${frameCount}`;
+                frameCount = 0; lastTime = now;
+            }
+
+            if (canvasElement.width !== videoElement.videoWidth) {
+                canvasElement.width = videoElement.videoWidth;
+                canvasElement.height = videoElement.videoHeight;
+            }
+
+            canvasCtx.save();
+            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+            if (showOverlays) {
+                // High-speed rendering
+                if (results.poseLandmarks) {
+                    drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {color: 'rgba(255,255,255,0.2)', lineWidth: 1});
+                }
+                if (results.faceLandmarks) {
+                    // Optimized face: only draw key contours if moving fast
+                    drawConnectors(canvasCtx, results.faceLandmarks, FACEMESH_CONTOURS, {color: 'rgba(99,102,241,0.3)', lineWidth: 0.5});
+                }
+                if (results.leftHandLandmarks) {
+                    drawConnectors(canvasCtx, results.leftHandLandmarks, HAND_CONNECTIONS, {color: '#6366f1', lineWidth: 2});
+                    drawLandmarks(canvasCtx, results.leftHandLandmarks, {color: '#fff', radius: 1});
+                }
+                if (results.rightHandLandmarks) {
+                    drawConnectors(canvasCtx, results.rightHandLandmarks, HAND_CONNECTIONS, {color: '#ec4899', lineWidth: 2});
+                    drawLandmarks(canvasCtx, results.rightHandLandmarks, {color: '#fff', radius: 1});
+                }
+            }
+            canvasCtx.restore();
+
+            // PERFORMANCE FIX: Binary transmission + Send every frame for fast signs
+            if (socket?.readyState === WebSocket.OPEN) {
+                const landmarks = extractLandmarksBinary(results);
+                socket.send(landmarks.buffer);
+            }
+        }
+
+        document.getElementById('start-btn').onclick = async () => {
+            document.getElementById('camera-overlay').classList.add('opacity-0', 'pointer-events-none');
+            document.getElementById('loading-overlay').classList.remove('hidden');
+
+            try {
+                if (!holistic) {
+                    holistic = new Holistic({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/holistic/${file}`});
+                    // INCREASE COMPLEXITY for better hand/face tracking when hands come together
+                    holistic.setOptions({
+                        modelComplexity: 1,
+                        smoothLandmarks: true,
+                        enableSegmentation: false,
+                        refineFaceLandmarks: true
+                    });
+                    holistic.onResults(onResults);
+                }
+
+                if (!camera) {
+                    camera = new Camera(videoElement, {
+                        onFrame: async () => {
+                            await holistic.send({image: videoElement});
+                            document.getElementById('loading-overlay').classList.add('hidden');
+                        },
+                        width: 640, height: 360
+                    });
+                }
+                await camera.start();
+                document.getElementById('start-btn').classList.add('hidden');
+                document.getElementById('stop-btn').classList.remove('hidden');
+            } catch (e) {
+                showToast("Camera Access Denied", "error");
+                document.getElementById('loading-overlay').classList.add('hidden');
+            }
+        };
+
+        document.getElementById('stop-btn').onclick = () => {
+            if(camera) camera.stop();
+            document.getElementById('camera-overlay').classList.remove('opacity-0', 'pointer-events-none');
+            document.getElementById('start-btn').classList.remove('hidden');
+            document.getElementById('stop-btn').classList.add('hidden');
+        };
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.querySelectorAll('.lang-card').forEach(btn => btn.classList.remove('active', 'text-white'));
+            event.target.classList.add('active', 'text-white');
+            showToast(`Target: ${lang}`, "info");
+        }
+
+        function addTranscript(role, text) {
+            const container = document.getElementById('transcript-container');
+            const div = document.createElement('div');
+            div.className = `flex gap-4 p-4 rounded-2xl shadow-sm border border-slate-50 ${role === 'AI' ? 'bg-white' : 'bg-slate-50 flex-row-reverse'} animate__animated animate__fadeInUp`;
+            div.innerHTML = `
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${role === 'AI' ? 'bg-primary text-white' : 'bg-slate-800 text-white'}">
+                    <i class="fas ${role === 'AI' ? 'fa-robot' : 'fa-user'} text-xs"></i>
+                </div>
+                <div class="flex-1 ${role === 'User' ? 'text-right' : ''}">
+                    <p class="text-sm font-800 text-slate-800">${text}</p>
+                    <p class="text-[8px] font-900 text-slate-400 uppercase mt-1 tracking-widest">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                </div>
+            `;
+            container.prepend(div);
+        }
+
+        function showToast(msg, type) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colors = { success: 'bg-emerald-500', error: 'bg-red-500', info: 'bg-primary' };
+            toast.className = `${colors[type]} text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate__animated animate__slideInRight font-900 text-[10px] uppercase tracking-wider`;
+            toast.innerHTML = `<i class="fas fa-satellite-dish"></i> ${msg}`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.classList.replace('animate__slideInRight', 'animate__fadeOutRight'); setTimeout(() => toast.remove(), 500); }, 3000);
+        }
+
+        document.getElementById('overlay-toggle').onchange = (e) => {
+            showOverlays = e.target.checked;
+            showToast(showOverlays ? "Overlays Enabled" : "Clean Feed", "info");
+        };
+
+        function clearHistory() {
+            document.getElementById('transcript-container').innerHTML = '';
+            document.getElementById('live-typing-area').classList.add('hidden');
+        }
+
+        class AvatarEngine {
+            constructor(id) {
+                this.container = document.getElementById(id);
+                this.setupImageMode();
+            }
+
+            setupImageMode() {
+                this.container.innerHTML = `
+                    <div class="w-full h-full flex items-center justify-center p-4 bg-slate-900/50">
+                        <div class="relative w-48 h-48">
+                            <div id="avatar-glow" class="absolute inset-0 bg-primary/20 rounded-full blur-2xl opacity-0 transition-opacity duration-500"></div>
+                            <img id="avatar-img" src="/public/image/3d.jpg"
+                                 class="w-full h-full object-cover rounded-full border-4 border-white/10 shadow-2xl relative z-10 transition-transform duration-300">
+                            <div id="avatar-status-ring" class="absolute -inset-2 border-2 border-primary/30 rounded-full animate-[spin_10s_linear_infinite]"></div>
+                        </div>
+                    </div>
+                `;
+                this.img = document.getElementById('avatar-img');
+                this.glow = document.getElementById('avatar-glow');
+            }
+
+            playSign(s) {
+                this.isAnimating = true;
+                this.glow.classList.remove('opacity-0');
+                this.img.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    this.img.style.transform = 'scale(1)';
+                    this.glow.classList.add('opacity-0');
+                    this.isAnimating = false;
+                }, 1000);
+            }
+
+            async playSequence(sequence) {
+                this.isAnimating = true;
+                this.glow.classList.remove('opacity-0');
+                for (let i = 0; i < sequence.length; i++) {
+                    this.img.style.transform = 'scale(1.08) translateY(-5px)';
+                    await new Promise(r => setTimeout(r, 400));
+                    this.img.style.transform = 'scale(1) translateY(0)';
+                    await new Promise(r => setTimeout(r, 200));
+                }
+                this.glow.classList.add('opacity-0');
+                this.isAnimating = false;
+            }
+        }
+        window.avatar = new AvatarEngine('avatar-container');
+
+        document.getElementById('mic-btn').onclick = async () => {
+            if (!window.isSecureContext && window.location.hostname !== 'localhost') {
+                showToast("HTTPS Required for Microphone", "error");
+                return;
+            }
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                // Use default supported mime type, usually video/webm;codecs=opus or audio/webm
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.start();
+
+                document.getElementById('mic-btn').classList.add('hidden');
+                document.getElementById('mic-stop-btn').classList.remove('hidden');
+
+                const waves = document.getElementById('voice-waves');
+                if (waves) {
+                    waves.classList.remove('opacity-20');
+                    waves.querySelectorAll('div').forEach(d => d.classList.add('animate-bounce'));
+                }
+            } catch (e) {
+                console.error("Mic Error:", e);
+                showToast("Microphone Access Denied", "error");
+            }
+        };
+
+        document.getElementById('mic-stop-btn').onclick = () => {
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                mediaRecorder.onstop = async () => {
+                    // Blob type should match the recorder's actual format
+                    const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
+                    const reader = new FileReader();
+                    reader.readAsDataURL(audioBlob);
+                    reader.onloadend = async () => {
+                        const base64 = reader.result.split(',')[1];
+                        try {
+                            showToast("Processing Voice...", "info");
+                            const res = await fetch(`${GATEWAY}/translate`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ user_id: CURRENT_USER_ID, source_type: 'speech', payload: base64, language: currentLang })
+                            });
+                            const data = await res.json();
+                            if (data.status === 'success') {
+                                if (!data.original_text) {
+                                    showToast("No speech detected", "info");
+                                    return;
+                                }
+                                addTranscript("User", data.original_text);
+                                showToast("Speech Processed", "success");
+                                if (data.result && data.result.sequence) {
+                                    window.avatar.playSequence(data.result.sequence);
+                                }
+                            } else {
+                                showToast(data.message || "Transcription Failed", "error");
+                            }
+                        } catch (e) {
+                            showToast("Server Connection Error", "error");
+                        }
+                    };
+                };
+            }
+
+            document.getElementById('mic-btn').classList.remove('hidden');
+            document.getElementById('mic-stop-btn').classList.add('hidden');
+
+            const waves = document.getElementById('voice-waves');
+            if (waves) {
+                waves.classList.add('opacity-20');
+                waves.querySelectorAll('div').forEach(d => d.classList.remove('animate-bounce'));
+            }
+        };
+    </script>
+</body>
+</html>

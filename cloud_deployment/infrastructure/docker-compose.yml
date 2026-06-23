@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  orchestration:
+    build:
+      context: ../..
+      dockerfile: cloud_deployment/backend/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://user:pass@db:5432/snlag
+
+  api_gateway:
+    build:
+      context: ../..
+      dockerfile: cloud_deployment/backend/Dockerfile
+    command: uvicorn ui_layer.api_gateway.gateway:app --host 0.0.0.0 --port 8001
+    ports:
+      - "8001:8001"
+    depends_on:
+      - orchestration
+
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: snlag
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
