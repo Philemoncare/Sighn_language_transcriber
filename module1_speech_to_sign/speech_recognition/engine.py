@@ -23,60 +23,84 @@ class SpeechRecognitionEngine:
         self.recognizer.pause_threshold = 0.8
         logger.info("Modern Speech Recognition Engine Initialized with Noise Reduction capability")
 
-    def transcribe(self, audio_bytes: bytes, retries=1) -> tuple[str, str]:
+    def transcribe(self, audio_bytes: bytes, language: str = "en-US", retries=1) -> tuple[str, str]:
         """
-        Transcribes audio bytes to text. Returns (text, error_message).
+        Transcribes audio bytes to text using in-memory processing where possible.
         """
-        temp_input_path = None
-        temp_wav_path = None
         error_msg = "Unknown error"
+
+        # Map UI language names to Google Speech codes
+        lang_map = {
+            "English": "en-US",
+            "French": "fr-FR",
+            "Portuguese": "pt-PT",
+            "Spanish": "es-ES",
+            "GSL": "en-GH", # Ghana Sign Language often uses English context
+            "Twi": "ak-GH",  # Akan/Twi
+            "Ewe": "ee-GH",
+            "Ga": "gaa-GH"
+        }
+        target_lang = lang_map.get(language, language)
 
         # Check for ffmpeg
         import shutil
-        has_ffmpeg = shutil.which("ffmpeg") is not None
+        import os
+        ffmpeg_path = shutil.which("ffmpeg")
 
-        for attempt in range(attempt_count := retries + 1):
+        # Fallback for common Windows installation paths if not in PATH
+        if not ffmpeg_path and os.name == 'nt':
+            winget_base = os.path.join(os.environ.get('LOCALAPPDATA', ''), 'Microsoft/WinGet/Packages')
+            if os.path.exists(winget_base):
+                # Search for any Gyan.FFmpeg installation
+                for folder in os.listdir(winget_base):
+                    if folder.startswith("Gyan.FFmpeg"):
+                        # Look for ffmpeg.exe in the bin folder within that package
+                        search_dir = os.path.join(winget_base, folder)
+                        for root, dirs, files in os.walk(search_dir):
+                            if "ffmpeg.exe" in files:
+                                ffmpeg_path = os.path.join(root, "ffmpeg.exe")
+                                break
+                    if ffmpeg_path: break
+
+            if ffmpeg_path:
+                # Add to path for pydub to find it
+                bin_dir = os.path.dirname(ffmpeg_path)
+                if bin_dir not in os.environ["PATH"]:
+                    os.environ["PATH"] += os.pathsep + bin_dir
+
+        for attempt in range(retries + 1):
             try:
-                # 1. Save raw input to a temp file
-                is_webm = audio_bytes.startswith(b'\x1a\x45\xdf\xa3')
-                suffix = '.webm' if is_webm else '.raw'
-                with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-                    tmp.write(audio_bytes)
-                    temp_input_path = tmp.name
+                # Use BytesIO for in-memory processing
+                audio_stream = io.BytesIO(audio_bytes)
 
-                if is_webm and not has_ffmpeg:
-                    error_msg = "FFmpeg not found. Cannot process WebM audio from browser. Please install FFmpeg."
-                    logger.error(error_msg)
-                    return "", error_msg
+                if audio_bytes.startswith(b'\x1a\x45\xdf\xa3'): # WebM
+                    if not ffmpeg_path:
+                        return "", "FFmpeg required for WebM processing."
 
-                # 2. Convert to WAV
-                if PYDUB_AVAILABLE:
-                    try:
-                        audio = AudioSegment.from_file(temp_input_path)
-                        temp_wav_path = temp_input_path + ".wav"
-                        audio.export(temp_wav_path, format="wav")
-                        process_path = temp_wav_path
-                    except Exception as e:
-                        logger.warning(f"pydub conversion failed: {e}")
-                        process_path = temp_input_path
+                    if PYDUB_AVAILABLE:
+                        audio = AudioSegment.from_file(audio_stream, format="webm")
+                        wav_io = io.BytesIO()
+                        audio.export(wav_io, format="wav")
+                        wav_io.seek(0)
+                        process_source = wav_io
+                    else:
+                        return "", "pydub required for WebM conversion."
                 else:
-                    process_path = temp_input_path
+                    process_source = audio_stream
 
-                # 3. Use SpeechRecognition
-                with sr.AudioFile(process_path) as source:
-                    self.recognizer.adjust_for_ambient_noise(source, duration=0.1)
+                # SpeechRecognition
+                with sr.AudioFile(process_source) as source:
+                    # Faster noise adjustment for real-time feel
+                    self.recognizer.adjust_for_ambient_noise(source, duration=0.05)
                     audio_data = self.recognizer.record(source)
 
-                # 4. Recognize
-                response = self.recognizer.recognize_google(audio_data, show_all=True)
+                response = self.recognizer.recognize_google(audio_data, language=target_lang, show_all=True)
 
                 if not response or 'alternative' not in response:
-                    error_msg = "No speech recognized. Try speaking louder or check your mic."
+                    error_msg = "No speech recognized."
                     continue
 
-                best_guess = response['alternative'][0]
-                text = best_guess.get('transcript', "")
-                return text, ""
+                return response['alternative'][0].get('transcript', ""), ""
 
             except sr.UnknownValueError:
                 error_msg = "Google Speech Recognition could not understand audio"
@@ -85,13 +109,5 @@ class SpeechRecognitionEngine:
             except Exception as e:
                 error_msg = f"Transcription error: {str(e)}"
                 logger.error(error_msg)
-            finally:
-                # Cleanup temp files
-                for path in [temp_input_path, temp_wav_path]:
-                    if path and os.path.exists(path):
-                        try: os.remove(path)
-                        except: pass
-                temp_input_path = None
-                temp_wav_path = None
 
         return "", error_msg

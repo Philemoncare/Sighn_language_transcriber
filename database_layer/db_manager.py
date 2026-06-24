@@ -1,9 +1,15 @@
-from sqlalchemy import Column, Integer, String, DateTime, JSON, ForeignKey, Boolean, Float
+from sqlalchemy import Column, Integer, String, DateTime, JSON, ForeignKey, Boolean, Float, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy import create_engine
 import datetime
 import os
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 Base = declarative_base()
 
@@ -17,7 +23,8 @@ if not DATABASE_URL:
 
 engine_args = {}
 if DATABASE_URL.startswith("sqlite"):
-    engine_args["connect_args"] = {"check_same_thread": False}
+    # PERFORMANCE & LOCKING: Increase timeout for concurrent writes in SQLite
+    engine_args["connect_args"] = {"check_same_thread": False, "timeout": 30}
 
 try:
     engine = create_engine(DATABASE_URL, **engine_args)
@@ -92,6 +99,7 @@ class ConversationModel(Base):
     message_type = Column(String) # speech or sign
     original_content = Column(String)
     translated_content = Column(String)
+    language = Column(String, default="English")
     confidence = Column(Float, default=0.0)
 
 class SystemLogModel(Base):
@@ -105,6 +113,10 @@ class GestureLibraryModel(Base):
     __tablename__ = "gesture_libraries"
     id = Column(Integer, primary_key=True, index=True)
     gesture_name = Column(String)
+    description = Column(String, nullable=True)
+    category = Column(String, default="general") # general, greetings, emergency, local
+    language_code = Column(String, default="en")
+    is_pretrained = Column(Boolean, default=False)
     landmark_mapping = Column(JSON)
 
 class CollectedDataModel(Base):
@@ -120,6 +132,14 @@ class CollectedDataModel(Base):
 
 def init_db():
     Base.metadata.create_all(bind=engine)
+
+def check_db_health():
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+            return True
+    except Exception:
+        return False
 
 def get_db():
     db = SessionLocal()

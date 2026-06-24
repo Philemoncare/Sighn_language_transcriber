@@ -1,3 +1,16 @@
+import os
+import sys
+import numpy as np
+
+# COMPATIBILITY HACK: Fix NumPy/JAX friction for TensorFlow
+from types import ModuleType
+if not hasattr(np, "dtypes"):
+    np.dtypes = ModuleType("dtypes")
+if not hasattr(np.dtypes, "StringDType"):
+    class MockStringDType:
+        def __call__(self, *args, **kwargs): return np.str_
+    np.dtypes.StringDType = MockStringDType()
+
 try:
     import tensorflow as tf
     from tensorflow.keras.models import Sequential

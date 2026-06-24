@@ -33,75 +33,97 @@
     </script>
 
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; color: #1e293b; overflow-x: hidden; }
-        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.3); }
-        .gradient-text { background: linear-gradient(135deg, #6366f1, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #fdfdff; color: #1e293b; overflow-x: hidden; }
+        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.4); }
+        .glass-dark { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .gradient-text { background: linear-gradient(135deg, #4f46e5, #9333ea, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
         .video-container {
             position: relative;
-            border-radius: 2.5rem;
+            border-radius: 3rem;
             overflow: hidden;
-            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.1);
-            background: #000;
+            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.2);
+            background: #020617;
             width: 100%;
-            aspect-ratio: 16/9;
+            height: 100%;
+            min-height: 550px;
         }
         #webcam { transform: scaleX(-1); width: 100%; height: 100%; object-fit: cover; }
         #output_canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: scaleX(-1); }
 
         .btn-primary {
             background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 12px 30px -10px rgba(99, 102, 241, 0.5);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 30px -5px rgba(99, 102, 241, 0.5); }
+        .btn-primary:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 20px 40px -10px rgba(99, 102, 241, 0.6); }
 
-        .lang-card { transition: all 0.2s; cursor: pointer; border-radius: 1rem; }
-        .lang-card.active { background: #6366f1; color: white; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+        .lang-card { transition: all 0.3s; cursor: pointer; border-radius: 12px; color: #64748b; font-size: 11px; font-weight: 700; border: 1px solid transparent; }
+        .lang-card.active { background: white; color: #6366f1; border-color: #e2e8f0; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
 
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
 
-        .card-modern { background: white; border-radius: 3rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01); }
+        .card-modern { background: white; border-radius: 3.5rem; box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.05); border: 1px solid rgba(0,0,0,0.03); }
+
+        .hero-bg {
+            background: radial-gradient(circle at 100% 0%, rgba(99, 102, 241, 0.05) 0%, transparent 50%),
+                        radial-gradient(circle at 0% 100%, rgba(236, 72, 153, 0.03) 0%, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        .nav-scrolled { padding-top: 1rem !important; padding-bottom: 1rem !important; }
+        .nav-scrolled .nav-container { border-radius: 2rem; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.1); }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        .floating { animation: float 6s ease-in-out infinite; }
 
         /* Streaming text effect */
-        .typing-effect { border-right: 3px solid #6366f1; white-space: nowrap; overflow: hidden; animation: blink 0.75s step-end infinite; }
+        .typing-effect { border-right: 3px solid #6366f1; animation: blink 0.75s step-end infinite; }
         @keyframes blink { from, to { border-color: transparent } 50% { border-color: #6366f1 } }
     </style>
 </head>
-<body class="flex flex-col min-h-screen">
+<body class="flex flex-col hero-bg min-h-screen pt-32">
 
-    <!-- Modern Navigation -->
-    <nav class="sticky top-0 z-50 px-8 py-5">
-        <div class="max-w-[1800px] mx-auto glass rounded-3xl px-8 py-4 flex items-center justify-between shadow-lg shadow-slate-200/50">
-            <div class="flex items-center gap-4">
-                <div class="w-11 h-11 bg-primary rounded-2xl flex items-center justify-center text-white shadow-lg shadow-primary/30">
-                    <i class="fas fa-globe-africa text-xl"></i>
+    <!-- Navigation -->
+    <nav id="main-nav" class="fixed top-0 left-0 right-0 px-4 md:px-8 py-8 z-[100] transition-all duration-500">
+        <div class="nav-container max-w-[1800px] mx-auto glass px-6 md:px-12 py-5 flex items-center justify-between transition-all duration-500">
+            <div class="flex items-center gap-5">
+                <div class="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center text-white shadow-2xl shadow-primary/40 rotate-3">
+                    <i class="fas fa-hand-sparkles text-2xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-900 tracking-tighter text-slate-900">SnLag <span class="gradient-text uppercase">Universal</span></h1>
-                    <p class="text-[9px] font-900 text-slate-400 uppercase tracking-widest">Bidirectional Translation</p>
+                    <h1 class="text-2xl font-800 tracking-tight text-slate-900 leading-none mb-1">SnLag <span class="text-primary">Translate</span></h1>
+                    <p class="text-[9px] font-700 text-slate-400 uppercase tracking-widest">Global Sign Language Link</p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-3 bg-slate-50 p-1.5 rounded-2xl">
-                <button onclick="setLanguage('English')" class="lang-card active px-4 py-2 text-[10px] font-900 uppercase">EN</button>
-                <button onclick="setLanguage('French')" class="lang-card px-4 py-2 text-[10px] font-900 uppercase text-slate-400">FR</button>
-                <button onclick="setLanguage('Portuguese')" class="lang-card px-4 py-2 text-[10px] font-900 uppercase text-slate-400">PT</button>
-                <button onclick="setLanguage('GSL')" class="lang-card px-4 py-2 text-[10px] font-900 uppercase text-slate-400">GSL</button>
-                <button onclick="setLanguage('Twi')" class="lang-card px-4 py-2 text-[10px] font-900 uppercase text-slate-400">TWI</button>
+            <div class="hidden xl:flex items-center gap-6">
+                <div class="flex items-center gap-2 bg-slate-50/80 p-1.5 rounded-2xl border border-slate-200/60">
+                    <button onclick="setLanguage('English')" class="lang-card active px-6 py-2.5">English</button>
+                    <button onclick="setLanguage('French')" class="lang-card px-6 py-2.5">French</button>
+                    <button onclick="setLanguage('Portuguese')" class="lang-card px-6 py-2.5">Portuguese</button>
+                </div>
+                <div class="h-8 w-px bg-slate-200/60"></div>
+                <div id="connection-status" class="flex items-center gap-3 bg-emerald-50 px-5 py-2.5 rounded-full border border-emerald-100 shadow-sm shadow-emerald-500/5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.5)]"></span>
+                    <span class="text-[10px] font-800 text-emerald-600 uppercase tracking-wider">Ready to Help</span>
+                </div>
             </div>
 
-            <div class="flex items-center gap-6">
-                <div id="admin-link-container"></div>
-                <div id="connection-status" class="flex items-center gap-2 bg-emerald-50 px-4 py-2 rounded-xl">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span class="text-[9px] font-900 text-emerald-600 uppercase">System Online</span>
-                </div>
-                <div class="flex items-center gap-3 border-l pl-6 border-slate-100">
-                    <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-900 text-slate-700 text-sm" id="user-initial">A</div>
-                    <button onclick="logout()" class="w-10 h-10 rounded-xl hover:bg-red-50 text-slate-400 hover:text-red-500 transition-all">
+            <div class="flex items-center gap-5">
+                <div id="admin-link-container" class="hidden lg:block"></div>
+                <div class="flex items-center gap-4 border-l pl-8 border-slate-200/60">
+                    <div class="flex flex-col items-end hidden sm:flex">
+                        <span id="header-username" class="text-xs font-800 text-slate-800">Account</span>
+                        <span class="text-[9px] font-700 text-slate-400 uppercase">Profile</span>
+                    </div>
+                    <div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center font-800 text-primary text-base border border-slate-100 shadow-xl shadow-slate-200/40" id="user-initial">A</div>
+                    <button onclick="logout()" class="w-12 h-12 rounded-2xl bg-red-50 text-red-400 hover:bg-red-500 hover:text-white transition-all border border-red-100/50 shadow-sm">
                         <i class="fas fa-power-off"></i>
                     </button>
                 </div>
@@ -109,141 +131,225 @@
         </div>
     </nav>
 
-    <main class="flex-1 max-w-[1800px] w-full mx-auto px-8 pb-8 grid grid-cols-12 gap-8 h-[calc(100vh-140px)] min-h-[600px]">
+    <!-- Hero Section -->
+    <header class="max-w-[1800px] w-full mx-auto px-4 md:px-8 py-12">
+        <div class="card-modern p-10 md:p-24 relative overflow-hidden bg-slate-900 text-white border-none shadow-3xl min-h-[70vh] flex items-center">
+            <!-- Advanced Background Elements -->
+            <div class="absolute inset-0 z-0">
+                <div class="absolute top-0 right-0 w-[800px] h-[800px] bg-primary/20 rounded-full blur-[150px] -translate-y-1/2 translate-x-1/4"></div>
+                <div class="absolute bottom-0 left-0 w-[600px] h-[600px] bg-secondary/10 rounded-full blur-[120px] translate-y-1/4 -translate-x-1/4"></div>
+                <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
+                <div class="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950/80"></div>
+            </div>
 
-        <!-- Left Column: Vision Engine -->
-        <div class="col-span-7 flex flex-col gap-6 h-full min-h-0">
-            <div class="card-modern p-6 flex flex-col h-full min-h-0 border border-slate-100">
-                <div class="flex items-center justify-between mb-4">
-                    <div>
-                        <h3 class="text-xl font-900 text-slate-900 tracking-tight">Vision Intelligence</h3>
-                        <p class="text-slate-400 text-[10px] font-700 uppercase tracking-widest">Real-time Gesture Analysis</p>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <div id="fps-badge" class="bg-slate-50 px-3 py-1.5 rounded-xl text-[10px] font-900 text-slate-500">FPS: --</div>
-                        <div class="bg-indigo-50 text-primary px-3 py-1.5 rounded-xl text-[10px] font-900 uppercase">Live Engine</div>
-                    </div>
-                </div>
-
-                <div class="video-container relative flex-1 min-h-0 bg-slate-900 rounded-3xl overflow-hidden shadow-2xl">
-                    <video id="webcam" autoplay playsinline class="w-full h-full object-cover"></video>
-                    <canvas id="output_canvas" class="absolute inset-0 w-full h-full"></canvas>
-
-                    <div id="camera-overlay" class="absolute inset-0 bg-slate-900/90 flex flex-col items-center justify-center text-white backdrop-blur-md transition-all z-10">
-                        <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mb-4">
-                            <i class="fas fa-video-slash text-xl opacity-40"></i>
+            <div class="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center w-full">
+                <div class="text-center lg:text-left space-y-10">
+                    <div class="inline-flex items-center gap-3 bg-white/5 backdrop-blur-2xl px-6 py-3 rounded-full border border-white/10 mx-auto lg:mx-0 shadow-2xl">
+                        <div class="flex gap-1">
+                            <span class="w-1.5 h-1.5 rounded-full bg-primary animate-ping"></span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
                         </div>
-                        <p class="font-800">Engine in Standby</p>
-                        <p class="text-white/40 text-[10px] font-700 mt-1">Initialize to start translation</p>
+                        <span class="text-[11px] font-800 uppercase tracking-[0.2em] text-indigo-200">AI Language System Active</span>
                     </div>
 
-                    <div id="loading-overlay" class="absolute inset-0 bg-slate-900/80 flex flex-col items-center justify-center text-white z-20 hidden">
-                        <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-                        <p class="font-800 text-[10px] uppercase tracking-widest">Loading Models...</p>
+                    <h2 class="text-5xl md:text-9xl font-800 tracking-tighter leading-[0.9] text-white">
+                        Talk with <br>
+                        <span class="gradient-text italic">Everyone.</span>
+                    </h2>
+
+                    <p class="text-xl md:text-2xl text-slate-300 font-500 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+                        Our smart AI instantly turns sign language into clear speech and text, making conversations easy for everyone.
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row gap-6 pt-6 justify-center lg:justify-start">
+                        <button onclick="document.getElementById('start-btn').scrollIntoView({behavior:'smooth'})" class="btn-primary px-10 py-6 rounded-3xl font-800 text-base flex items-center justify-center gap-4 transition-all">
+                            Start Translating <i class="fas fa-arrow-right text-sm"></i>
+                        </button>
+                        <button class="bg-white/10 backdrop-blur-xl border border-white/10 px-10 py-6 rounded-3xl font-800 text-base hover:bg-white/20 transition-all">
+                            How it Works
+                        </button>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-12 gap-4 mt-6">
-                    <div class="col-span-8">
-                        <button id="start-btn" class="btn-primary w-full text-white font-900 py-4 rounded-2xl flex items-center justify-center gap-3 text-sm">
-                            <i class="fas fa-play text-xs"></i> START VISION PIPELINE
-                        </button>
-                        <button id="stop-btn" class="w-full bg-slate-900 text-white font-900 py-4 rounded-2xl hidden text-sm">
-                            <i class="fas fa-stop mr-2"></i> TERMINATE SESSION
-                        </button>
+                <div class="relative hidden lg:block">
+                    <div class="relative z-20 floating">
+                        <div class="absolute -inset-1 bg-gradient-to-r from-primary to-secondary rounded-[4rem] blur-2xl opacity-30"></div>
+                        <div class="relative bg-slate-800 rounded-[4rem] p-4 border border-white/10 shadow-3xl">
+                            <img src="https://img.freepik.com/free-photo/view-3d-robot-hand_23-2150849153.jpg" alt="AI Interface" class="w-full h-[600px] object-cover rounded-[3.5rem] shadow-inner grayscale-[0.2] hover:grayscale-0 transition-all duration-700">
+
+                            <!-- Floating UI Elements -->
+                            <div class="absolute top-10 -right-12 glass-dark p-6 rounded-3xl border border-white/10 shadow-2xl animate-pulse">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center text-emerald-400">
+                                        <i class="fas fa-check-circle"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] font-800 text-slate-400 uppercase mb-1">Accuracy</p>
+                                        <p class="text-lg font-900 text-white">99.8%</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="absolute bottom-20 -left-12 glass-dark p-6 rounded-3xl border border-white/10 shadow-2xl">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center text-primary">
+                                        <i class="fas fa-bolt"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] font-800 text-slate-400 uppercase mb-1">Response Time</p>
+                                        <p class="text-lg font-900 text-white">45ms</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-span-4 bg-slate-50 rounded-2xl px-5 py-2 flex items-center justify-between border border-slate-100">
-                         <div class="flex flex-col">
-                            <span class="text-[9px] font-900 text-slate-400 uppercase tracking-widest">Visual</span>
-                            <span class="text-[10px] font-800 text-slate-600">Overlays</span>
-                         </div>
-                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="overlay-toggle" class="sr-only peer" checked>
-                            <div class="w-10 h-5 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
-                        </label>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-[1800px] w-full mx-auto px-4 md:px-8 pb-10">
+        <div class="grid grid-cols-12 gap-8 items-stretch mb-8">
+            <!-- Left Column: Camera Feed -->
+            <div class="col-span-12 lg:col-span-7 flex flex-col">
+                <div class="card-modern p-10 flex flex-col h-full">
+                    <div class="flex items-center justify-between mb-10">
+                        <div>
+                            <h3 class="text-3xl font-800 text-slate-900 tracking-tight">Camera</h3>
+                            <p class="text-slate-400 text-xs font-700 uppercase tracking-widest">Show your signs clearly</p>
+                        </div>
+                    </div>
+
+                    <div class="video-container relative flex-1">
+                        <video id="webcam" autoplay playsinline class="w-full h-full object-cover"></video>
+                        <canvas id="output_canvas" class="absolute inset-0 w-full h-full"></canvas>
+
+                        <div id="camera-overlay" class="absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-center text-white backdrop-blur-3xl transition-all z-10">
+                            <div class="w-28 h-28 bg-white/5 rounded-[3rem] flex items-center justify-center mb-8 border border-white/10 shadow-3xl">
+                                <i class="fas fa-video-slash text-4xl opacity-20"></i>
+                            </div>
+                            <p class="text-2xl font-800 tracking-tight">Camera is Ready</p>
+                            <p class="text-white/40 text-xs font-700 mt-3 uppercase tracking-[0.2em]">Press start below to begin</p>
+                        </div>
+
+                        <div id="loading-overlay" class="absolute inset-0 bg-slate-950/80 flex flex-col items-center justify-center text-white z-20 hidden backdrop-blur-md">
+                            <div class="w-16 h-16 border-[6px] border-primary border-t-transparent rounded-full animate-spin mb-8 shadow-[0_0_20px_rgba(99,102,241,0.4)]"></div>
+                            <p class="font-800 text-xs uppercase tracking-[0.3em] text-primary">Starting AI System...</p>
+                        </div>
+
+                        <div class="absolute bottom-8 right-8 z-30">
+                            <div id="fps-badge" class="bg-black/40 backdrop-blur-xl px-5 py-2.5 rounded-2xl text-[10px] font-800 text-white border border-white/10 shadow-2xl">FPS: 0</div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row gap-5 mt-10">
+                        <button id="start-btn" class="btn-primary flex-1 text-white font-800 py-6 rounded-3xl flex items-center justify-center gap-4 text-base tracking-wider">
+                            <i class="fas fa-play text-sm"></i> START CAMERA
+                        </button>
+                        <button id="stop-btn" class="flex-1 bg-slate-900 text-white font-800 py-6 rounded-3xl hidden text-base tracking-wider hover:bg-slate-950 transition-all border border-slate-800 shadow-xl">
+                            <i class="fas fa-stop text-sm"></i> STOP CAMERA
+                        </button>
+                        <div class="sm:w-48 bg-slate-50 rounded-3xl px-8 py-2 flex items-center justify-between border border-slate-100 shadow-inner">
+                             <div class="flex flex-col">
+                                <span class="text-[10px] font-800 text-slate-400 uppercase tracking-widest">Draw</span>
+                                <span class="text-xs font-800 text-slate-700">Lines</span>
+                             </div>
+                             <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="overlay-toggle" class="sr-only peer" checked>
+                                <div class="w-12 h-6.5 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:rounded-full after:h-4.5 after:w-4.5 after:transition-all shadow-md"></div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Conversation -->
+            <div class="col-span-12 lg:col-span-5 flex flex-col">
+                <div class="card-modern p-10 flex flex-col h-full shadow-2xl bg-white relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full -mr-24 -mt-24 blur-[80px]"></div>
+
+                    <div class="flex items-center justify-between mb-10 relative z-10">
+                        <div class="flex items-center gap-4">
+                            <div class="w-11 h-11 bg-indigo-50 text-primary rounded-2xl flex items-center justify-center shadow-sm border border-indigo-100">
+                                <i class="fas fa-comments text-sm"></i>
+                            </div>
+                            <h3 class="text-xl font-800 text-slate-800 tracking-tight">Chat Feed</h3>
+                        </div>
+                        <div id="current-prediction" class="text-[10px] font-800 text-primary/60 uppercase tracking-[0.3em] bg-primary/5 px-4 py-1.5 rounded-full border border-primary/10">READY</div>
+                    </div>
+
+                    <!-- Live Tracking Area -->
+                    <div id="live-typing-area" class="mb-8 p-8 bg-slate-50/80 rounded-[2.5rem] border border-slate-100 hidden relative overflow-hidden shadow-inner">
+                        <div class="absolute top-0 left-0 w-1.5 h-full bg-primary/30"></div>
+                        <p class="text-[9px] font-800 text-primary/50 uppercase tracking-[0.2em] mb-3">AI is thinking...</p>
+                        <p id="live-typing-text" class="text-2xl font-700 text-slate-800 typing-effect inline-block break-words leading-tight"></p>
+                    </div>
+
+                    <div id="transcript-container" class="flex-1 overflow-y-auto pr-4 custom-scrollbar space-y-6 min-h-0">
+                        <!-- Dynamic Entries -->
+                        <div class="text-center py-20 opacity-20">
+                            <i class="fas fa-comment-slash text-5xl mb-4"></i>
+                            <p class="text-xs font-800 uppercase tracking-widest">No messages yet</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-8 border-t border-slate-50 flex justify-between items-center relative z-10">
+                        <button onclick="clearHistory()" class="text-slate-400 font-800 text-[10px] uppercase tracking-[0.2em] hover:text-red-500 transition-all">Clear history</button>
+                        <div class="flex items-center gap-5">
+                            <span class="text-[10px] font-800 text-slate-300 uppercase tracking-widest">Confidence</span>
+                            <div class="w-32 h-2 bg-slate-50 rounded-full overflow-hidden shadow-inner border border-slate-100">
+                                <div id="confidence-fill" class="h-full bg-gradient-to-r from-primary to-indigo-400 w-0 transition-all duration-700 ease-out"></div>
+                            </div>
+                            <span id="confidence-text" class="text-xs font-800 text-primary min-w-[40px] text-right">0%</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Right Column: Translation & Avatar -->
-        <div class="col-span-5 flex flex-col gap-6 h-full min-h-0">
-            <!-- Integrated Translation Feed -->
-            <div class="card-modern p-6 flex flex-col flex-1 min-h-0 shadow-xl border border-slate-100 bg-white">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 bg-indigo-50 text-primary rounded-lg flex items-center justify-center">
-                            <i class="fas fa-keyboard text-xs"></i>
-                        </div>
-                        <h3 class="text-lg font-900 text-slate-900 tracking-tight">Translation Feed</h3>
-                    </div>
-                    <div id="current-prediction" class="text-xl font-900 gradient-text tracking-tighter uppercase">Ready</div>
-                </div>
+        <!-- Bottom Row: Digital Interpreter -->
+        <div class="card-modern p-10 flex flex-col h-[450px] bg-slate-900 border border-slate-800 shadow-4xl relative overflow-hidden group">
+            <div class="absolute -right-40 -top-40 w-96 h-96 bg-primary/20 rounded-full blur-[120px] group-hover:bg-primary/30 transition-all duration-1000"></div>
 
-                <!-- Live Typing Buffer -->
-                <div id="live-typing-area" class="mb-4 p-4 bg-slate-50 rounded-2xl border border-dashed border-indigo-200 hidden">
-                    <p class="text-[8px] font-900 text-indigo-400 uppercase tracking-widest mb-1">Live Tracking</p>
-                    <p id="live-typing-text" class="text-lg font-800 text-primary typing-effect inline-block"></p>
+            <div class="flex items-center justify-between mb-8 relative z-10">
+                <div>
+                    <h3 class="text-2xl font-800 text-white tracking-tight">AI Assistant</h3>
+                    <p class="text-slate-500 text-[10px] font-700 uppercase tracking-[0.3em]">Visual Guide</p>
                 </div>
-
-                <div id="transcript-container" class="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-3 min-h-0">
-                    <!-- Dynamic Entries -->
-                </div>
-
-                <div class="mt-4 pt-4 border-t border-slate-50 flex justify-between items-center">
-                    <button onclick="clearHistory()" class="text-slate-400 font-900 text-[9px] uppercase tracking-widest hover:text-red-500 transition-colors">Clear History</button>
-                    <div class="flex items-center gap-2">
-                        <span class="text-[9px] font-900 text-slate-400 uppercase">Confidence</span>
-                        <div class="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div id="confidence-fill" class="h-full bg-primary w-0 transition-all duration-500"></div>
-                        </div>
-                        <span id="confidence-text" class="text-[9px] font-900 text-primary">0%</span>
-                    </div>
+                <div id="neural-status" class="flex items-center gap-4 bg-white/5 px-6 py-3 rounded-full border border-white/5 backdrop-blur-2xl">
+                    <span class="w-2.5 h-2.5 rounded-full bg-slate-700 shadow-[0_0_10px_rgba(255,255,255,0.1)]"></span>
+                    <span class="text-[10px] font-800 text-slate-400 uppercase tracking-widest">Waiting...</span>
                 </div>
             </div>
 
-            <!-- Avatar & Voice Integration -->
-            <div class="card-modern p-6 flex flex-col h-[350px] bg-slate-900 border-2 border-slate-800 shadow-2xl relative overflow-hidden">
-                <div class="absolute -right-20 -top-20 w-40 h-40 bg-primary/20 rounded-full blur-3xl"></div>
-
-                <div class="flex items-center justify-between mb-4 relative z-10">
-                    <div>
-                        <h3 class="text-base font-900 text-white tracking-tight">Neural Avatar</h3>
-                        <p class="text-slate-400 text-[8px] font-800 uppercase tracking-widest">Sign Interpretation Engine</p>
-                    </div>
-                    <div id="neural-status" class="flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full">
-                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                        <span class="text-[8px] font-900 text-slate-300 uppercase">Idle</span>
-                    </div>
+            <div class="flex gap-10 flex-1 min-h-0 relative z-10">
+                <div id="avatar-container" class="flex-1 bg-white/5 rounded-[3.5rem] relative overflow-hidden border border-white/10 shadow-inner group-hover:border-primary/20 transition-all duration-700">
+                    <!-- 3D Canvas -->
                 </div>
 
-                <div class="flex gap-4 flex-1 min-h-0 relative z-10">
-                    <div id="avatar-container" class="flex-1 bg-white/5 rounded-2xl relative overflow-hidden border border-white/10">
-                        <!-- 3D Canvas -->
-                    </div>
-
-                    <div class="w-1/3 flex flex-col gap-3">
-                        <div class="flex-1 bg-slate-800/50 rounded-2xl p-4 flex flex-col items-center justify-center text-center border border-white/5">
-                            <p class="text-[8px] font-900 text-slate-500 uppercase tracking-widest mb-2">Voice Output</p>
-                            <div id="voice-waves" class="flex items-center gap-1 h-4 opacity-20 transition-opacity duration-300">
-                                <div class="w-0.5 h-2 bg-primary rounded-full"></div>
-                                <div class="w-0.5 h-3 bg-primary rounded-full" style="animation-delay: 0.1s"></div>
-                                <div class="w-0.5 h-2 bg-primary rounded-full" style="animation-delay: 0.2s"></div>
-                            </div>
+                <div class="w-1/3 flex flex-col gap-6">
+                    <div class="flex-1 bg-slate-950/40 rounded-[2.5rem] p-6 flex flex-col items-center justify-center text-center border border-white/5 shadow-inner">
+                        <p class="text-[10px] font-800 text-slate-500 uppercase tracking-[0.2em] mb-6">Voice Detection</p>
+                        <div id="voice-waves" class="flex items-end gap-2 h-12 opacity-30 transition-all duration-500">
+                            <div class="w-1.5 bg-primary rounded-full h-4"></div>
+                            <div class="w-1.5 bg-primary rounded-full h-10" style="animation-delay: 0.1s"></div>
+                            <div class="w-1.5 bg-primary rounded-full h-7" style="animation-delay: 0.2s"></div>
+                            <div class="w-1.5 bg-primary rounded-full h-12" style="animation-delay: 0.3s"></div>
+                            <div class="w-1.5 bg-primary rounded-full h-6" style="animation-delay: 0.4s"></div>
                         </div>
-
-                        <button id="mic-btn" class="flex-1 bg-white text-slate-900 font-900 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all hover:bg-slate-50 group">
-                            <div class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                                <i class="fas fa-microphone text-xs"></i>
-                            </div>
-                            <span class="text-[9px] uppercase tracking-tighter">Listen</span>
-                        </button>
-
-                        <button id="mic-stop-btn" class="flex-1 bg-red-500 text-white font-900 rounded-2xl hidden flex flex-col items-center justify-center gap-2 animate-pulse">
-                            <i class="fas fa-stop text-xs"></i>
-                            <span class="text-[9px] uppercase tracking-tighter">Stop</span>
-                        </button>
                     </div>
+
+                    <button id="mic-btn" class="flex-1 bg-white text-slate-900 font-800 rounded-[2.5rem] flex flex-col items-center justify-center gap-4 transition-all hover:bg-slate-100 group shadow-2xl active:scale-95 border border-white">
+                        <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
+                            <i class="fas fa-microphone text-lg text-primary"></i>
+                        </div>
+                        <span class="text-xs uppercase tracking-[0.2em]">Listen to me</span>
+                    </button>
+
+                    <button id="mic-stop-btn" class="flex-1 bg-red-500 text-white font-800 rounded-[2.5rem] hidden flex flex-col items-center justify-center gap-4 animate-pulse shadow-2xl shadow-red-500/40 border border-red-400">
+                        <i class="fas fa-stop text-lg"></i>
+                        <span class="text-xs uppercase tracking-[0.2em]">Finish Speaking</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -251,19 +357,33 @@
 
     <div id="toast-container" class="fixed bottom-8 right-8 z-[100] space-y-4"></div>
 
-    <!-- Auth Overlay -->
-    <div id="auth-overlay" class="fixed inset-0 z-[150] flex items-center justify-center bg-slate-900/90 backdrop-blur-xl hidden">
-        <div class="glass p-12 w-full max-w-md rounded-[3rem] border border-white/20 text-center">
-            <div class="w-20 h-20 bg-primary/10 text-primary rounded-3xl flex items-center justify-center mx-auto mb-8 text-3xl">
-                <i class="fas fa-fingerprint"></i>
+    <!-- Login Overlay -->
+    <div id="auth-overlay" class="fixed inset-0 z-[150] flex items-center justify-center bg-slate-950/98 backdrop-blur-3xl hidden p-6">
+        <div class="bg-white p-10 md:p-16 w-full max-w-xl rounded-[4rem] shadow-4xl border border-white/20 text-center relative overflow-hidden">
+            <div class="absolute -right-32 -top-32 w-64 h-64 bg-primary/10 rounded-full blur-[100px]"></div>
+            <div class="absolute -left-32 -bottom-32 w-64 h-64 bg-secondary/10 rounded-full blur-[100px]"></div>
+
+            <div class="w-28 h-28 bg-primary/5 text-primary rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 text-5xl shadow-inner border border-primary/10">
+                <i class="fas fa-id-card-alt"></i>
             </div>
-            <h2 class="text-3xl font-900 mb-2">Neural Access</h2>
-            <p class="text-slate-500 mb-10 font-600">Enter your credentials to proceed</p>
-            <div class="space-y-4">
-                <input type="text" id="login-user" placeholder="Username" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 outline-none focus:ring-2 ring-primary transition-all">
-                <input type="password" id="login-pass" placeholder="Password" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 outline-none focus:ring-2 ring-primary transition-all">
-                <button onclick="handleLogin()" class="btn-primary w-full text-white font-900 py-4 rounded-2xl mt-4">INITIALIZE SESSION</button>
-                <p class="text-[10px] text-slate-400 font-700 uppercase tracking-widest mt-6">Secure Bi-Directional Translation Node</p>
+            <h2 class="text-5xl font-800 mb-4 tracking-tighter text-slate-900 leading-tight">Welcome <br> to <span class="text-primary">SnLag</span></h2>
+            <p class="text-slate-500 mb-14 font-600 text-xl leading-relaxed">Sign in to start your communication journey.</p>
+            <div class="space-y-6">
+                <div class="relative group">
+                    <label for="login-user" class="sr-only">Your Name</label>
+                    <i class="fas fa-user absolute left-8 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors text-lg"></i>
+                    <input type="text" id="login-user" placeholder="Your Name" class="w-full bg-slate-50 border border-slate-100 rounded-3xl pl-16 pr-8 py-6 outline-none focus:ring-4 ring-primary/10 focus:bg-white transition-all font-700 text-lg shadow-inner">
+                </div>
+                <div class="relative group">
+                    <label for="login-pass" class="sr-only">Password</label>
+                    <i class="fas fa-shield-alt absolute left-8 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors text-lg"></i>
+                    <input type="password" id="login-pass" placeholder="Password" class="w-full bg-slate-50 border border-slate-100 rounded-3xl pl-16 pr-8 py-6 outline-none focus:ring-4 ring-primary/10 focus:bg-white transition-all font-700 text-lg shadow-inner">
+                </div>
+                <button onclick="handleLogin()" class="btn-primary w-full text-white font-800 py-7 rounded-3xl mt-8 text-lg tracking-widest uppercase">SIGN IN NOW</button>
+            </div>
+            <div class="mt-12 flex items-center justify-center gap-3">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <p class="text-[11px] font-800 text-slate-400 uppercase tracking-[0.3em]">End-to-End Secure Link</p>
             </div>
         </div>
     </div>
@@ -306,6 +426,15 @@
                 alert("Core Server Unreachable");
             }
         }
+        window.addEventListener('scroll', () => {
+            const nav = document.getElementById('main-nav');
+            if (window.scrollY > 50) {
+                nav.classList.add('nav-scrolled');
+            } else {
+                nav.classList.remove('nav-scrolled');
+            }
+        });
+
         async function startSession() {
             try {
                 const res = await fetch(`${GATEWAY}/users/me`, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
@@ -314,35 +443,73 @@
 
                 CURRENT_USER_ID = user.id;
                 document.getElementById('user-initial').innerText = user.username[0].toUpperCase();
+                document.getElementById('header-username').innerText = user.username;
 
                 if (user.role === 'admin') {
                     document.getElementById('admin-link-container').innerHTML = `
-                        <a href="/ui/admin_dashboard/dashboard.html" class="text-[9px] font-900 text-primary uppercase tracking-widest bg-indigo-50 px-4 py-2 rounded-xl hover:bg-primary hover:text-white transition-all">
-                            <i class="fas fa-chart-line mr-1"></i> HQ Terminal
+                        <a href="/ui/admin_dashboard/dashboard.html" class="text-[10px] font-800 text-primary uppercase tracking-widest bg-indigo-50/80 px-6 py-3 rounded-2xl hover:bg-primary hover:text-white transition-all shadow-sm border border-indigo-100/50">
+                            <i class="fas fa-shield-alt mr-2 text-xs"></i> Admin Dashboard
                         </a>
                     `;
                 }
 
-                showToast("Neural Pipeline Secure", "success");
+                showToast(`Welcome back, ${user.username}`, "success");
                 connectWS(CURRENT_USER_ID);
-            } catch (e) { showToast("Gateway Connection Failed", "error"); }
+            } catch (e) { showToast("System connection issue", "error"); }
         }
 
         function logout() { localStorage.removeItem('snlag_token'); location.reload(); }
 
-        function connectWS(userId) {
-            const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
-            const host = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                ? 'localhost:8000'
-                : window.location.host;
-            socket = new WebSocket(`${proto}://${host}/ws/translate/${userId}`);
-            socket.onopen = () => showToast("Neural Link Established", "success");
-            socket.onmessage = (e) => {
-                const data = JSON.parse(e.data);
-                if (data.type === 'prediction') handleResult(data.sign, data.audio_base64, data.confidence);
+        let recognition;
+        let isListening = false;
+
+        // Initialize Web Speech API for real-time transcription
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                let finalTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript = transcript;
+                        // Send final phrase to backend via WebSocket for translation
+                        if (socket && socket.readyState === WebSocket.OPEN) {
+                            socket.send(JSON.stringify({
+                                type: "speech_text",
+                                text: finalTranscript,
+                                language: currentLang
+                            }));
+                        }
+                        addTranscript("User", finalTranscript);
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+
+                // Update UI live typing area
+                const liveArea = document.getElementById('live-typing-area');
+                const liveText = document.getElementById('live-typing-text');
+                if (interimTranscript || finalTranscript) {
+                    liveArea.classList.remove('hidden');
+                    liveText.innerText = interimTranscript || finalTranscript;
+                }
             };
-            socket.onerror = () => showToast("WebSocket Error", "error");
-            socket.onclose = () => setTimeout(() => connectWS(userId), 3000);
+
+            recognition.onerror = (event) => {
+                console.error("Speech Recognition Error:", event.error);
+                if (event.error === 'not-allowed') showToast("Mic access denied", "error");
+            };
+
+            recognition.onend = () => {
+                if (isListening) recognition.start(); // Keep listening if we didn't manually stop
+            };
         }
 
         function handleResult(sign, audio, conf) {
@@ -354,7 +521,7 @@
             const liveArea = document.getElementById('live-typing-area');
             const liveText = document.getElementById('live-typing-text');
 
-            status.querySelector('span:last-child').innerText = 'Active Inference';
+            status.querySelector('span:last-child').innerText = 'Processing...';
             statusDot.classList.replace('bg-slate-400', 'bg-emerald-500');
 
             liveArea.classList.remove('hidden');
@@ -376,6 +543,42 @@
                 status.querySelector('span:last-child').innerText = 'Idle';
                 statusDot.classList.replace('bg-emerald-500', 'bg-slate-400');
             }, 2000);
+        }
+
+        // Add handler for the new translation_result message type
+        function connectWS(userId) {
+            const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+            const host = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                ? 'localhost:8000'
+                : window.location.host;
+            socket = new WebSocket(`${proto}://${host}/ws/translate/${userId}`);
+            socket.onopen = () => showToast("System Connected", "success");
+            socket.onmessage = (e) => {
+                const data = JSON.parse(e.data);
+                if (data.type === 'prediction') handleResult(data.sign, data.audio_base64, data.confidence);
+                if (data.type === 'translation_result') {
+                    // This comes from real-time speech
+                    if (data.result && data.result.sequence) {
+                        window.avatar.playSequence(data.result.sequence);
+                        // Also show the text in the feed
+                        const disp = document.getElementById('current-prediction');
+                        disp.innerText = data.original_text;
+                        document.getElementById('confidence-fill').style.width = '100%';
+                        document.getElementById('confidence-text').innerText = '100%';
+
+                        const status = document.getElementById('neural-status');
+                        const statusDot = status.querySelector('span:first-child');
+                        status.querySelector('span:last-child').innerText = 'Translating...';
+                        statusDot.classList.replace('bg-slate-400', 'bg-indigo-500');
+                        setTimeout(() => {
+                            status.querySelector('span:last-child').innerText = 'Idle';
+                            statusDot.classList.replace('bg-indigo-500', 'bg-slate-400');
+                        }, 2000);
+                    }
+                }
+            };
+            socket.onerror = () => showToast("Connection Error", "error");
+            socket.onclose = () => setTimeout(() => connectWS(userId), 3000);
         }
 
         const canvasElement = document.getElementById('output_canvas');
@@ -508,21 +711,45 @@
         function setLanguage(lang) {
             currentLang = lang;
             document.querySelectorAll('.lang-card').forEach(btn => btn.classList.remove('active', 'text-white'));
-            event.target.classList.add('active', 'text-white');
+
+            // Find the clicked button and activate it
+            const target = Array.from(document.querySelectorAll('.lang-card')).find(b => b.innerText === (lang === 'English' ? 'EN' : lang === 'French' ? 'FR' : lang === 'Portuguese' ? 'PT' : lang === 'Twi' ? 'TWI' : lang));
+            if (target) target.classList.add('active', 'text-white');
+
+            // Update Speech Recognition Language
+            if (recognition) {
+                const langMap = {
+                    'English': 'en-US',
+                    'French': 'fr-FR',
+                    'Portuguese': 'pt-PT',
+                    'Spanish': 'es-ES',
+                    'GSL': 'en-GH',
+                    'Twi': 'ak-GH',
+                    'Ewe': 'ee-GH',
+                    'Ga': 'gaa-GH'
+                };
+                recognition.lang = langMap[lang] || 'en-US';
+
+                // Restart if listening to apply new language
+                if (isListening) {
+                    recognition.stop();
+                }
+            }
+
             showToast(`Target: ${lang}`, "info");
         }
 
         function addTranscript(role, text) {
             const container = document.getElementById('transcript-container');
             const div = document.createElement('div');
-            div.className = `flex gap-4 p-4 rounded-2xl shadow-sm border border-slate-50 ${role === 'AI' ? 'bg-white' : 'bg-slate-50 flex-row-reverse'} animate__animated animate__fadeInUp`;
+            div.className = `flex gap-3 p-3 rounded-2xl shadow-sm border border-slate-50 ${role === 'AI' ? 'bg-white' : 'bg-indigo-50/50 flex-row-reverse'} animate__animated animate__fadeInUp`;
             div.innerHTML = `
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${role === 'AI' ? 'bg-primary text-white' : 'bg-slate-800 text-white'}">
-                    <i class="fas ${role === 'AI' ? 'fa-robot' : 'fa-user'} text-xs"></i>
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${role === 'AI' ? 'bg-primary text-white' : 'bg-slate-800 text-white'}">
+                    <i class="fas ${role === 'AI' ? 'fa-robot' : 'fa-user'} text-[10px]"></i>
                 </div>
-                <div class="flex-1 ${role === 'User' ? 'text-right' : ''}">
-                    <p class="text-sm font-800 text-slate-800">${text}</p>
-                    <p class="text-[8px] font-900 text-slate-400 uppercase mt-1 tracking-widest">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+                <div class="flex-1 ${role === 'User' ? 'text-right' : ''} overflow-hidden">
+                    <p class="text-[13px] font-700 text-slate-700 leading-tight break-words">${text}</p>
+                    <p class="text-[7px] font-900 text-slate-400 uppercase mt-1 tracking-widest">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
                 </div>
             `;
             container.prepend(div);
@@ -596,6 +823,22 @@
         window.avatar = new AvatarEngine('avatar-container');
 
         document.getElementById('mic-btn').onclick = async () => {
+            if (recognition) {
+                isListening = true;
+                recognition.start();
+                document.getElementById('mic-btn').classList.add('hidden');
+                document.getElementById('mic-stop-btn').classList.remove('hidden');
+
+                const waves = document.getElementById('voice-waves');
+                if (waves) {
+                    waves.classList.remove('opacity-20');
+                    waves.querySelectorAll('div').forEach(d => d.classList.add('animate-bounce'));
+                }
+                showToast("Real-time Listening Active", "info");
+                return;
+            }
+
+            // Fallback to MediaRecorder if SpeechRecognition not supported
             if (!window.isSecureContext && window.location.hostname !== 'localhost') {
                 showToast("HTTPS Required for Microphone", "error");
                 return;
@@ -603,7 +846,6 @@
 
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                // Use default supported mime type, usually video/webm;codecs=opus or audio/webm
                 mediaRecorder = new MediaRecorder(stream);
                 audioChunks = [];
                 mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
@@ -624,10 +866,14 @@
         };
 
         document.getElementById('mic-stop-btn').onclick = () => {
+            if (recognition) {
+                isListening = false;
+                recognition.stop();
+            }
+
             if (mediaRecorder && mediaRecorder.state !== 'inactive') {
                 mediaRecorder.stop();
                 mediaRecorder.onstop = async () => {
-                    // Blob type should match the recorder's actual format
                     const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
                     const reader = new FileReader();
                     reader.readAsDataURL(audioBlob);
@@ -642,21 +888,14 @@
                             });
                             const data = await res.json();
                             if (data.status === 'success') {
-                                if (!data.original_text) {
-                                    showToast("No speech detected", "info");
-                                    return;
+                                if (data.original_text) {
+                                    addTranscript("User", data.original_text);
+                                    if (data.result && data.result.sequence) {
+                                        window.avatar.playSequence(data.result.sequence);
+                                    }
                                 }
-                                addTranscript("User", data.original_text);
-                                showToast("Speech Processed", "success");
-                                if (data.result && data.result.sequence) {
-                                    window.avatar.playSequence(data.result.sequence);
-                                }
-                            } else {
-                                showToast(data.message || "Transcription Failed", "error");
                             }
-                        } catch (e) {
-                            showToast("Server Connection Error", "error");
-                        }
+                        } catch (e) {}
                     };
                 };
             }

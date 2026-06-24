@@ -13,7 +13,14 @@ class DataCollector:
         self.data_path = data_path
         self.no_sequences = no_sequences
         self.sequence_length = sequence_length
-        self.cv_module = CVModule()
+        self._cv_module = None
+
+    @property
+    def cv_module(self):
+        if self._cv_module is None:
+            from module2_sign_to_speech.cv_module.landmark_detection import CVModule
+            self._cv_module = CVModule()
+        return self._cv_module
 
     def create_folders(self, actions):
         for action in actions:
@@ -44,17 +51,26 @@ class DataCollector:
         corrupted_count = 0
 
         for action in actions:
+            action = action.strip()
             action_path = os.path.join(self.data_path, action)
             if not os.path.exists(action_path):
-                print(f"Warning: Directory for {action} missing.")
+                print(f"Warning: Directory for '{action}' missing at {action_path}.")
+                continue
+
+            # Ensure we are looking at a directory
+            if not os.path.isdir(action_path):
                 continue
 
             for sequence in os.listdir(action_path):
+                sequence_path = os.path.join(action_path, sequence)
+                if not os.path.isdir(sequence_path):
+                    continue
+
                 window = []
                 valid_sequence = True
 
                 for frame_num in range(self.sequence_length):
-                    npy_file = os.path.join(self.data_path, action, str(sequence), "{}.npy".format(frame_num))
+                    npy_file = os.path.join(sequence_path, "{}.npy".format(frame_num))
 
                     if not os.path.exists(npy_file):
                         missing_count += 1

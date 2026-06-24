@@ -1,5 +1,16 @@
 import os
+import sys
 import numpy as np
+
+# COMPATIBILITY HACK: Fix NumPy/JAX friction for TensorFlow
+from types import ModuleType
+if not hasattr(np, "dtypes"):
+    np.dtypes = ModuleType("dtypes")
+if not hasattr(np.dtypes, "StringDType"):
+    class MockStringDType:
+        def __call__(self, *args, **kwargs): return np.str_
+    np.dtypes.StringDType = MockStringDType()
+
 import tensorflow as tf
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
@@ -22,14 +33,25 @@ def train_model(actions=None, progress_callback=None, epochs=500, batch_size=32)
         actions = np.array(actions)
 
     if progress_callback: progress_callback(10)
-    collector = DataCollector()
+
+    # Architecture: Ensure we use the project root for data consistency
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    data_path = os.path.join(project_root, 'MP_Data')
+
+    print(f"PIPELINE: Initializing DataCollector with path: {data_path}")
+    collector = DataCollector(data_path=data_path)
 
     # 1. Load and Validate Data
-    print(f"Loading data for actions: {actions}")
-    X, y = collector.load_processed_data(actions)
+    print(f"PIPELINE: Loading data for actions: {actions}")
+    try:
+        X, y = collector.load_processed_data(actions)
+    except Exception as le:
+        print(f"PIPELINE ERROR: Failed to load data: {le}")
+        if progress_callback: progress_callback(-1)
+        return
 
     if X is None or X.size == 0:
-        print("Error: No data found for training.")
+        print(f"PIPELINE ERROR: No valid sequences found in {data_path} for actions {actions}")
         if progress_callback: progress_callback(-1)
         return
 
@@ -51,7 +73,12 @@ def train_model(actions=None, progress_callback=None, epochs=500, batch_size=32)
 
     y_cat = to_categorical(y_augmented).astype(int)
 
-    X_train, X_test, y_train, y_test = train_test_split(X_augmented, y_cat, test_size=0.1, stratify=y_augmented)
+    # Robust Split: Ensure we have enough samples for stratification
+    try:
+        X_train, X_test, y_train, y_test = train_test_split(X_augmented, y_cat, test_size=0.1, stratify=y_augmented)
+    except ValueError:
+        print("PIPELINE WARNING: Stratified split failed (too few samples). Falling back to random split.")
+        X_train, X_test, y_train, y_test = train_test_split(X_augmented, y_cat, test_size=0.1)
 
     # 2. Initialize Model
     seq_manager = SequenceModel(actions=actions)

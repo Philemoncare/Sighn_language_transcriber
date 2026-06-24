@@ -2,12 +2,23 @@ import cv2
 import numpy as np
 import logging
 import time
+import sys
 
+# Requirement: Handle MediaPipe import variations in 0.10.x+
 try:
     import mediapipe as mp
+    try:
+        # Preferred: Direct import of solutions
+        import mediapipe.python.solutions.holistic as mp_holistic
+        import mediapipe.python.solutions.drawing_utils as mp_drawing
+    except ImportError:
+        # Fallback for older structures
+        import mediapipe.solutions.holistic as mp_holistic
+        import mediapipe.solutions.drawing_utils as mp_drawing
     MEDIAPIPE_AVAILABLE = True
 except ImportError:
     MEDIAPIPE_AVAILABLE = False
+    print("CRITICAL: MediaPipe library not found in environment.")
 
 # Configure performance logging
 logging.basicConfig(level=logging.INFO)
@@ -18,20 +29,25 @@ class CVModule:
         self.active = False
         if MEDIAPIPE_AVAILABLE:
             try:
-                self.mp_holistic = mp.solutions.holistic
+                # Store the module reference
+                self.mp_holistic = mp_holistic
+
                 # PERFORMANCE FIX: Set model_complexity to 0 for fastest real-time inference
                 # Requirement 2.4: Optimized initialization
                 self.holistic = self.mp_holistic.Holistic(
                     static_image_mode=False,
                     model_complexity=0,             # 0 = Lite (Fastest), 1 = Balanced
                     smooth_landmarks=True,
-                    min_detection_confidence=0.6,   # Requirement 3.1
-                    min_tracking_confidence=0.6      # Requirement 3.1
+                    min_detection_confidence=0.5,   # Slightly lowered for better edge case detection
+                    min_tracking_confidence=0.5
                 )
                 self.active = True
-                logger.info("MediaPipe Holistic Initialized (Lite Model - 30 FPS Target)")
+                logger.info("MediaPipe Holistic Initialized (Legacy API via Python Solutions)")
             except Exception as e:
                 logger.error(f"MediaPipe initialization failed: {e}")
+                # Log traceback for deep debugging
+                import traceback
+                logger.error(traceback.format_exc())
 
         self.last_process_time = 0
 
@@ -41,6 +57,11 @@ class CVModule:
         """
         if not self.active or frame is None:
             return np.zeros(1662)
+
+        # Optimization: Resize large frames to speed up AI inference
+        h, w = frame.shape[:2]
+        if w > 640:
+            frame = cv2.resize(frame, (640, int(h * 640 / w)))
 
         start_time = time.time()
 
