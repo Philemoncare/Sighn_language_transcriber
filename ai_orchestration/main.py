@@ -9,39 +9,6 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
-# COMPATIBILITY HACK: Bypass broken MediaPipe/TensorFlow/NumPy dependency chain
-from types import ModuleType
-import numpy as np
-
-# Fix NumPy/JAX/TensorFlow friction
-if not hasattr(np, "dtypes"):
-    np.dtypes = ModuleType("dtypes")
-if not hasattr(np.dtypes, "StringDType"):
-    # Some JAX versions expect StringDType in newer NumPy, but we can shim it
-    class MockStringDType:
-        def __call__(self, *args, **kwargs): return np.str_
-    np.dtypes.StringDType = MockStringDType()
-
-try:
-    import tensorflow.tools.docs.doc_controls as dc
-except (ImportError, ModuleNotFoundError, AttributeError):
-    try:
-        class DecoratorStub:
-            def __call__(self, *args, **kwargs):
-                if args and callable(args[0]): return args[0]
-                return lambda x: x
-            def __getattr__(self, name): return self
-        stub = DecoratorStub()
-        for pkg in ["tensorflow", "tensorflow.tools", "tensorflow.tools.docs", "tensorflow.tools.docs.doc_controls"]:
-            if pkg not in sys.modules:
-                mod = ModuleType(pkg)
-                if pkg != "tensorflow.tools.docs.doc_controls": mod.__path__ = []
-                sys.modules[pkg] = mod
-        m = sys.modules["tensorflow.tools.docs.doc_controls"]
-        m.header = m.do_not_generate_docs = m.do_not_doc_in_subclasses = stub
-        if "tensorflow.tools.docs" in sys.modules: sys.modules["tensorflow.tools.docs"].doc_controls = m
-    except: pass
-
 # Project setup
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(project_root)
@@ -52,7 +19,6 @@ from ai_orchestration.core.logging import setup_logging, log_writer_task
 from ai_orchestration.core.auth_init import ensure_admin_exists
 from ai_orchestration.api import auth, admin, translation
 from ai_orchestration.websocket.handler import websocket_endpoint
-from ai_orchestration.services.orchestrator import orchestrator
 from database_layer.db_manager import init_db, SessionLocal
 
 # --- LIFECYCLE ---
@@ -60,29 +26,56 @@ from database_layer.db_manager import init_db, SessionLocal
 async def lifespan(app: FastAPI):
     # 1. Start Logging
     asyncio.create_task(log_writer_task())
-    logger.info(f"{PROJECT_NAME} starting...")
+    logger.info(f"--- {PROJECT_NAME} Lifecycle Startup ---")
 
-    # 2. Initialize Database
+    # 2. Initialize Database & Global Services
     try:
+        logger.info("Initializing Database...")
         await asyncio.to_thread(init_db)
+
+        logger.info("Ensuring Admin exists...")
         await asyncio.to_thread(ensure_admin_exists)
 
-        # 3. Synchronize AI Orchestrator
+        # 3. Initialize Orchestrator properly within lifespan
+        logger.info("Synchronizing AI Orchestrator...")
+        from ai_orchestration.services.orchestrator import orchestrator
+
+        # Store loop for thread-safe broadcasting
+        import ai_orchestration.core.config as config
+        config.GLOBAL_LOOP = asyncio.get_running_loop()
+
         db = SessionLocal()
         try:
+            from database_layer.db_manager import SignDatasetModel
+            # CLEANUP: Mark any stuck processing jobs as failed on restart
+            stuck_count = db.query(SignDatasetModel).filter(
+                SignDatasetModel.status.in_(["queued", "uploading", "validating", "decoding", "extracting_features", "generating_context", "finalizing"])
+            ).update({SignDatasetModel.status: "failed", SignDatasetModel.progress: 0}, synchronize_session=False)
+            if stuck_count > 0:
+                logger.warning(f"Cleaned up {stuck_count} stuck extraction jobs from previous session.")
+
+            db.commit()
             orchestrator.sync_vocabulary(db)
         finally:
             db.close()
 
-        logger.info("Core architecture initialized and synchronized.")
+        logger.info("Core architecture fully integrated and synchronized.")
     except Exception as e:
-        logger.error(f"Initialization failure: {e}")
+        logger.error(f"CRITICAL Lifecycle Failure: {e}")
+        import traceback
+        logger.error(traceback.format_exc())
 
     yield
-    logger.info(f"{PROJECT_NAME} shutting down.")
+    logger.info(f"--- {PROJECT_NAME} Lifecycle Shutdown ---")
 
 # --- APPLICATION SETUP ---
-app = FastAPI(title=PROJECT_NAME, version=VERSION, lifespan=lifespan)
+app = FastAPI(
+    title=PROJECT_NAME,
+    version=VERSION,
+    lifespan=lifespan,
+    docs_url="/api/docs",
+    redoc_url="/api/redoc"
+)
 logger = setup_logging()
 
 # Middleware
@@ -105,13 +98,25 @@ async def ws_route(websocket: WebSocket, user_id: int):
     await websocket_endpoint(websocket, user_id)
 
 # Static Files
-app.mount("/ui", StaticFiles(directory=os.path.join(PROJECT_ROOT, "ui_layer"), html=True), name="ui")
-app.mount("/public", StaticFiles(directory=os.path.join(PROJECT_ROOT, "public")), name="public")
+# Priority: UI Layer
+ui_path = os.path.join(PROJECT_ROOT, "ui_layer")
+if os.path.exists(ui_path):
+    app.mount("/ui", StaticFiles(directory=ui_path, html=True), name="ui")
+
+# Public assets
+public_path = os.path.join(PROJECT_ROOT, "public")
+if os.path.exists(public_path):
+    app.mount("/public", StaticFiles(directory=public_path), name="public")
 
 @app.get("/")
 async def root():
     return RedirectResponse(url="/ui/web_app/index.html")
 
+@app.get("/health")
+async def health_check():
+    return {"status": "ok", "version": VERSION}
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("ai_orchestration.main:app", host="0.0.0.0", port=8000, reload=True)
+    # Production-grade: reload=False prevents background task termination on file changes
+    uvicorn.run("ai_orchestration.main:app", host="0.0.0.0", port=8000, reload=False)

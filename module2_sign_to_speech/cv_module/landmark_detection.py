@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+
 import logging
 import time
 import sys
@@ -8,17 +9,18 @@ import sys
 try:
     import mediapipe as mp
     try:
-        # Preferred: Direct import of solutions
+        # Preferred: Direct import of solutions (Legacy API)
         import mediapipe.python.solutions.holistic as mp_holistic
         import mediapipe.python.solutions.drawing_utils as mp_drawing
     except ImportError:
-        # Fallback for older structures
+        # Fallback for standard solutions path
         import mediapipe.solutions.holistic as mp_holistic
         import mediapipe.solutions.drawing_utils as mp_drawing
+
     MEDIAPIPE_AVAILABLE = True
-except ImportError:
+except Exception as e:
     MEDIAPIPE_AVAILABLE = False
-    print("CRITICAL: MediaPipe library not found in environment.")
+    print(f"CRITICAL: MediaPipe failed to load: {e}")
 
 # Configure performance logging
 logging.basicConfig(level=logging.INFO)
@@ -32,17 +34,18 @@ class CVModule:
                 # Store the module reference
                 self.mp_holistic = mp_holistic
 
-                # PERFORMANCE FIX: Set model_complexity to 0 for fastest real-time inference
+                # PERFORMANCE FIX: Set model_complexity to 1 for better balanced accuracy
                 # Requirement 2.4: Optimized initialization
                 self.holistic = self.mp_holistic.Holistic(
                     static_image_mode=False,
-                    model_complexity=0,             # 0 = Lite (Fastest), 1 = Balanced
+                    model_complexity=1,             # 1 = Balanced (Better for complex backgrounds/low res)
                     smooth_landmarks=True,
-                    min_detection_confidence=0.5,   # Slightly lowered for better edge case detection
-                    min_tracking_confidence=0.5
+                    min_detection_confidence=0.4,   # Lowered further to catch difficult frames
+                    min_tracking_confidence=0.4
                 )
                 self.active = True
                 logger.info("MediaPipe Holistic Initialized (Legacy API via Python Solutions)")
+                print("MEDIA_PIPELINE_ACTIVE")
             except Exception as e:
                 logger.error(f"MediaPipe initialization failed: {e}")
                 # Log traceback for deep debugging

@@ -9,8 +9,8 @@ psycopg2-binary
 speechrecognition
 spacy
 pyttsx3
-tensorflow
-numpy
+tensorflow>=2.15.0
+numpy<2.0.0
 python-multipart
 python-jose[cryptography]
 passlib[bcrypt]

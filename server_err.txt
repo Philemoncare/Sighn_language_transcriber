@@ -1,0 +1,17 @@
+INFO:SpeechEngine:Modern Speech Recognition Engine Initialized with Noise Reduction capability
+INFO:CV_Module_Optimized:MediaPipe Holistic Initialized (Legacy API via Python Solutions)
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+INFO:comtypes.client._code_cache:Imported existing <module 'comtypes.gen' from 'C:\\SnLag\\venv\\Lib\\site-packages\\comtypes\\gen\\__init__.py'>
+INFO:comtypes.client._code_cache:Using writeable comtypes cache directory: 'C:\SnLag\venv\Lib\site-packages\comtypes\gen'
+INFO:     Started server process [12792]
+INFO:     Waiting for application startup.
+INFO:SnLag_Core:--- SnLag Universal Core Lifecycle Startup ---
+INFO:SnLag_Core:Initializing Database...
+INFO:SnLag_Core:Ensuring Admin exists...
+INFO:SnLag_Core:Synchronizing AI Orchestrator...
+INFO:AI_Orchestrator:Orchestration: Sync complete (43 actions, sorted)
+INFO:SnLag_Core:Core architecture fully integrated and synchronized.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:54278 - "WebSocket /ws/translate/1" [accepted]
+INFO:     connection open

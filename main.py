@@ -3,6 +3,10 @@ import sys
 
 # Shortcut to launch the AI Orchestration Layer from the root
 if __name__ == "__main__":
+    import os
+    import sys
+    import uvicorn
+
     project_root = os.path.dirname(os.path.abspath(__file__))
     sys.path.append(project_root)
 
@@ -13,7 +17,9 @@ if __name__ == "__main__":
     try:
         from ai_orchestration.main import app
         import uvicorn
+        # Standard uvicorn execution
         uvicorn.run(app, host="0.0.0.0", port=8000)
-    except ImportError as e:
-        print(f"Error: Could not find the orchestration layer. {e}")
-        print("Please ensure you are running from the project root and requirements are installed.")
+    except Exception as e:
+        print(f"FATAL ERROR during startup: {e}")
+        import traceback
+        traceback.print_exc()

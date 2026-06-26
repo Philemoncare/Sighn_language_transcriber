@@ -73,18 +73,22 @@ class SpeechRecognitionEngine:
                 # Use BytesIO for in-memory processing
                 audio_stream = io.BytesIO(audio_bytes)
 
-                if audio_bytes.startswith(b'\x1a\x45\xdf\xa3'): # WebM
-                    if not ffmpeg_path:
-                        return "", "FFmpeg required for WebM processing."
+                # Robust format detection: Check for WebM/Matroska or OGG
+                is_webm = audio_bytes.startswith(b'\x1a\x45\xdf\xa3')
+                is_ogg = audio_bytes.startswith(b'OggS')
 
-                    if PYDUB_AVAILABLE:
-                        audio = AudioSegment.from_file(audio_stream, format="webm")
+                if is_webm or is_ogg or PYDUB_AVAILABLE:
+                    try:
+                        # Pydub is excellent at sniffing formats automatically
+                        audio = AudioSegment.from_file(audio_stream)
                         wav_io = io.BytesIO()
                         audio.export(wav_io, format="wav")
                         wav_io.seek(0)
                         process_source = wav_io
-                    else:
-                        return "", "pydub required for WebM conversion."
+                    except Exception as pe:
+                        logger.warning(f"Pydub format conversion failed: {pe}. Falling back to raw stream.")
+                        audio_stream.seek(0)
+                        process_source = audio_stream
                 else:
                     process_source = audio_stream
 

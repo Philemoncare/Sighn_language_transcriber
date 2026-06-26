@@ -19,15 +19,19 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         username: str = payload.get("sub")
         if username is None:
+            print(f"DEBUG AUTH: sub is missing in token")
             raise credentials_exception
-    except JWTError:
+    except JWTError as e:
+        print(f"DEBUG AUTH: Token decode failed: {e}")
         raise credentials_exception
 
-    user = db.query(UserModel).filter(UserModel.username == username).first()
+    user = db.query(UserModel).filter(UserModel.username == username, UserModel.is_deleted == False).first()
     if user is None:
+        print(f"DEBUG AUTH: User '{username}' not found or deleted")
         raise credentials_exception
     if not user.is_active:
-        raise HTTPException(status_code=400, detail="Inactive user")
+        raise HTTPException(status_code=403, detail="Inactive node")
+
     return user
 
 async def get_current_admin(current_user: UserModel = Depends(get_current_user)):

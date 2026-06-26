@@ -9,7 +9,6 @@ from fastapi import WebSocket, WebSocketDisconnect
 from sqlalchemy.orm import Session
 
 from database_layer.db_manager import SessionLocal, CollectedDataModel
-from ai_orchestration.services.orchestrator import orchestrator
 
 logger = logging.getLogger("SnLag_WS")
 
@@ -25,18 +24,23 @@ class ConnectionManager:
         if user_id in self.active_connections:
             del self.active_connections[user_id]
 
-    async def broadcast_training_update(self, job_id: int, progress: int, status: str):
-        message = json.dumps({
-            "type": "training_progress",
-            "job_id": job_id,
-            "progress": progress,
-            "status": status
-        })
-        for ws in self.active_connections.values():
+    async def broadcast_json(self, data: dict):
+        message = json.dumps(data)
+        for ws in list(self.active_connections.values()):
             try:
                 await ws.send_text(message)
             except:
                 pass
+
+    async def broadcast_training_update(self, job_id: int, progress: int, status: str, metrics: dict = None):
+        message = {
+            "type": "training_progress",
+            "job_id": job_id,
+            "progress": progress,
+            "status": status,
+            "metrics": metrics or {}
+        }
+        await self.broadcast_json(message)
 
 manager = ConnectionManager()
 
@@ -52,11 +56,14 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
 
     try:
         while True:
-            data = await websocket.receive()
+            # Use specific receive methods to avoid "dictionary" vs "message" ambiguity
+            # that often causes the "Cannot call receive once disconnected" error
+            message = await websocket.receive()
 
-            if "bytes" in data:
+            if "bytes" in message:
+                data_bytes = message["bytes"]
                 # High-speed landmark processing
-                landmarks = np.frombuffer(data["bytes"], dtype=np.float32).tolist()
+                landmarks = np.frombuffer(data_bytes, dtype=np.float32).tolist()
                 buffer.append(landmarks)
 
                 now = time.time()
@@ -64,14 +71,16 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
                     last_inference_time = now
                     asyncio.create_task(run_ws_inference(websocket, list(buffer), state, user_id, inference_lock))
 
-            elif "text" in data:
-                msg = json.loads(data["text"])
+            elif "text" in message:
+                data_text = message["text"]
+                msg = json.loads(data_text)
                 if msg.get("type") == "set_language":
                     state["language"] = msg.get("language", "English")
                 elif msg.get("type") == "speech_text":
                     # Real-time Speech-to-Sign path
                     text = msg.get("text", "")
                     if text:
+                        from ai_orchestration.services.orchestrator import orchestrator
                         res = await orchestrator.speech_to_sign(text.encode(), language=state["language"])
                         await websocket.send_json({
                             "type": "translation_result",
@@ -79,17 +88,26 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
                             "result": res.get("result")
                         })
 
+            elif message.get("type") == "websocket.disconnect":
+                break
+
     except WebSocketDisconnect:
-        manager.disconnect(user_id)
-        logger.info(f"WS: User {user_id} disconnected.")
+        logger.info(f"WS: User {user_id} disconnected via exception.")
     except Exception as e:
-        logger.error(f"WS Error for user {user_id}: {e}")
+        if "disconnect" not in str(e).lower():
+            logger.error(f"WS Error for user {user_id}: {e}")
     finally:
         manager.disconnect(user_id)
+        # Attempt safe close
+        try:
+            await websocket.close()
+        except:
+            pass
 
 async def run_ws_inference(ws: WebSocket, buffer: list, state: dict, user_id: int, lock: asyncio.Lock):
     async with lock:
         try:
+            from ai_orchestration.services.orchestrator import orchestrator
             res = await orchestrator.sign_to_speech(buffer, language=state["language"])
             if res["status"] == "success":
                 sign = res["text"]

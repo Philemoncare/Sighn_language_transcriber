@@ -673,12 +673,12 @@
             try {
                 if (!holistic) {
                     holistic = new Holistic({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/holistic/${file}`});
-                    // INCREASE COMPLEXITY for better hand/face tracking when hands come together
+                    // ALIGNMENT FIX: Use modelComplexity 0 to match Backend CVModule training data
                     holistic.setOptions({
-                        modelComplexity: 1,
+                        modelComplexity: 0,
                         smoothLandmarks: true,
                         enableSegmentation: false,
-                        refineFaceLandmarks: true
+                        refineFaceLandmarks: false
                     });
                     holistic.onResults(onResults);
                 }

@@ -64,7 +64,13 @@ class TrainingService:
             if not valid_actions:
                 job.status = "failed"
                 db.commit()
-                logger.error(f"Training Job #{job_id} failed: No valid dataset found.")
+                msg = "No valid landmark data found. Ensure video processing is complete."
+                logger.error(f"Training Job #{job_id} failed: {msg}")
+                # Broadcast failure
+                if self.loop and self.loop.is_running():
+                    self.loop.call_soon_threadsafe(
+                        lambda: asyncio.create_task(manager.broadcast_training_update(job_id, 0, "failed"))
+                    )
                 return
 
             # 2. Start Training
@@ -93,20 +99,32 @@ class TrainingService:
         actions_query = db.query(SignDatasetModel.label).filter(SignDatasetModel.landmark_path != None).distinct().all()
         pot_actions = sorted(list(set([a[0].strip() for a in actions_query if a[0]])))
 
+        logger.info(f"Pipeline: Validating potential actions: {pot_actions}")
+
         valid = []
         for a in pot_actions:
             action_dir = os.path.join(MP_DATA_ROOT, a)
             if os.path.exists(action_dir) and os.path.isdir(action_dir):
                 has_data = False
-                for seq in os.listdir(action_dir):
+                sequences = os.listdir(action_dir)
+                for seq in sequences:
                     seq_path = os.path.join(action_dir, seq)
                     if os.path.isdir(seq_path):
                         files = [f for f in os.listdir(seq_path) if f.endswith('.npy')]
                         if len(files) >= 5:
                             has_data = True
+                            logger.info(f"Pipeline: Action '{a}' has valid sequence at {seq_path} ({len(files)} frames)")
                             break
                 if has_data:
                     valid.append(a)
+                else:
+                    logger.warning(f"Pipeline: Action '{a}' directory found but contains no valid sequences (>= 5 frames)")
+            else:
+                logger.warning(f"Pipeline: Action '{a}' directory NOT found at {action_dir}")
+
+        if not valid:
+            logger.error(f"Pipeline: No valid actions found among {pot_actions}. Ensure video processing is finished.")
+
         return valid
 
     async def _finalize_model(self, db: Session, job: TrainingJobModel, actions: List[str]):

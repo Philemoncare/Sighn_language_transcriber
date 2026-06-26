@@ -1,159 +1,149 @@
 import os
 import sys
 import numpy as np
-
-# COMPATIBILITY HACK: Fix NumPy/JAX friction for TensorFlow
-from types import ModuleType
-if not hasattr(np, "dtypes"):
-    np.dtypes = ModuleType("dtypes")
-if not hasattr(np.dtypes, "StringDType"):
-    class MockStringDType:
-        def __call__(self, *args, **kwargs): return np.str_
-    np.dtypes.StringDType = MockStringDType()
-
-import tensorflow as tf
-from tensorflow.keras.utils import to_categorical
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-import sys
 import json
 import datetime
+import logging
+from types import ModuleType
 
-# Add parent directory to path
+# NumPy Compatibility Layer
+if not hasattr(np, "complex_"): np.complex_ = np.complex128
+if not hasattr(np, "float_"): np.float_ = np.float64
+if not hasattr(np, "int_"): np.int_ = np.int64
+
+try:
+    import tensorflow as tf
+    from tensorflow.keras.models import Sequential
+    from tensorflow.keras.layers import LSTM, Dense, Input, Dropout, BatchNormalization, Bidirectional
+    from tensorflow.keras.utils import to_categorical
+    from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
+    TRAIN_TF_AVAILABLE = True
+except ImportError:
+    TRAIN_TF_AVAILABLE = False
+
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+
+# Internal Imports
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-
-from module2_sign_to_speech.sequence_model.recognizer import SequenceModel
 from module2_sign_to_speech.sequence_model.data_collection import DataCollector
 
-def train_model(actions=None, progress_callback=None, epochs=500, batch_size=32):
+logger = logging.getLogger("Modern_Trainer")
+
+def build_modern_architecture(input_shape, num_actions):
+    """
+    Architectural Improvement: Bidirectional LSTM with Batch Normalization
+    Provides better temporal feature extraction for sign language.
+    """
+    model = Sequential([
+        Input(shape=input_shape),
+        # Spatial-Temporal Feature Extraction
+        BatchNormalization(),
+        Bidirectional(LSTM(128, return_sequences=True, activation='tanh')),
+        Dropout(0.3),
+        Bidirectional(LSTM(256, return_sequences=True, activation='tanh')),
+        Dropout(0.3),
+        Bidirectional(LSTM(128, return_sequences=False, activation='tanh')),
+        BatchNormalization(),
+
+        # Classification Head
+        Dense(128, activation='relu'),
+        Dropout(0.4),
+        Dense(64, activation='relu'),
+        Dense(num_actions, activation='softmax')
+    ])
+    return model
+
+def train_model(actions=None, progress_callback=None, epochs=100, batch_size=32):
+    if not TRAIN_TF_AVAILABLE:
+        logger.error("TensorFlow not found. Training aborted.")
+        return
+
+    # 1. Prepare Actions & Metadata
     if actions is None:
-        actions = np.array(['hello', 'thanks', 'i_love_you', 'please', 'sorry'])
-    else:
-        actions = np.array(actions)
+        actions = ['hello', 'thanks', 'i_love_you', 'please', 'sorry']
 
-    if progress_callback: progress_callback(10)
+    actions = sorted(list(set([a.strip() for a in actions])))
+    num_actions = len(actions)
 
-    # Architecture: Ensure we use the project root for data consistency
+    # 2. Load Data
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     data_path = os.path.join(project_root, 'MP_Data')
-
-    print(f"PIPELINE: Initializing DataCollector with path: {data_path}")
     collector = DataCollector(data_path=data_path)
 
-    # 1. Load and Validate Data
-    print(f"PIPELINE: Loading data for actions: {actions}")
-    try:
-        X, y = collector.load_processed_data(actions)
-    except Exception as le:
-        print(f"PIPELINE ERROR: Failed to load data: {le}")
+    logger.info(f"Loading data for: {actions}")
+    X, y = collector.load_processed_data(actions)
+
+    if X is None or len(X) == 0:
+        logger.error("No training data found.")
         if progress_callback: progress_callback(-1)
         return
 
-    if X is None or X.size == 0:
-        print(f"PIPELINE ERROR: No valid sequences found in {data_path} for actions {actions}")
-        if progress_callback: progress_callback(-1)
-        return
+    # DATASET SAFETY: If we have very few samples, we must duplicate them (Augmentation)
+    # to allow the train_test_split to function without crashing.
+    if len(X) < 10:
+        logger.warning(f"Extremely small dataset ({len(X)} samples). Applying emergency augmentation.")
+        X_orig, y_orig = X.copy(), y.copy()
+        # Ensure we have at least 15 samples total
+        iterations = (15 // len(X)) + 1
+        for _ in range(iterations):
+            noise = np.random.normal(0, 0.002, X_orig.shape).astype(np.float32)
+            X = np.concatenate([X, X_orig + noise], axis=0)
+            y = np.concatenate([y, y_orig], axis=0)
 
-    # PERFORMANCE FIX: If only one action is provided, we create a "negative" class
-    # to allow the classifier to have at least 2 categories (Binary Classification)
-    if len(actions) == 1:
-        print(f"Only one action detected: {actions[0]}. Creating 'background' class for stability.")
-        # Create background data: random noise with similar scale
-        X_bg = np.random.normal(0, 0.01, X.shape)
-        X = np.concatenate([X, X_bg], axis=0)
-        y = np.concatenate([y, np.ones(y.shape) * 1], axis=0) # Index 1 for background
-        actions = np.array([actions[0], "background"])
+    # CLASS SAFETY: If only 1 action is provided, we MUST add a "background" class.
+    if num_actions == 1:
+        logger.info(f"Only 1 action '{actions[0]}' detected. Adding synthetic 'nothing' class for stability.")
+        bg_data = np.random.normal(0, 0.01, (len(X), 30, 1662)).astype(np.float32)
+        X = np.concatenate([X, bg_data], axis=0)
+        y = np.concatenate([y, np.ones(len(y), dtype=int) * 1], axis=0)
+        actions.append("nothing")
+        num_actions = 2
 
-    if progress_callback: progress_callback(30)
-    # Data Augmentation: Adding slight noise to landmarks to improve robustness
-    noise = np.random.normal(0, 0.001, X.shape)
-    X_augmented = np.concatenate([X, X + noise], axis=0)
-    y_augmented = np.concatenate([y, y], axis=0)
+    y_cat = to_categorical(y, num_classes=num_actions)
 
-    y_cat = to_categorical(y_augmented).astype(int)
+    # Adjust test_size for small datasets to ensure at least 1 sample in each set
+    actual_test_size = 0.2 if len(X) > 20 else 1 / len(X)
+    X_train, X_test, y_train, y_test = train_test_split(X, y_cat, test_size=actual_test_size, random_state=42)
 
-    # Robust Split: Ensure we have enough samples for stratification
-    try:
-        X_train, X_test, y_train, y_test = train_test_split(X_augmented, y_cat, test_size=0.1, stratify=y_augmented)
-    except ValueError:
-        print("PIPELINE WARNING: Stratified split failed (too few samples). Falling back to random split.")
-        X_train, X_test, y_train, y_test = train_test_split(X_augmented, y_cat, test_size=0.1)
+    # 3. Build & Compile
+    model = build_modern_architecture((30, 1662), num_actions)
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['categorical_accuracy'])
 
-    # 2. Initialize Model
-    seq_manager = SequenceModel(actions=actions)
-    model = seq_manager.model
+    # 4. Modern Training Callbacks
+    callbacks = [
+        EarlyStopping(monitor='val_loss', patience=15, restore_best_weights=True),
+        ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=5, min_lr=0.00001),
+        ModelCheckpoint('best_model.h5', monitor='val_categorical_accuracy', save_best_only=True)
+    ]
 
-    model.compile(optimizer='Adam', loss='categorical_crossentropy', metrics=['categorical_accuracy'])
-
-    if progress_callback: progress_callback(40)
-
-    # 3. Callbacks for Optimization
-    class ProgressLogger(tf.keras.callbacks.Callback):
-        def on_epoch_end(self, epoch, logs=None):
-            if progress_callback:
-                # Map epochs to 30% - 90% progress range
-                prog = 30 + int(((epoch + 1) / epochs) * 60)
-                progress_callback(prog)
-
-    # Define callbacks
-    early_stopping = EarlyStopping(monitor='categorical_accuracy', min_delta=0.001, patience=50, verbose=1, mode='max', restore_best_weights=True)
-    checkpoint = ModelCheckpoint('action_recognition.h5', monitor='categorical_accuracy', verbose=1, save_best_only=True, mode='max')
-    best_checkpoint = ModelCheckpoint('best_model.h5', monitor='val_categorical_accuracy', verbose=1, save_best_only=True, mode='max')
-
-    callbacks = [early_stopping, checkpoint, best_checkpoint, ProgressLogger()]
-
-    # 4. Training
-    print("Starting Model Training...")
+    # 5. Execute Training
+    logger.info("Starting modern training pipeline...")
     history = model.fit(
         X_train, y_train,
+        validation_data=(X_test, y_test),
         epochs=epochs,
         batch_size=batch_size,
         callbacks=callbacks,
-        validation_data=(X_test, y_test),
         verbose=1
     )
 
-    if progress_callback: progress_callback(95)
-    # 5. Full Performance Evaluation
-    print("Evaluating Model...")
-    yhat = model.predict(X_test)
-    ytrue = np.argmax(y_test, axis=1)
-    yhat = np.argmax(yhat, axis=1)
+    # 6. Save Model & Mandatory Metadata (Ensures no "faking" symbols)
+    model.save(os.path.join(project_root, 'action_recognition.h5'))
 
-    report = classification_report(ytrue, yhat, target_names=actions, output_dict=True)
-    conf_matrix = confusion_matrix(ytrue, yhat).tolist()
-
-    accuracy = accuracy_score(ytrue, yhat)
-    print(f"Final Test Accuracy: {accuracy}")
-
-    model_version = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    # Save Performance Report
-    report_data = {
-        "timestamp": datetime.datetime.now().isoformat(),
-        "model_version": model_version,
-        "actions": actions.tolist(),
-        "accuracy": accuracy,
-        "classification_report": report,
-        "confusion_matrix": conf_matrix,
-        "training_history": {
-            "loss": history.history['loss'],
-            "accuracy": history.history['categorical_accuracy'],
-            "val_loss": history.history['val_loss'],
-            "val_accuracy": history.history['val_categorical_accuracy']
-        }
+    metadata = {
+        "trained_at": datetime.datetime.now().isoformat(),
+        "actions": actions,
+        "input_shape": [30, 1662],
+        "accuracy": float(history.history['categorical_accuracy'][-1])
     }
 
-    os.makedirs('models', exist_ok=True)
-    with open(f'models/report_{model_version}.json', 'w') as f:
-        json.dump(report_data, f, indent=4)
+    metadata_path = os.path.join(project_root, 'model_metadata.json')
+    with open(metadata_path, 'w') as f:
+        json.dump(metadata, f, indent=4)
 
-    with open('latest_report.json', 'w') as f:
-        json.dump(report_data, f, indent=4)
-
-    # 6. Save Final Production Model
-    model.save('action_recognition.h5')
-    print("Training Pipeline Complete. Model and Report Saved.")
+    logger.info("Modern Training Complete. Metadata synced.")
+    if progress_callback: progress_callback(100)
 
 if __name__ == "__main__":
     train_model()

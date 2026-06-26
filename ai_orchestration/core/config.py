@@ -8,7 +8,7 @@ VERSION = "2.0.0"
 API_V1_STR = ""
 
 # Security
-SECRET_KEY = os.getenv("SECRET_KEY", "your-super-secret-key-change-it")
+SECRET_KEY = os.getenv("SECRET_KEY") or "your-super-secret-key-change-it"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7

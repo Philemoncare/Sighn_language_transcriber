@@ -1,5 +1,13 @@
 import os
 import numpy as np
+
+# COMPATIBILITY HACK: Fix NumPy 2.0 breaking changes for older TensorFlow
+if not hasattr(np, "complex_"): np.complex_ = getattr(np, "complex128", None)
+if not hasattr(np, "float_"): np.float_ = getattr(np, "float64", None)
+if not hasattr(np, "int_"): np.int_ = getattr(np, "int64", None)
+if not hasattr(np, "string_"): np.string_ = getattr(np, "bytes_", None)
+if not hasattr(np, "unicode_"): np.unicode_ = getattr(np, "str_", None)
+
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout

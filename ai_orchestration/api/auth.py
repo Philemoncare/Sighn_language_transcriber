@@ -12,9 +12,17 @@ router = APIRouter()
 
 @router.post("/token")
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    user = db.query(UserModel).filter(UserModel.username == form_data.username).first()
+    user = db.query(UserModel).filter(
+        UserModel.username == form_data.username,
+        UserModel.is_deleted == False
+    ).first()
+
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="Account is deactivated")
+
 
     access = create_access_token(data={"sub": user.username})
     refresh = create_refresh_token(data={"sub": user.username})

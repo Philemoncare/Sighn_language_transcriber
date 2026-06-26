@@ -4,11 +4,9 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 import os
 
-# Secrets should be in environment variables
-SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-for-dev")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
-REFRESH_TOKEN_EXPIRE_DAYS = 7
+from ai_orchestration.core.config import (
+    SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_DAYS
+)
 
 pwd_context = CryptContext(schemes=["bcrypt", "sha256_crypt"], deprecated=["sha256_crypt"])
 

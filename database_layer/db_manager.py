@@ -47,7 +47,8 @@ class UserModel(Base):
     role = Column(String, default="user") # "admin" or "user"
     is_verified = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
-    preferences = Column(JSON, default={"theme": "light"})
+    is_deleted = Column(Boolean, default=False)
+    preferences = Column(JSON, default={"theme": "dark", "notifications": True})
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
 
@@ -55,7 +56,7 @@ class RefreshTokenModel(Base):
     __tablename__ = "refresh_tokens"
     id = Column(Integer, primary_key=True, index=True)
     token = Column(String, unique=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     expires_at = Column(DateTime)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
@@ -63,21 +64,32 @@ class SignDatasetModel(Base):
     __tablename__ = "sign_datasets"
     id = Column(Integer, primary_key=True, index=True)
     label = Column(String)
-    language = Column(String, default="English") # English, French, Portuguese, GSL, Twi
+    language = Column(String, default="English")
+    category = Column(String, nullable=True)
+    description = Column(String, nullable=True)
+    difficulty = Column(String, default="Easy")
+    tags = Column(JSON, default=[])
     video_path = Column(String, nullable=True)
     landmark_path = Column(String, nullable=True)
+    status = Column(String, default="pending") # pending, uploading, extracting, detecting, normalizing, completed, failed
+    progress = Column(Integer, default=0)
+    quality_score = Column(Float, default=0.0)
+    extraction_metadata = Column(JSON, default={}) # frames, fps, resolution, missing_landmarks, error
     is_augmented = Column(Boolean, default=False)
+    is_deleted = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 class TrainingJobModel(Base):
     __tablename__ = "training_jobs"
     id = Column(Integer, primary_key=True, index=True)
     job_name = Column(String)
-    status = Column(String, default="pending") # pending, training, completed, failed
+    status = Column(String, default="pending") # pending, training, evaluating, completed, failed
     progress = Column(Integer, default=0)
-    config = Column(JSON) # epochs, batch_size, learning_rate, model_type
-    accuracy = Column(String, nullable=True)
-    loss = Column(String, nullable=True)
+    current_epoch = Column(Integer, default=0)
+    total_epochs = Column(Integer, default=0)
+    metrics = Column(JSON, default={"accuracy": 0, "loss": 0, "val_accuracy": 0, "val_loss": 0})
+    config = Column(JSON)
+    is_deleted = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     completed_at = Column(DateTime, nullable=True)
 
@@ -89,12 +101,13 @@ class ModelVersionModel(Base):
     is_active = Column(Boolean, default=False)
     metrics = Column(JSON) # accuracy, precision, recall, f1
     supported_languages = Column(JSON)
+    is_deleted = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
 
 class ConversationModel(Base):
     __tablename__ = "conversations"
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     timestamp = Column(DateTime, default=datetime.datetime.utcnow)
     message_type = Column(String) # speech or sign
     original_content = Column(String)
@@ -105,8 +118,15 @@ class ConversationModel(Base):
 class SystemLogModel(Base):
     __tablename__ = "system_logs"
     id = Column(Integer, primary_key=True, index=True)
-    level = Column(String)
+    level = Column(String) # INFO, WARNING, ERROR, CRITICAL
+    service = Column(String, default="kernel") # frontend, backend, ai_engine, extraction, db, auth
+    category = Column(String, nullable=True) # startup, inference, upload, training, security
     message = Column(String)
+    details = Column(JSON, nullable=True) # Full message, stack trace, etc.
+    request_id = Column(String, nullable=True)
+    user_id = Column(Integer, nullable=True)
+    dataset_id = Column(Integer, nullable=True)
+    duration = Column(Float, nullable=True) # Execution time in ms
     timestamp = Column(DateTime, default=datetime.datetime.utcnow, index=True)
 
 class GestureLibraryModel(Base):
@@ -118,17 +138,27 @@ class GestureLibraryModel(Base):
     language_code = Column(String, default="en")
     is_pretrained = Column(Boolean, default=False)
     landmark_mapping = Column(JSON)
+    is_deleted = Column(Boolean, default=False)
 
 class CollectedDataModel(Base):
     __tablename__ = "collected_data"
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     data_type = Column(String) # "sign" or "speech"
     payload = Column(JSON) # Landmark sequence or audio reference
     label = Column(String, nullable=True) # Predicted or user-corrected label
     confidence = Column(Float, default=0.0)
     is_validated = Column(Boolean, default=False)
+    is_deleted = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+
+class AppSettingModel(Base):
+    __tablename__ = "app_settings"
+    key = Column(String, primary_key=True)
+    value = Column(JSON)
+    description = Column(String, nullable=True)
+    updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
 
 def init_db():
     Base.metadata.create_all(bind=engine)
