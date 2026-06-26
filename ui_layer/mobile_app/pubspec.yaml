@@ -1,0 +1,30 @@
+name: snlag_mobile
+description: SnLag Neural Interface Mobile Core
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.1.0
+  web_socket_channel: ^2.4.0
+  provider: ^6.0.5
+  intl: ^0.18.1
+  shared_preferences: ^2.2.0
+  fl_chart: ^0.63.0
+  camera: ^0.10.5
+  path_provider: ^2.1.0
+  file_picker: ^5.3.3
+  google_fonts: ^5.1.0
+  font_awesome_flutter: ^10.5.0
+  animate_do: ^3.1.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+
+flutter:
+  uses-material-design: true
