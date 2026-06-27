@@ -597,14 +597,14 @@
 
             async init() {
                 if (!this.state.token) {
-                    window.location.href = '/ui/web_app/auth.html';
+                    window.location.href = '/ui_layer/web_app/auth.html';
                     return;
                 }
 
                 try {
                     const user = await this.api.request('/users/me');
                     if (user.role !== 'admin') {
-                        window.location.href = '/ui/web_app/index.html';
+                        window.location.href = '/ui_layer/web_app/index.html';
                         return;
                     }
                     this.state.user = user;
@@ -1866,7 +1866,7 @@
             },
 
             auth: {
-                logout() { localStorage.removeItem('snlag_token'); window.location.href = '/ui/web_app/auth.html'; }
+                logout() { localStorage.removeItem('snlag_token'); window.location.href = '/ui_layer/web_app/auth.html'; }
             }
         };
 

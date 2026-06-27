@@ -500,7 +500,7 @@
 
         window.onload = () => {
             if (!TOKEN) {
-                window.location.href = '/ui/web_app/auth.html';
+                window.location.href = '/ui_layer/web_app/auth.html';
             } else {
                 startSession();
             }
@@ -644,7 +644,7 @@
 
                 if (user.role === 'admin') {
                     document.getElementById('admin-shortcut').innerHTML = `
-                        <a href="/ui/admin_dashboard/dashboard.html" class="w-11 h-11 rounded-2xl bg-orange-50 dark:bg-orange-900/10 flex items-center justify-center text-primary border border-orange-100 dark:border-orange-900/30 hover:bg-primary hover:text-white transition-all">
+                        <a href="/ui_layer/admin_dashboard/dashboard.html" class="w-11 h-11 rounded-2xl bg-orange-50 dark:bg-orange-900/10 flex items-center justify-center text-primary border border-orange-100 dark:border-orange-900/30 hover:bg-primary hover:text-white transition-all">
                             <i class="fas fa-shield-alt"></i>
                         </a>
                     `;

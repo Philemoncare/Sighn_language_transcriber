@@ -324,7 +324,7 @@
                         const user = await userRes.json();
 
                         setTimeout(() => {
-                            window.location.href = user.role === 'admin' ? '/ui/admin_dashboard/dashboard.html' : '/ui/web_app/index.html';
+                            window.location.href = user.role === 'admin' ? '/ui_layer/admin_dashboard/dashboard.html' : '/ui_layer/web_app/index.html';
                         }, 600);
                     } else throw new Error(data.detail || "Authentication Failed");
                 } else {

@@ -101,7 +101,7 @@ async def ws_route(websocket: WebSocket, user_id: int):
 # Priority: UI Layer
 ui_path = os.path.join(PROJECT_ROOT, "ui_layer")
 if os.path.exists(ui_path):
-    app.mount("/ui", StaticFiles(directory=ui_path, html=True), name="ui")
+    app.mount("/ui_layer", StaticFiles(directory=ui_path, html=True), name="ui")
 
 # Public assets
 public_path = os.path.join(PROJECT_ROOT, "public")
@@ -110,7 +110,7 @@ if os.path.exists(public_path):
 
 @app.get("/")
 async def root():
-    return RedirectResponse(url="/ui/web_app/index.html")
+    return RedirectResponse(url="/ui_layer/web_app/index.html")
 
 @app.get("/health")
 async def health_check():
