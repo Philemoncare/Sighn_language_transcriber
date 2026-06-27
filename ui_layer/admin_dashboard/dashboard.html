@@ -108,29 +108,14 @@
         </div>
     </div>
 
-    <!-- Auth Guard -->
-    <div id="auth-overlay" class="fixed inset-0 z-[300] flex items-center justify-center bg-neutral-900/60 backdrop-blur-3xl hidden">
-        <div class="bg-white w-full max-w-[440px] rounded-[2.5rem] shadow-2xl p-12 text-center border border-neutral-100">
-            <div class="w-20 h-20 bg-orange-50 rounded-3xl flex items-center justify-center text-primary text-3xl mx-auto mb-8 shadow-inner border border-orange-100">
-                <i class="fas fa-fingerprint"></i>
-            </div>
-            <h2 class="text-3xl font-900 mb-2 text-neutral-900">Neural Link</h2>
-            <p class="text-neutral-400 mb-10 text-sm font-600 uppercase tracking-widest">Admin Authorization Required</p>
-            <div class="space-y-4 text-left">
-                <input type="text" id="login-user" placeholder="Identity Node" class="w-full bg-neutral-50 border border-neutral-100 rounded-2xl px-6 py-4 outline-none text-neutral-800 focus:ring-4 ring-orange-50 transition-all font-600">
-                <input type="password" id="login-pass" placeholder="Secret Key" class="w-full bg-neutral-50 border border-neutral-100 rounded-2xl px-6 py-4 outline-none text-neutral-800 focus:ring-4 ring-orange-50 transition-all font-600">
-                <button onclick="Nexus.auth.login()" class="w-full btn-neon text-white font-900 py-5 rounded-2xl mt-4 uppercase tracking-widest shadow-xl shadow-orange-500/20">Establish Link</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Sidebar Navigation -->
     <aside class="sidebar p-6 flex flex-col">
-        <div class="flex items-center gap-3 mb-10 px-2">
-            <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-dark text-xl shadow-xl rotate-3"><i class="fas fa-brain"></i></div>
+        <div class="flex items-center gap-3 mb-10 px-2 cursor-pointer" onclick="Nexus.router.navigate('dashboard')">
+            <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white shadow-xl rotate-3 transition-transform hover:rotate-0">
+                <i class="fas fa-brain text-base"></i>
+            </div>
             <div>
-                <h1 class="text-lg font-900 tracking-tighter">SnLag<span class="text-primary">CORE</span></h1>
-                <p class="text-[7px] font-900 text-slate-500 uppercase tracking-[0.3em]">Neural Interface</p>
+                <h1 class="text-lg font-900 tracking-tighter text-neutral-900 leading-none">SnLag<span class="text-primary font-900 italic">CORE</span></h1>
+                <p class="text-[7px] font-900 text-neutral-400 uppercase tracking-[0.3em] mt-1">Universal Intel</p>
             </div>
         </div>
 
@@ -570,8 +555,7 @@
         </div>
     </main>
 
-    <div id="toast-container" class="fixed bottom-8 right-8 z-[500] space-y-4"></div>
-
+    <script src="../web_app/theme_sync.js"></script>
     <script>
         const Nexus = {
             config: {
@@ -613,12 +597,16 @@
 
             async init() {
                 if (!this.state.token) {
-                    document.getElementById('auth-overlay').classList.remove('hidden');
+                    window.location.href = '/ui/web_app/auth.html';
                     return;
                 }
 
                 try {
                     const user = await this.api.request('/users/me');
+                    if (user.role !== 'admin') {
+                        window.location.href = '/ui/web_app/index.html';
+                        return;
+                    }
                     this.state.user = user;
                     this.ui.updateAuth(user);
 
@@ -879,12 +867,8 @@
                     if (profileUser) profileUser.innerText = u.username;
                     if (profileRole) profileRole.innerText = u.role;
 
-                    // Apply User Preferences (Theme)
-                    if (u.preferences?.theme === 'light') {
-                        document.body.style.filter = 'invert(1) hue-rotate(180deg)';
-                    } else {
-                        document.body.style.filter = 'none';
-                    }
+                    // Apply Global Theme Sync
+                    SnLagTheme.apply(u.preferences?.theme || 'light');
 
                     document.getElementById('auth-overlay').classList.add('hidden');
                 },
@@ -1882,15 +1866,7 @@
             },
 
             auth: {
-                async login() {
-                    const u = document.getElementById('login-user').value;
-                    const p = document.getElementById('login-pass').value;
-                    const res = await fetch(`${Nexus.config.api}/token`, { method: 'POST', body: new URLSearchParams({username: u, password: p}) });
-                    const data = await res.json();
-                    if (res.ok) { localStorage.setItem('snlag_token', data.access_token); location.reload(); }
-                    else Nexus.ui.toast("Identity Error", "error");
-                },
-                logout() { localStorage.removeItem('snlag_token'); location.reload(); }
+                logout() { localStorage.removeItem('snlag_token'); window.location.href = '/ui/web_app/auth.html'; }
             }
         };
 
