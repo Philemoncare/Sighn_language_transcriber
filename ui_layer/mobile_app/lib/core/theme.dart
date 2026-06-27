@@ -2,31 +2,60 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  static const primaryColor = Color(0xFF6366F1);
-  static const secondaryColor = Color(0xFFEC4899);
-  static const backgroundColor = Color(0xFF030712);
-  static const cardColor = Color(0xFF111827);
+  static const primaryColor = Color(0xFFF97316); // Orange
+  static const secondaryColor = Color(0xFFFBBF24); // Amber
+  static const backgroundColor = Color(0xFFFAFAFA);
+  static const cardColor = Color(0xFFFFFFFF);
+  static const darkColor = Color(0xFF171717);
 
-  static final darkTheme = ThemeData(
-    brightness: Brightness.dark,
+  static final lightTheme = ThemeData(
+    brightness: Brightness.light,
     scaffoldBackgroundColor: backgroundColor,
     primaryColor: primaryColor,
-    colorScheme: const ColorScheme.dark(
+    colorScheme: const ColorScheme.light(
       primary: primaryColor,
       secondary: secondaryColor,
       surface: cardColor,
       background: backgroundColor,
+      onPrimary: Colors.white,
     ),
     textTheme: GoogleFonts.plusJakartaSansTextTheme(
-      ThemeData.dark().textTheme,
+      ThemeData.light().textTheme,
+    ),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Colors.white,
+      foregroundColor: darkColor,
+      elevation: 0,
+      centerTitle: false,
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: const Color(0xFFF5F5F5),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
     ),
     cardTheme: CardTheme(
       color: cardColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: Colors.white.withOpacity(0.05)),
+        side: const BorderSide(color: Color(0xFFF5F5F5)),
       ),
-      elevation: 0,
+      elevation: 2,
+      shadowColor: Colors.black.withOpacity(0.05),
     ),
   );
 }

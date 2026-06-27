@@ -18,9 +18,9 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: '#6366f1',
-                        secondary: '#ec4899',
-                        dark: '#0f172a',
+                        primary: '#f97316',
+                        secondary: '#fbbf24',
+                        dark: '#0a0a0a',
                         glass: 'rgba(255, 255, 255, 0.7)',
                     },
                     borderRadius: {
@@ -33,10 +33,10 @@
     </script>
 
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8faff; color: #1e293b; overflow-x: hidden; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #fafafa; color: #171717; overflow-x: hidden; }
         .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.4); }
-        .glass-dark { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .gradient-text { background: linear-gradient(135deg, #4f46e5, #9333ea, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .glass-dark { background: rgba(10, 10, 10, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .gradient-text { background: linear-gradient(135deg, #f97316, #fbbf24, #ea580c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
         .video-container {
             position: relative;
@@ -52,18 +52,18 @@
         #output_canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: scaleX(-1); }
 
         .btn-primary {
-            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-            box-shadow: 0 12px 30px -10px rgba(99, 102, 241, 0.5);
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            box-shadow: 0 12px 30px -10px rgba(249, 115, 22, 0.5);
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .btn-primary:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 20px 40px -10px rgba(99, 102, 241, 0.6); }
+        .btn-primary:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 20px 40px -10px rgba(249, 115, 22, 0.6); }
 
-        .lang-card { transition: all 0.3s; cursor: pointer; border-radius: 12px; color: #64748b; font-size: 11px; font-weight: 700; border: 1px solid transparent; }
-        .lang-card.active { background: white; color: #6366f1; border-color: #e2e8f0; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
+        .lang-card { transition: all 0.3s; cursor: pointer; border-radius: 12px; color: #737373; font-size: 11px; font-weight: 700; border: 1px solid transparent; }
+        .lang-card.active { background: white; color: #f97316; border-color: #e5e5e5; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
 
         .custom-scrollbar::-webkit-scrollbar { width: 5px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #d4d4d4; border-radius: 10px; }
 
         .card-modern { background: white; border-radius: 3.5rem; box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.05); border: 1px solid rgba(0,0,0,0.03); }
 
@@ -92,18 +92,18 @@
                     <i class="fas fa-hand-sparkles text-2xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-800 tracking-tight text-slate-900 leading-none mb-1">SnLag <span class="text-primary">Translate</span></h1>
-                    <p class="text-[9px] font-700 text-slate-400 uppercase tracking-widest">Global Sign Language Link</p>
+                    <h1 class="text-2xl font-800 tracking-tight text-neutral-900 leading-none mb-1">SnLag <span class="text-primary">Translate</span></h1>
+                    <p class="text-[9px] font-700 text-neutral-400 uppercase tracking-widest">Global Sign Language Link</p>
                 </div>
             </div>
 
             <div class="hidden xl:flex items-center gap-6">
-                <div class="flex items-center gap-2 bg-slate-50/80 p-1.5 rounded-2xl border border-slate-200/60">
+                <div class="flex items-center gap-2 bg-neutral-50/80 p-1.5 rounded-2xl border border-neutral-200/60">
                     <button onclick="setLanguage('English')" class="lang-card active px-6 py-2.5">English</button>
                     <button onclick="setLanguage('French')" class="lang-card px-6 py-2.5">French</button>
                     <button onclick="setLanguage('Portuguese')" class="lang-card px-6 py-2.5">Portuguese</button>
                 </div>
-                <div class="h-8 w-px bg-slate-200/60"></div>
+                <div class="h-8 w-px bg-neutral-200/60"></div>
                 <div id="connection-status" class="flex items-center gap-3 bg-emerald-50 px-5 py-2.5 rounded-full border border-emerald-100 shadow-sm shadow-emerald-500/5">
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.5)]"></span>
                     <span class="text-[10px] font-800 text-emerald-600 uppercase tracking-wider">Ready to Help</span>
@@ -112,12 +112,12 @@
 
             <div class="flex items-center gap-5">
                 <div id="admin-link-container" class="hidden lg:block"></div>
-                <div class="flex items-center gap-4 border-l pl-8 border-slate-200/60">
+                <div class="flex items-center gap-4 border-l pl-8 border-neutral-200/60">
                     <div class="flex flex-col items-end hidden sm:flex">
-                        <span id="header-username" class="text-xs font-800 text-slate-800">Account</span>
-                        <span class="text-[9px] font-700 text-slate-400 uppercase">Profile</span>
+                        <span id="header-username" class="text-xs font-800 text-neutral-800">Account</span>
+                        <span class="text-[9px] font-700 text-neutral-400 uppercase">Profile</span>
                     </div>
-                    <div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center font-800 text-primary text-base border border-slate-100 shadow-xl shadow-slate-200/40" id="user-initial">A</div>
+                    <div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center font-800 text-primary text-base border border-neutral-100 shadow-xl shadow-neutral-200/40" id="user-initial">A</div>
                     <button onclick="logout()" class="w-12 h-12 rounded-2xl bg-red-50 text-red-400 hover:bg-red-500 hover:text-white transition-all border border-red-100/50 shadow-sm">
                         <i class="fas fa-power-off"></i>
                     </button>
@@ -300,12 +300,12 @@
                 <div class="relative group">
                     <i class="fas fa-user absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors"></i>
                     <input type="text" id="login-user" placeholder="admin"
-                           class="w-full bg-[#f0f5ff] border-none rounded-2xl pl-14 pr-6 py-5 outline-none focus:ring-2 ring-primary/20 transition-all font-600 text-slate-700 placeholder:text-slate-400">
+                           class="w-full bg-[#fff7ed] border-none rounded-2xl pl-14 pr-6 py-5 outline-none focus:ring-2 ring-primary/20 transition-all font-600 text-slate-700 placeholder:text-slate-400">
                 </div>
                 <div class="relative group">
                     <i class="fas fa-shield-alt absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors"></i>
                     <input type="password" id="login-pass" placeholder="••••••••"
-                           class="w-full bg-[#f0f5ff] border-none rounded-2xl pl-14 pr-6 py-5 outline-none focus:ring-2 ring-primary/20 transition-all font-600 text-slate-700 placeholder:text-slate-400">
+                           class="w-full bg-[#fff7ed] border-none rounded-2xl pl-14 pr-6 py-5 outline-none focus:ring-2 ring-primary/20 transition-all font-600 text-slate-700 placeholder:text-slate-400">
                 </div>
                 <button onclick="handleLogin()"
                         class="w-full btn-primary text-white font-700 py-6 rounded-2xl mt-6 text-sm tracking-widest uppercase shadow-xl hover:shadow-2xl active:scale-[0.98] transition-all">
@@ -744,7 +744,7 @@
 
             setupImageMode() {
                 this.container.innerHTML = `
-                    <div class="w-full h-full flex items-center justify-center p-4 bg-slate-900/50">
+                    <div class="w-full h-full flex items-center justify-center p-4 bg-neutral-900/50">
                         <div class="relative w-48 h-48">
                             <div id="avatar-glow" class="absolute inset-0 bg-primary/20 rounded-full blur-2xl opacity-0 transition-opacity duration-500"></div>
                             <img id="avatar-img" src="/public/image/3d.jpg"

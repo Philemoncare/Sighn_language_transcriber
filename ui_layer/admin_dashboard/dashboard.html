@@ -18,37 +18,37 @@
 
     <script>
         tailwind.config = {
-            theme: { extend: { colors: { primary: '#6366f1', secondary: '#ec4899', dark: '#030712' } } }
+            theme: { extend: { colors: { primary: '#f97316', secondary: '#fbbf24', dark: '#0a0a0a' } } }
         }
     </script>
 
     <style>
         :root {
-            --primary: #6366f1;
-            --secondary: #ec4899;
-            --dark: #030712;
+            --primary: #f97316;
+            --secondary: #fbbf24;
+            --dark: #0a0a0a;
             --emerald-400: #34d399;
             --emerald-500: #10b981;
             --amber-500: #f59e0b;
             --red-500: #ef4444;
-            --indigo-400: #818cf8;
-            --radius: 16px;
+            --indigo-400: #fbbf24;
+            --radius: 12px;
         }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #030712; color: #f8fafc; background-image: radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.12) 0%, transparent 40%); background-attachment: fixed; overflow-x: hidden; }
-        .sidebar { background: rgba(3, 7, 18, 0.4); backdrop-filter: blur(50px); border-right: 1px solid rgba(255, 255, 255, 0.04); width: 240px; height: 100vh; position: fixed; z-index: 50; }
-        .glass-card { background: rgba(255, 255, 255, 0.015); backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: var(--radius); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .glass-card:hover { border-color: rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.025); }
-        .sidebar-item { padding: 10px 18px; border-radius: 12px; color: #64748b; font-weight: 600; display: flex; align-items: center; gap: 10px; transition: all 0.2s; margin-bottom: 2px; border: none; background: none; width: 100%; text-align: left; cursor: pointer; font-size: 13px; }
-        .sidebar-item:hover { color: #f8fafc; background: rgba(255,255,255,0.03); }
-        .sidebar-item.active { background: rgba(99, 102, 241, 0.1); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.2); }
-        .btn-neon { background: linear-gradient(135deg, #6366f1, #4f46e5); transition: all 0.3s; cursor: pointer; border: none; font-weight: 700; color: white; }
-        .btn-neon:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3); opacity: 0.9; }
-        .main-content { margin-left: 240px; padding: 30px 40px; min-height: 100vh; width: calc(100% - 240px); position: relative; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #fafafa; color: #171717; background-image: radial-gradient(circle at 0% 0%, rgba(249, 115, 22, 0.03) 0%, transparent 40%); background-attachment: fixed; overflow-x: hidden; }
+        .sidebar { background: #ffffff; border-right: 1px solid rgba(0, 0, 0, 0.05); width: 220px; height: 100vh; position: fixed; z-index: 50; }
+        .glass-card { background: #ffffff; border: 1px solid rgba(0, 0, 0, 0.05); border-radius: var(--radius); transition: all 0.3s ease; box-shadow: 0 4px 20px -2px rgba(0,0,0,0.03); }
+        .glass-card:hover { border-color: rgba(249, 115, 22, 0.15); box-shadow: 0 10px 30px -5px rgba(0,0,0,0.05); }
+        .sidebar-item { padding: 8px 16px; border-radius: 8px; color: #737373; font-weight: 600; display: flex; align-items: center; gap: 10px; transition: all 0.2s; margin-bottom: 2px; border: none; background: none; width: 100%; text-align: left; cursor: pointer; font-size: 12px; }
+        .sidebar-item:hover { color: #f97316; background: #fff7ed; }
+        .sidebar-item.active { background: #f97316; color: #ffffff; box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25); }
+        .btn-neon { background: #f97316; transition: all 0.3s; cursor: pointer; border: none; font-weight: 700; color: white; border-radius: 8px; }
+        .btn-neon:hover { background: #ea580c; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3); }
+        .main-content { margin-left: 220px; padding: 24px 32px; min-height: 100vh; width: calc(100% - 220px); position: relative; }
         .view-panel { display: none !important; }
         .view-panel.active { display: block !important; animation: fadeIn 0.4s ease-out; }
         .view-panel.active.flex { display: flex !important; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .toast { position: fixed; bottom: 30px; right: 30px; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 12px 20px; border-radius: 12px; font-weight: 600; z-index: 500; font-size: 12px; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1); }
+        .toast { position: fixed; bottom: 30px; right: 30px; background: rgba(255, 255, 255, 0.9); border: 1px solid rgba(0, 0, 0, 0.05); backdrop-filter: blur(10px); padding: 12px 20px; border-radius: 12px; font-weight: 600; z-index: 500; font-size: 12px; color: #171717; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.05); }
         .loading-shimmer { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent); background-size: 200% 100%; animation: shimmer 2s infinite; }
         @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
         .custom-scrollbar::-webkit-scrollbar { width: 3px; }
@@ -58,9 +58,9 @@
         .status-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
 
         /* Modern Enterprise Log Styles */
-        .log-row { border-bottom: 1px solid rgba(255,255,255,0.03); cursor: pointer; transition: all 0.1s ease; font-family: 'JetBrains Mono', monospace; position: relative; }
-        .log-row:hover { background: rgba(255,255,255,0.04); }
-        .log-row.active { background: rgba(99, 102, 241, 0.05); }
+        .log-row { border-bottom: 1px solid rgba(0,0,0,0.03); cursor: pointer; transition: all 0.1s ease; font-family: 'JetBrains Mono', monospace; position: relative; }
+        .log-row:hover { background: rgba(0,0,0,0.02); }
+        .log-row.active { background: rgba(249, 115, 22, 0.05); }
         .log-row.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--primary); box-shadow: 0 0 10px var(--primary); }
         .log-badge { font-size: 7px; padding: 2px 5px; border-radius: 4px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; border: 1px solid transparent; }
         .log-badge.error { background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: rgba(239, 68, 68, 0.2); }
@@ -73,16 +73,16 @@
         @media (max-width: 1200px) { .log-row .grid { grid-template-columns: 75px 45px 90px 1fr; gap: 10px; } }
 
         /* Detail Drawer */
-        #log-drawer { background: rgba(3, 7, 18, 0.6); backdrop-filter: blur(80px); }
-        .drawer-section-title { font-size: 8px; font-weight: 900; color: #64748b; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 12px; display: block; }
-        .drawer-val { font-size: 11px; font-weight: 600; color: #f8fafc; }
+        #log-drawer { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(80px); border-left: 1px solid rgba(0,0,0,0.05); }
+        .drawer-section-title { font-size: 8px; font-weight: 900; color: #a3a3a3; text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 12px; display: block; }
+        .drawer-val { font-size: 11px; font-weight: 600; color: #171717; }
 
         /* Compact typography scale */
         h1, h2, h3, h4 { letter-spacing: -0.02em; }
         .text-xxs { font-size: 0.65rem; }
 
         /* Modern Neural Loader (Compact) */
-        .loader { display: flex; justify-content: center; align-items: center; --color: #6366f1; --animation: 1.5s ease-in-out infinite; }
+        .loader { display: flex; justify-content: center; align-items: center; --color: #f97316; --animation: 1.5s ease-in-out infinite; }
         .loader .circle { display: flex; align-items: center; justify-content: center; position: relative; width: 10px; height: 10px; border: solid 1.2px var(--color); border-radius: 50%; margin: 0 3px; background-color: transparent; animation: circle-keys var(--animation); }
         .loader .circle .dot { position: absolute; width: 5px; height: 5px; border-radius: 50%; background-color: var(--color); animation: dot-keys var(--animation); }
         @keyframes circle-keys { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.1); opacity: 0.4; } }
@@ -109,17 +109,17 @@
     </div>
 
     <!-- Auth Guard -->
-    <div id="auth-overlay" class="fixed inset-0 z-[300] flex items-center justify-center bg-dark/95 backdrop-blur-3xl hidden">
-        <div class="glass-card p-12 w-full max-w-md text-center border-white/5">
-            <div class="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center text-primary text-3xl mx-auto mb-8">
+    <div id="auth-overlay" class="fixed inset-0 z-[300] flex items-center justify-center bg-neutral-900/60 backdrop-blur-3xl hidden">
+        <div class="bg-white w-full max-w-[440px] rounded-[2.5rem] shadow-2xl p-12 text-center border border-neutral-100">
+            <div class="w-20 h-20 bg-orange-50 rounded-3xl flex items-center justify-center text-primary text-3xl mx-auto mb-8 shadow-inner border border-orange-100">
                 <i class="fas fa-fingerprint"></i>
             </div>
-            <h2 class="text-3xl font-900 mb-2">Neural Handshake</h2>
-            <p class="text-slate-500 mb-10 text-sm">Accessing SnLag Production Core</p>
+            <h2 class="text-3xl font-900 mb-2 text-neutral-900">Neural Link</h2>
+            <p class="text-neutral-400 mb-10 text-sm font-600 uppercase tracking-widest">Admin Authorization Required</p>
             <div class="space-y-4 text-left">
-                <input type="text" id="login-user" placeholder="Identity" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none text-white focus:border-primary/50 transition-all">
-                <input type="password" id="login-pass" placeholder="Secret Key" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 outline-none text-white focus:border-primary/50 transition-all">
-                <button onclick="Nexus.auth.login()" class="w-full btn-neon text-white font-900 py-5 rounded-2xl mt-4 uppercase">Establish Link</button>
+                <input type="text" id="login-user" placeholder="Identity Node" class="w-full bg-neutral-50 border border-neutral-100 rounded-2xl px-6 py-4 outline-none text-neutral-800 focus:ring-4 ring-orange-50 transition-all font-600">
+                <input type="password" id="login-pass" placeholder="Secret Key" class="w-full bg-neutral-50 border border-neutral-100 rounded-2xl px-6 py-4 outline-none text-neutral-800 focus:ring-4 ring-orange-50 transition-all font-600">
+                <button onclick="Nexus.auth.login()" class="w-full btn-neon text-white font-900 py-5 rounded-2xl mt-4 uppercase tracking-widest shadow-xl shadow-orange-500/20">Establish Link</button>
             </div>
         </div>
     </div>
@@ -138,30 +138,30 @@
             <!-- Nav items injected by Nexus.router -->
         </nav>
 
-        <div class="mt-auto pt-6 border-t border-white/5 flex items-center justify-between px-2">
+        <div class="mt-auto pt-6 border-t border-neutral-100 flex items-center justify-between px-2">
             <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-white/5 rounded-lg flex items-center justify-center text-white font-900 text-xs" id="admin-initial">?</div>
+                <div class="w-8 h-8 bg-neutral-100 rounded-lg flex items-center justify-center text-neutral-800 font-900 text-xs" id="admin-initial">?</div>
                 <div>
-                    <p class="text-[11px] font-900 text-white" id="admin-name">Admin</p>
-                    <p class="text-[7px] font-900 text-emerald-500 uppercase tracking-widest">Connected</p>
+                    <p class="text-[11px] font-900 text-neutral-800" id="admin-name">Admin</p>
+                    <p class="text-[7px] font-900 text-emerald-500 uppercase tracking-widest">Active Link</p>
                 </div>
             </div>
-            <button onclick="Nexus.auth.logout()" class="text-slate-500 hover:text-red-500 transition-colors text-base"><i class="fas fa-power-off"></i></button>
+            <button onclick="Nexus.auth.logout()" class="text-neutral-400 hover:text-red-500 transition-colors text-base"><i class="fas fa-power-off"></i></button>
         </div>
     </aside>
 
     <main class="main-content">
         <header class="flex justify-between items-end mb-10">
             <div class="animate__animated animate__fadeInLeft">
-                <h2 id="view-title" class="text-4xl font-900 tracking-tight text-white">Dashboard</h2>
-                <p id="view-subtitle" class="text-slate-500 text-[10px] font-700 uppercase tracking-widest mt-2">Production Intelligence Grid</p>
+                <h2 id="view-title" class="text-4xl font-900 tracking-tight text-neutral-900">Dashboard</h2>
+                <p id="view-subtitle" class="text-neutral-500 text-[10px] font-700 uppercase tracking-widest mt-2">Intelligence Control</p>
             </div>
             <div class="flex gap-4 items-center animate__animated animate__fadeInRight">
-                <div id="ai-status-badge" class="glass-card px-4 py-2 flex items-center gap-2.5 border-emerald-500/10">
+                <div id="ai-status-badge" class="bg-white border border-neutral-100 px-4 py-2 rounded-xl flex items-center gap-2.5 shadow-sm">
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span class="text-[9px] font-900 text-emerald-500 uppercase tracking-wider">AI System Active</span>
+                    <span class="text-[9px] font-900 text-neutral-800 uppercase tracking-wider">System Active</span>
                 </div>
-                <button onclick="Nexus.refresh()" class="glass-card w-10 h-10 flex items-center justify-center text-primary hover:bg-primary/10 transition-all">
+                <button onclick="Nexus.refresh()" class="bg-white border border-neutral-100 w-10 h-10 rounded-xl flex items-center justify-center text-primary hover:bg-neutral-50 transition-all shadow-sm">
                     <i id="refresh-icon" class="fas fa-sync-alt text-sm"></i>
                 </button>
             </div>
@@ -178,8 +178,8 @@
                     <div class="col-span-8 glass-card p-6 h-[400px] relative overflow-hidden group">
                         <div class="flex justify-between items-center mb-6">
                             <div>
-                                <h3 class="text-sm font-900 uppercase tracking-wider">Neural Traffic</h3>
-                                <p class="text-[9px] font-700 text-slate-500 uppercase tracking-widest mt-1">Inference Distribution</p>
+                                <h3 class="text-xs font-900 uppercase tracking-widest text-neutral-400">Neural Traffic</h3>
+                                <p class="text-[9px] font-700 text-neutral-300 uppercase tracking-widest mt-1">Inference Flow</p>
                             </div>
                         </div>
                         <div class="h-[280px]">
@@ -187,19 +187,19 @@
                         </div>
                     </div>
                     <div class="col-span-4 glass-card p-6 h-[400px] flex flex-col relative overflow-hidden group">
-                        <h3 class="text-sm font-900 uppercase tracking-wider mb-8">Core Metrics</h3>
+                        <h3 class="text-xs font-900 uppercase tracking-widest mb-8 text-neutral-400">Core Metrics</h3>
                         <div class="space-y-8 flex-1 flex flex-col justify-center">
                             <div class="group/bar">
-                                <div class="flex justify-between mb-2.5"><span class="text-xxs font-900 text-slate-500 uppercase tracking-widest">CPU Compute</span><span id="rt-cpu" class="text-xs font-900 text-white">--%</span></div>
-                                <div class="h-1 bg-white/5 rounded-full overflow-hidden"><div id="cpu-bar" class="h-full bg-primary transition-all duration-1000" style="width: 0%"></div></div>
+                                <div class="flex justify-between mb-2.5"><span class="text-[10px] font-900 text-neutral-500 uppercase tracking-widest">Compute Node</span><span id="rt-cpu" class="text-xs font-900 text-neutral-800">--%</span></div>
+                                <div class="h-1.5 bg-neutral-100 rounded-full overflow-hidden shadow-inner"><div id="cpu-bar" class="h-full bg-primary transition-all duration-1000" style="width: 0%"></div></div>
                             </div>
                             <div class="group/bar">
-                                <div class="flex justify-between mb-2.5"><span class="text-xxs font-900 text-slate-500 uppercase tracking-widest">Memory Grid</span><span id="rt-ram" class="text-xs font-900 text-white">--%</span></div>
-                                <div class="h-1 bg-white/5 rounded-full overflow-hidden"><div id="ram-bar" class="h-full bg-secondary transition-all duration-1000" style="width: 0%"></div></div>
+                                <div class="flex justify-between mb-2.5"><span class="text-[10px] font-900 text-neutral-500 uppercase tracking-widest">Memory Grid</span><span id="rt-ram" class="text-xs font-900 text-neutral-800">--%</span></div>
+                                <div class="h-1.5 bg-neutral-100 rounded-full overflow-hidden shadow-inner"><div id="ram-bar" class="h-full bg-orange-300 transition-all duration-1000" style="width: 0%"></div></div>
                             </div>
                             <div class="group/bar">
-                                <div class="flex justify-between mb-2.5"><span class="text-xxs font-900 text-slate-500 uppercase tracking-widest">Storage</span><span id="rt-disk" class="text-xs font-900 text-white">--%</span></div>
-                                <div class="h-1 bg-white/5 rounded-full overflow-hidden"><div id="disk-bar" class="h-full bg-emerald-500 transition-all duration-1000" style="width: 0%"></div></div>
+                                <div class="flex justify-between mb-2.5"><span class="text-[10px] font-900 text-neutral-500 uppercase tracking-widest">Storage</span><span id="rt-disk" class="text-xs font-900 text-neutral-800">--%</span></div>
+                                <div class="h-1.5 bg-neutral-100 rounded-full overflow-hidden shadow-inner"><div id="disk-bar" class="h-full bg-amber-400 transition-all duration-1000" style="width: 0%"></div></div>
                             </div>
                         </div>
                     </div>
@@ -946,30 +946,30 @@
                         <div id="${id}" class="glass-card p-3 border-l-2 border-l-${color}/30 relative overflow-hidden animate__animated animate__fadeInUp h-[90px] flex flex-col justify-between">
                             <div class="flex justify-between items-start relative z-10">
                                 <div class="flex items-center gap-2">
-                                    <div class="w-6 h-6 rounded bg-white/5 flex items-center justify-center">
+                                    <div class="w-6 h-6 rounded bg-neutral-100 flex items-center justify-center">
                                         ${isDone ? '<i class="fas fa-check-circle text-emerald-500 text-[10px]"></i>' :
                                           isErr ? '<i class="fas fa-times-circle text-red-500 text-[10px]"></i>' :
                                           '<div class="loader" style="--color: var(--primary); transform: scale(0.6)"><div class="circle"><div class="dot"></div></div></div>'}
                                     </div>
                                     <div class="overflow-hidden">
-                                        <h5 class="font-900 text-[10px] text-white truncate w-32">${label}</h5>
-                                        <p class="text-[7px] font-900 text-slate-500 uppercase tracking-tighter truncate">${status.replace(/_/g, ' ')}</p>
+                                        <h5 class="font-900 text-[10px] text-neutral-800 truncate w-32">${label}</h5>
+                                        <p class="text-[7px] font-900 text-neutral-400 uppercase tracking-tighter truncate">${status.replace(/_/g, ' ')}</p>
                                     </div>
                                 </div>
                                 <div class="text-right">
-                                    <span class="text-[10px] font-900 text-white tabular-nums">${prog || 0}%</span>
+                                    <span class="text-[10px] font-900 text-neutral-800 tabular-nums">${prog || 0}%</span>
                                 </div>
                             </div>
 
                             <div class="space-y-1.5">
                                 ${frames > 0 ? `<p class="text-[7px] font-900 text-primary uppercase text-right">${frames} FRM · ${quality}% QLTY</p>` : ''}
-                                <div class="h-1 bg-white/5 rounded-full overflow-hidden">
+                                <div class="h-1 bg-neutral-100 rounded-full overflow-hidden">
                                     <div class="h-full bg-${color} transition-all duration-500" style="width: ${prog || 0}%"></div>
                                 </div>
                             </div>
 
                             ${isErr ? `
-                            <button onclick="Nexus.system.retryExtraction(${ds.id})" class="absolute bottom-1 right-2 text-[7px] font-900 uppercase text-white/50 hover:text-white transition-colors">
+                            <button onclick="Nexus.system.retryExtraction(${ds.id})" class="absolute bottom-1 right-2 text-[7px] font-900 uppercase text-neutral-400 hover:text-primary transition-colors">
                                 <i class="fas fa-sync-alt mr-1"></i> Retry
                             </button>` : ''}
                         </div>
@@ -981,20 +981,20 @@
                     const ds = Nexus.state.datasets;
                     container.innerHTML = `
                         <div class="glass-card p-6 flex flex-col justify-between hover:border-primary/20 transition-all">
-                            <div><p class="text-slate-500 text-xxs font-900 uppercase tracking-widest">Library Size</p><h4 class="text-3xl font-900 mt-2">${Nexus.state.gestures.length}</h4></div>
-                            <p class="text-[8px] font-700 text-slate-600 uppercase mt-4">Semantic Nodes</p>
+                            <div><p class="text-neutral-400 text-xxs font-900 uppercase tracking-widest">Library Size</p><h4 class="text-3xl font-900 mt-2 text-neutral-800">${Nexus.state.gestures.length}</h4></div>
+                            <p class="text-[8px] font-700 text-neutral-300 uppercase mt-4">Semantic Nodes</p>
                         </div>
                         <div class="glass-card p-6 flex flex-col justify-between hover:border-primary/20 transition-all">
-                            <div><p class="text-slate-500 text-xxs font-900 uppercase tracking-widest">Raw Samples</p><h4 class="text-3xl font-900 mt-2">${ds.length}</h4></div>
-                            <p class="text-[8px] font-700 text-slate-600 uppercase mt-4">Neural Ingestions</p>
+                            <div><p class="text-neutral-400 text-xxs font-900 uppercase tracking-widest">Raw Samples</p><h4 class="text-3xl font-900 mt-2 text-neutral-800">${ds.length}</h4></div>
+                            <p class="text-[8px] font-700 text-neutral-300 uppercase mt-4">Neural Ingestions</p>
                         </div>
                         <div class="glass-card p-6 flex flex-col justify-between border-emerald-500/10 hover:border-emerald-500/30 transition-all">
-                            <div><p class="text-emerald-500/50 text-xxs font-900 uppercase tracking-widest">Validated</p><h4 class="text-3xl font-900 mt-2 text-emerald-400">${ds.filter(x=>x.status==='completed').length}</h4></div>
+                            <div><p class="text-emerald-500/50 text-xxs font-900 uppercase tracking-widest">Validated</p><h4 class="text-3xl font-900 mt-2 text-emerald-500">${ds.filter(x=>x.status==='completed').length}</h4></div>
                             <p class="text-[8px] font-700 text-emerald-900/50 uppercase mt-4">Production Ready</p>
                         </div>
                         <div class="glass-card p-6 flex flex-col justify-between hover:border-primary/20 transition-all">
-                            <div><p class="text-slate-500 text-xxs font-900 uppercase tracking-widest">Active Models</p><h4 class="text-3xl font-900 mt-2">${Nexus.state.jobs.length}</h4></div>
-                            <p class="text-[8px] font-700 text-slate-600 uppercase mt-4">Neural Generations</p>
+                            <div><p class="text-neutral-400 text-xxs font-900 uppercase tracking-widest">Active Models</p><h4 class="text-3xl font-900 mt-2 text-neutral-800">${Nexus.state.jobs.length}</h4></div>
+                            <p class="text-[8px] font-700 text-neutral-300 uppercase mt-4">Neural Generations</p>
                         </div>
                     `;
                 },
@@ -1012,22 +1012,22 @@
                             datasets: [
                                 {
                                     label: 'Speech',
-                                    borderColor: '#6366f1',
+                                    borderColor: '#f97316',
                                     borderWidth: 3,
                                     data: s.traffic.speech,
                                     tension: 0.4,
                                     fill: true,
-                                    backgroundColor: 'rgba(99, 102, 241, 0.03)',
+                                    backgroundColor: 'rgba(249, 115, 22, 0.03)',
                                     pointRadius: 0
                                 },
                                 {
                                     label: 'Sign',
-                                    borderColor: '#ec4899',
+                                    borderColor: '#fbbf24',
                                     borderWidth: 3,
                                     data: s.traffic.sign,
                                     tension: 0.4,
                                     fill: true,
-                                    backgroundColor: 'rgba(236, 72, 153, 0.03)',
+                                    backgroundColor: 'rgba(251, 191, 36, 0.03)',
                                     pointRadius: 0
                                 }
                             ]

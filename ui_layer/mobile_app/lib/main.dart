@@ -29,7 +29,7 @@ class SnLagApp extends StatelessWidget {
     return MaterialApp(
       title: 'SnLag HQ',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
+      theme: AppTheme.lightTheme,
       home: Consumer<AuthService>(
         builder: (context, auth, _) {
           return auth.isAuthenticated ? const HomePage() : const LoginPage();

@@ -25,18 +25,19 @@ class _LoginPageState extends State<LoginPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Icon(Icons.psychology, size: 80, color: Colors.white),
+            const Icon(Icons.id_card, size: 80, color: AppTheme.primaryColor),
             const SizedBox(height: 16),
             Text(
-              'SNLAG HQ',
+              'Welcome to SnLag',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.w900,
                     letterSpacing: -1,
+                    color: AppTheme.darkColor,
                   ),
             ),
             const Text(
-              'Neural Interface Mobile Core',
+              'Sign in to start your communication journey',
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey, fontSize: 12),
             ),
