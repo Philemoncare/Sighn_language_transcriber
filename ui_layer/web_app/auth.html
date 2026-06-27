@@ -263,8 +263,11 @@
 
     <div id="toast-root"></div>
     <script>
-        const GATEWAY = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'http://localhost:8000' : window.location.origin;
+        const GATEWAY = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+            ? `http://${window.location.hostname}:8000` : window.location.origin;
+
+        // Detection for IDE server path prefix (e.g. /SnLag/)
+        const PROJECT_BASE = window.location.pathname.startsWith('/SnLag/') ? '/SnLag' : '';
 
         function toggleAuth(mode) {
             const login = document.getElementById('form-login');
@@ -324,7 +327,9 @@
                         const user = await userRes.json();
 
                         setTimeout(() => {
-                            window.location.href = user.role === 'admin' ? '/ui_layer/admin_dashboard/dashboard.html' : '/ui_layer/web_app/index.html';
+                            window.location.href = user.role === 'admin'
+                                ? `${PROJECT_BASE}/ui_layer/admin_dashboard/dashboard.html`
+                                : `${PROJECT_BASE}/ui_layer/web_app/index.html`;
                         }, 600);
                     } else throw new Error(data.detail || "Authentication Failed");
                 } else {
@@ -344,7 +349,10 @@
                     } else throw new Error((await res.json()).detail);
                 }
             } catch (err) {
-                alert(err.message);
+                const msg = (err.message && err.message.toLowerCase().includes('fetch'))
+                    ? "Kernel offline. Please run 'python main.py' to start the backend services."
+                    : err.message;
+                alert(msg);
                 btn.disabled = false;
                 btn.innerHTML = original;
             }
