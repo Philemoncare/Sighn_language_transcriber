@@ -117,12 +117,12 @@ const SnLagUI = {
         `;
     },
 
-    getWelcomeHeader(username = 'Neural Node') {
-        const displayName = username ? username.split(' ')[0] : 'Node';
+    getWelcomeHeader(username = 'User') {
+        const displayName = username ? username.split(' ')[0] : 'User';
         return `
             <div class="mb-12 space-y-2 motion-entrance">
-                <h1 class="text-primary">Hello, ${displayName}</h1>
-                <p class="text-muted font-medium">Neural Interface Link stable. How can we communicate today?</p>
+                <h1 class="text-primary">Hi, ${displayName}</h1>
+                <p class="text-muted font-medium">Ready to translate? Choose an engine to get started.</p>
             </div>
         `;
     },
