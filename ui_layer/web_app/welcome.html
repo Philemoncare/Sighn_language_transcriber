@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calibration | Signly</title>
+    <title>Personalization | Signly</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -36,80 +36,85 @@
 
     <style>
         body {
-            background-color: #020617; /* Always dark base for this unique page */
+            background-color: #020617; /* Always dark base for focus */
             height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            font-family: 'Inter', sans-serif;
         }
 
-        .unique-bg {
+        .abstract-bg {
             position: fixed;
             inset: 0;
             z-index: -1;
-            background-image: url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop');
-            background-size: cover;
-            background-position: center;
-            opacity: 0.3;
-            filter: blur(5px);
+            background: linear-gradient(to bottom right, #020617, #0f172a);
         }
 
-        .unique-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            background: radial-gradient(circle at center, transparent 0%, #020617 100%);
+        .glow-sphere {
+            position: absolute;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--primary-alpha) 0%, transparent 70%);
+            filter: blur(60px);
+            z-index: -1;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.5;
         }
 
-        .onboarding-card {
+        .welcome-card {
             width: 100%;
-            max-width: 480px;
-            background: var(--surface-overlay);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            border-radius: 2.5rem;
-            padding: 3rem;
-            box-shadow: 0 40px 100px -20px rgba(0,0,0,0.5);
+            max-width: 440px;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 2rem;
+            padding: 3.5rem;
+            box-shadow: 0 50px 100px -20px rgba(0,0,0,0.6);
             position: relative;
             z-index: 10;
+            text-align: center;
         }
 
         .question-option {
-            background: var(--surface);
-            border: 1.5px solid var(--border);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 1.25rem;
             padding: 1.25rem;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             gap: 1rem;
+            text-align: left;
         }
         .question-option:hover {
+            background: rgba(255, 255, 255, 0.05);
             border-color: var(--primary);
-            background: var(--primary-alpha);
         }
         .question-option.selected {
-            border-color: var(--primary);
             background: var(--primary-alpha);
-            box-shadow: 0 0 0 4px var(--primary-alpha);
-        }
-        .input-premium {
-            background-color: var(--surface);
-            border: 1.5px solid var(--border);
-            border-radius: 1rem;
-            padding: 1rem 1.5rem;
-            width: 100%;
-            color: var(--text);
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-        .input-premium:focus {
             border-color: var(--primary);
+        }
+
+        .input-minimal {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 1.25rem;
+            padding: 1.25rem 1.5rem;
+            width: 100%;
+            color: white;
+            transition: all 0.3s ease;
             outline: none;
-            box-shadow: 0 0 0 4px var(--primary-alpha);
+            font-size: 1rem;
+        }
+        .input-minimal:focus {
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.05);
         }
 
         #splash-loader {
@@ -124,70 +129,53 @@
         }
     </style>
 </head>
-<body class="transition-colors duration-500 antialiased">
+<body class="antialiased">
 
     <div id="splash-loader">
         <div class="flex flex-col items-center gap-6">
             <div class="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-white shadow-2xl animate-pulse">
                 <i class="fas fa-hand-holding-heart text-2xl"></i>
             </div>
-            <span class="text-[10px] font-black text-muted uppercase tracking-[0.4em]">Neural Link Status</span>
         </div>
     </div>
 
-    <div class="unique-bg"></div>
-    <div class="unique-overlay"></div>
+    <div class="abstract-bg"></div>
+    <div class="glow-sphere"></div>
 
-    <!-- Centered Content Card -->
-    <div class="onboarding-card animate__animated animate__fadeInUp">
+    <!-- Centered Modal -->
+    <div class="welcome-card animate__animated animate__zoomIn animate__faster">
 
-        <!-- Header -->
-        <div class="flex items-center gap-3 mb-10">
-            <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white text-sm">
-                <i class="fas fa-hand-holding-heart"></i>
-            </div>
-            <span class="text-lg font-black tracking-tighter text-primary">Signly</span>
-        </div>
-
-        <!-- Welcome View -->
-        <div id="welcome-screen" class="space-y-8">
-            <div class="space-y-2">
-                <h2 class="text-3xl font-black tracking-tight leading-tight">Handshake <br><span class="text-primary italic">Verified.</span></h2>
-                <p class="text-muted text-xs font-medium">Your account is active. Let's perform a quick system calibration before you enter.</p>
-            </div>
-
-            <div class="p-6 rounded-2xl bg-surface border border-border space-y-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20 text-xs">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <span class="text-[10px] font-black uppercase tracking-widest text-emerald-500">Security Stable</span>
-                </div>
-                <div class="space-y-3 opacity-60">
-                    <div class="flex items-center gap-3 text-[10px] font-bold text-muted"><i class="fas fa-check-circle text-emerald-500"></i> Account Identity</div>
-                    <div class="flex items-center gap-3 text-[10px] font-bold text-muted"><i class="fas fa-check-circle text-emerald-500"></i> Network Token</div>
-                    <div class="flex items-center gap-3 text-[10px] font-bold text-primary"><i class="fas fa-circle-notch animate-spin"></i> Calibration</div>
+        <!-- Welcome Screen (Simplified) -->
+        <div id="welcome-screen" class="space-y-10">
+            <div class="flex justify-center">
+                <div class="w-16 h-16 rounded-2xl bg-primary-alpha flex items-center justify-center text-primary text-2xl border border-primary/20">
+                    <i class="fas fa-sparkles"></i>
                 </div>
             </div>
 
-            <button onclick="startOnboarding()" class="w-full py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-primary-hover transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3 group">
-                Begin Calibration <i class="fas fa-bolt group-hover:scale-110 transition-transform"></i>
+            <div class="space-y-3">
+                <h1 class="text-3xl font-black text-white tracking-tight leading-tight">Welcome, <br><span id="user-name-display" class="text-primary italic">Friend</span></h1>
+                <p class="text-slate-400 text-sm font-medium leading-relaxed">Your account is active. Let's personalize your workspace to get you started.</p>
+            </div>
+
+            <button onclick="startOnboarding()" class="w-full py-5 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-[11px] hover:bg-primary-hover transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3 group">
+                Customize Workspace <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
             </button>
         </div>
 
-        <!-- Onboarding Wizard -->
+        <!-- Onboarding Flow -->
         <div id="onboarding-flow" class="hidden space-y-8">
-            <div class="flex justify-between items-end">
-                <div class="space-y-1">
-                    <h3 id="step-title" class="text-xl font-black tracking-tight uppercase">Calibration</h3>
-                    <p id="step-subtitle" class="text-muted text-[10px] font-black uppercase tracking-widest">Phase 1 of 6</p>
-                </div>
-                <div id="save-status" class="text-[8px] font-black text-emerald-500 uppercase tracking-widest opacity-0 transition-opacity">
-                    <i class="fas fa-sync-alt animate-spin"></i> Syncing
+            <div class="text-center space-y-1">
+                <h3 id="step-title" class="text-xl font-black text-white uppercase tracking-tight">Configuration</h3>
+                <div class="flex items-center justify-center gap-2">
+                    <span id="step-subtitle" class="text-slate-500 text-[9px] font-black uppercase tracking-widest">Step 1 of 6</span>
+                    <div id="save-status" class="text-[8px] font-black text-emerald-500 uppercase tracking-widest opacity-0 transition-opacity">
+                         Synced
+                    </div>
                 </div>
             </div>
 
-            <div class="h-1 bg-border rounded-full overflow-hidden">
+            <div class="h-1 bg-white/5 rounded-full overflow-hidden">
                 <div id="progress-fill" class="h-full bg-primary transition-all duration-700" style="width: 0%"></div>
             </div>
 
@@ -195,11 +183,11 @@
                 <!-- Questions Injected Here -->
             </div>
 
-            <div class="flex gap-3 pt-2">
-                <button id="btn-back" onclick="goToPrevStep()" class="w-12 h-12 rounded-xl border border-border flex items-center justify-center text-muted hover:text-primary hover:bg-primary-alpha transition-all disabled:opacity-0" title="Previous Phase">
+            <div class="flex gap-3">
+                <button id="btn-back" onclick="goToPrevStep()" class="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all disabled:opacity-0">
                     <i class="fas fa-chevron-left"></i>
                 </button>
-                <button id="btn-next" onclick="goToNextStep()" class="flex-1 py-4 bg-primary text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg disabled:opacity-50">Next Phase</button>
+                <button id="btn-next" onclick="goToNextStep()" class="flex-1 py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg disabled:opacity-50">Continue</button>
             </div>
         </div>
 
@@ -216,22 +204,21 @@
         let currentUser = null;
         let onboardingData = {};
         let currentStepIndex = 0;
-        let isSaving = false;
 
         const questions = [
-            { id: 'preferred_name', title: "Profile Handle", subtitle: "Define your network identifier.", type: 'text', field: 'preferred_name', placeholder: "Enter name", icon: 'fa-signature' },
+            { id: 'preferred_name', title: "Profile Name", subtitle: "How should we address you?", type: 'text', field: 'preferred_name', placeholder: "Your name", icon: 'fa-user' },
             {
-                id: 'purpose', title: "Target Protocol", subtitle: "Primary usage scenario.", type: 'choice', field: 'purpose',
+                id: 'purpose', title: "Usage Focus", subtitle: "What's your primary goal?", type: 'choice', field: 'purpose',
                 options: [
-                    { id: 'personal', label: 'Personal', desc: 'Communication', icon: 'fa-heart' },
-                    { id: 'work', label: 'Professional', desc: 'Enterprise', icon: 'fa-briefcase' },
-                    { id: 'learning', label: 'Learning', desc: 'Acquisition', icon: 'fa-graduation-cap' }
+                    { id: 'personal', label: 'Personal', desc: 'Daily use', icon: 'fa-heart' },
+                    { id: 'work', label: 'Work', desc: 'Professional', icon: 'fa-briefcase' },
+                    { id: 'learning', label: 'Learning', desc: 'Education', icon: 'fa-graduation-cap' }
                 ]
             },
-            { id: 'experience_level', title: "Neural Base", subtitle: "Current proficiency level.", type: 'choice', field: 'experience_level', options: [{ id: 'beginner', label: 'Standard', desc: 'New Node', icon: 'fa-seedling' }, { id: 'advanced', label: 'Advanced', desc: 'Expert Node', icon: 'fa-crown' }] },
-            { id: 'preferred_language', title: "Focus Dialect", subtitle: "Sign language target.", type: 'select', field: 'preferred_language', options: ['American Sign Language (ASL)', 'British Sign Language (BSL)', 'International Sign'] },
-            { id: 'accessibility_needs', title: "UI Filter", subtitle: "Tailor visual output.", type: 'choice', field: 'accessibility_needs', options: [{ id: 'deaf', label: 'Visual Focus', desc: 'Deaf Optimized', icon: 'fa-deaf' }, { id: 'hearing', label: 'Standard', desc: 'Default UI', icon: 'fa-user' }] },
-            { id: 'recognition_preference', title: "Input Node", subtitle: "Sensor configuration.", type: 'choice', field: 'recognition_preference', options: [{ id: 'camera', label: 'Live Core', desc: 'Real-time', icon: 'fa-video' }, { id: 'upload', label: 'Data Port', desc: 'File Ingest', icon: 'fa-file-upload' }] }
+            { id: 'experience_level', title: "Skill Level", subtitle: "Current proficiency.", type: 'choice', field: 'experience_level', options: [{ id: 'beginner', label: 'Beginner', desc: 'New Node', icon: 'fa-seedling' }, { id: 'advanced', label: 'Expert', desc: 'Expert Node', icon: 'fa-crown' }] },
+            { id: 'preferred_language', title: "Language", subtitle: "Primary sign language.", type: 'select', field: 'preferred_language', options: ['American Sign Language (ASL)', 'British Sign Language (BSL)', 'International Sign'] },
+            { id: 'accessibility_needs', title: "Interface", subtitle: "Visual experience focus.", type: 'choice', field: 'accessibility_needs', options: [{ id: 'deaf', label: 'Optimized', desc: 'Visual Focus', icon: 'fa-deaf' }, { id: 'hearing', label: 'Standard', desc: 'Default UI', icon: 'fa-user' }] },
+            { id: 'recognition_preference', title: "Input Mode", subtitle: "Sensor setup.", type: 'choice', field: 'recognition_preference', options: [{ id: 'camera', label: 'Live Camera', desc: 'Real-time', icon: 'fa-video' }, { id: 'upload', label: 'File Upload', desc: 'Batch Port', icon: 'fa-file-upload' }] }
         ];
 
         async function initApp() {
@@ -240,6 +227,7 @@
                 const userRes = await fetch(`${API_URL}/api/user/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (!userRes.ok) throw new Error("Auth failed");
                 currentUser = await userRes.json();
+                document.getElementById('user-name-display').innerText = currentUser.name || currentUser.username;
 
                 const statusRes = await fetch(`${API_URL}/api/onboarding/status`, { headers: { 'Authorization': `Bearer ${token}` } });
                 const status = await statusRes.json();
@@ -254,33 +242,36 @@
         }
 
         function startOnboarding() {
-            document.getElementById('welcome-screen').classList.add('hidden');
-            document.getElementById('onboarding-flow').classList.remove('hidden');
-            renderStep();
+            gsap.to("#welcome-screen", { opacity: 0, scale: 0.9, duration: 0.4, onComplete: () => {
+                document.getElementById('welcome-screen').classList.add('hidden');
+                document.getElementById('onboarding-flow').classList.remove('hidden');
+                gsap.from("#onboarding-flow", { opacity: 0, scale: 1.1, duration: 0.4 });
+                renderStep();
+            }});
         }
 
         function renderStep() {
             const step = questions[currentStepIndex];
             const container = document.getElementById('questions-container');
             document.getElementById('step-title').innerText = step.title;
-            document.getElementById('step-subtitle').innerText = `Phase ${currentStepIndex + 1} of ${questions.length}`;
+            document.getElementById('step-subtitle').innerText = `Step ${currentStepIndex + 1} of ${questions.length}`;
             document.getElementById('progress-fill').style.width = `${((currentStepIndex + 1) / questions.length) * 100}%`;
             document.getElementById('btn-back').disabled = currentStepIndex === 0;
-            document.getElementById('btn-next').innerText = currentStepIndex === questions.length - 1 ? 'Execute Link' : 'Next Phase';
+            document.getElementById('btn-next').innerText = currentStepIndex === questions.length - 1 ? 'Finish' : 'Continue';
             document.getElementById('btn-next').disabled = !onboardingData[step.field];
 
             let html = '';
             if (step.type === 'text') {
-                html = `<input type="text" class="input-premium mt-4" placeholder="${step.placeholder}" value="${onboardingData[step.field] || ''}" oninput="updateValue('${step.field}', this.value)">`;
+                html = `<input type="text" class="input-minimal mt-4" placeholder="${step.placeholder}" value="${onboardingData[step.field] || ''}" oninput="updateValue('${step.field}', this.value)">`;
             } else if (step.type === 'choice') {
                 html = `<div class="grid grid-cols-1 gap-2 mt-4">${step.options.map(opt => `
                     <div onclick="updateValue('${step.field}', '${opt.id}')" class="question-option ${onboardingData[step.field] === opt.id ? 'selected' : ''}">
-                        <div class="w-8 h-8 rounded-lg bg-primary-alpha flex items-center justify-center text-primary text-xs"><i class="fas ${opt.icon}"></i></div>
-                        <div><p class="text-xs font-bold">${opt.label}</p><p class="text-[9px] text-muted font-bold uppercase tracking-tighter opacity-70">${opt.desc}</p></div>
+                        <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-primary"><i class="fas ${opt.icon}"></i></div>
+                        <div><p class="text-sm font-bold text-white">${opt.label}</p><p class="text-[10px] text-slate-500 font-medium">${opt.desc}</p></div>
                     </div>`).join('')}</div>`;
             } else if (step.type === 'select') {
-                html = `<select class="input-premium mt-4" onchange="updateValue('${step.field}', this.value)">
-                    <option value="" disabled ${!onboardingData[step.field] ? 'selected' : ''}>Select Dialect...</option>
+                html = `<select class="input-minimal mt-4 appearance-none" onchange="updateValue('${step.field}', this.value)">
+                    <option value="" disabled ${!onboardingData[step.field] ? 'selected' : ''}>Select language...</option>
                     ${step.options.map(opt => `<option value="${opt}" ${onboardingData[step.field] === opt ? 'selected' : ''}>${opt}</option>`).join('')}
                 </select>`;
             }
@@ -297,13 +288,13 @@
             const statusIndicator = document.getElementById('save-status');
             statusIndicator.style.opacity = '1';
             try {
-                const response = await fetch(`${API_URL}/api/onboarding`, {
+                await fetch(`${API_URL}/api/onboarding`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ ...onboardingData, last_step: currentStepIndex, completed: final })
                 });
-                if (response.ok) setTimeout(() => statusIndicator.style.opacity = '0', 1000);
-            } catch (err) { console.warn(err); }
+                setTimeout(() => statusIndicator.style.opacity = '0', 1000);
+            } catch (err) {}
         }
 
         function goToNextStep() {
@@ -315,9 +306,11 @@
         }
 
         async function finishOnboarding() {
+            const btn = document.getElementById('btn-next');
+            btn.innerHTML = '<i class="fas fa-circle-notch animate-spin"></i> Finalizing';
+            btn.disabled = true;
             await saveToBackend(true);
-            if (window.SnLagUI) SnLagUI.showNotification("Neural link established. Access granted.", "success");
-            setTimeout(() => window.location.href = 'workspace.html', 1500);
+            window.location.href = 'workspace.html';
         }
 
         initApp();
