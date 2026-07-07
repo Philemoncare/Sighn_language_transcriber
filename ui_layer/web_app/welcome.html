@@ -10,7 +10,6 @@
     <link rel="stylesheet" href="design_system.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="theme_sync.js"></script>
-    <script src="components.js"></script>
 
     <script>
         tailwind.config = {
@@ -18,13 +17,14 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: 'var(--primary)',
-                        'primary-hover': 'var(--primary-hover)',
-                        'primary-alpha': 'var(--primary-alpha)',
+                        primary: '#f39200',
+                        'primary-hover': '#e08600',
+                        'primary-alpha': 'rgba(243, 146, 0, 0.08)',
                         bg: 'var(--bg)',
                         surface: 'var(--surface)',
                         border: 'var(--border)',
-                        muted: 'var(--muted)',
+                        text: 'var(--text)',
+                        'text-secondary': 'var(--text-secondary)'
                     }
                 }
             }
@@ -34,103 +34,86 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&family=Inter:wght@400;500;600&display=swap');
 
+        :root {
+            --bg: #ffffff;
+            --surface: #ffffff;
+            --border: #f1f5f9;
+            --text: #0f172a;
+            --text-secondary: #64748b;
+        }
+
+        .dark {
+            --bg: #020617;
+            --surface: #0f172a;
+            --border: #1e293b;
+            --text: #f8fafc;
+            --text-secondary: #94a3b8;
+        }
+
         body {
-            background-color: #020617;
+            background-color: var(--bg);
+            color: var(--text);
             height: 100vh;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.4s ease;
+        }
+
+        .question-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            text-align: left;
+            position: relative;
+        }
+
+        .question-card:hover {
+            border-color: #f39200;
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px -10px rgba(243, 146, 0, 0.1);
+        }
+
+        .question-card.selected {
+            border-color: #f39200;
+            background: var(--primary-alpha);
+            box-shadow: 0 0 0 2px #f39200;
+        }
+
+        .multi-select-badge {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 99px;
+            border: 2px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
-            font-family: 'Inter', sans-serif;
+            font-size: 0.6rem;
+            color: transparent;
+            transition: all 0.2s ease;
         }
 
-        /* Sophisticated Mesh Background */
-        .mesh-bg {
-            position: fixed;
-            inset: 0;
-            z-index: -1;
-            background-color: #020617;
-            background-image:
-                radial-gradient(at 0% 0%, rgba(243, 146, 0, 0.15) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
-                radial-gradient(at 100% 0%, rgba(243, 146, 0, 0.05) 0px, transparent 50%);
-        }
-
-        .welcome-card {
-            width: 100%;
-            max-width: 420px;
-            background: rgba(15, 23, 42, 0.4);
-            backdrop-filter: blur(40px);
-            -webkit-backdrop-filter: blur(40px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 2.5rem;
-            padding: 3rem;
-            position: relative;
-            z-index: 10;
-        }
-
-        .step-indicator {
-            height: 4px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 99px;
-            overflow: hidden;
-            margin-bottom: 2rem;
-        }
-
-        .step-progress {
-            height: 100%;
-            background: var(--primary);
-            transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .option-card {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 1.25rem;
-            padding: 1.25rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            text-align: left;
-        }
-
-        .option-card:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.2);
-        }
-
-        .option-card.selected {
-            background: var(--primary-alpha);
-            border-color: var(--primary);
-            box-shadow: 0 0 20px rgba(243, 146, 0, 0.1);
-        }
-
-        .input-glass {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 1.25rem;
-            padding: 1.25rem 1.5rem;
-            width: 100%;
+        .selected .multi-select-badge {
+            background: #f39200;
+            border-color: #f39200;
             color: white;
-            outline: none;
-            transition: all 0.3s ease;
         }
 
-        .input-glass:focus {
-            border-color: var(--primary);
-            background: rgba(255, 255, 255, 0.06);
-        }
-
-        .btn-action {
-            width: 100%;
-            padding: 1.25rem;
-            border-radius: 1.5rem;
-            font-weight: 800;
+        .btn-premium {
+            padding: 1rem 2.5rem;
+            border-radius: 1rem;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
-            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            font-size: 0.8rem;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
@@ -138,27 +121,58 @@
             gap: 0.75rem;
         }
 
-        .btn-primary {
-            background: var(--primary);
+        .btn-next {
+            background: #f39200;
             color: white;
-            box-shadow: 0 10px 25px -5px rgba(243, 146, 0, 0.4);
+            box-shadow: 0 10px 25px -5px rgba(243, 146, 0, 0.3);
         }
 
-        .btn-primary:hover:not(:disabled) {
-            background: var(--primary-hover);
+        .btn-next:hover:not(:disabled) {
+            background: #e08600;
             transform: translateY(-2px);
         }
 
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.05);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .progress-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 2rem 2rem 0;
+            z-index: 50;
+        }
+
+        .progress-bar-bg {
+            height: 6px;
+            background: var(--border);
+            border-radius: 99px;
+            overflow: hidden;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: #f39200;
+            transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .step-transition-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 2rem;
         }
 
         #splash-loader {
             position: fixed;
             inset: 0;
-            background: #020617;
+            background: var(--bg);
             z-index: 9999;
             display: flex;
             align-items: center;
@@ -170,57 +184,68 @@
 <body class="antialiased">
 
     <div id="splash-loader">
-        <div class="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-white shadow-2xl animate-pulse">
-            <i class="fas fa-hand-holding-heart text-xl"></i>
+        <div class="flex flex-col items-center gap-6">
+            <div class="w-12 h-12 rounded-2xl bg-[#f39200] flex items-center justify-center text-white shadow-2xl animate-pulse">
+                <i class="fas fa-hand-holding-heart text-xl"></i>
+            </div>
+            <span class="text-[10px] font-bold text-text-secondary uppercase tracking-[0.3em]">Preparing Workspace</span>
         </div>
     </div>
 
-    <div class="mesh-bg"></div>
+    <!-- Progress Indicator -->
+    <div id="onboarding-nav" class="progress-container hidden">
+        <div class="flex flex-col items-center gap-4">
+            <div class="progress-bar-bg">
+                <div id="progress-fill" class="progress-bar-fill" style="width: 0%"></div>
+            </div>
+            <div class="flex items-center gap-4">
+                <span id="step-number" class="text-[10px] font-black text-text-secondary uppercase tracking-widest">Phase 1 of 6</span>
+                <span id="completion-percent" class="text-[10px] font-black text-[#f39200] uppercase tracking-widest">0% Complete</span>
+            </div>
+        </div>
+    </div>
 
-    <div class="welcome-card animate__animated animate__fadeInUp">
+    <!-- MAIN APP ROOT -->
+    <div id="app-root" class="h-full w-full relative">
 
-        <!-- INITIAL SCREEN -->
-        <div id="welcome-screen" class="space-y-12">
-            <div class="flex flex-col items-center text-center space-y-6">
-                <div class="w-16 h-16 rounded-3xl bg-primary-alpha flex items-center justify-center text-primary text-2xl border border-primary/20">
+        <!-- SCREEN: WELCOME -->
+        <section id="welcome-screen" class="h-full w-full flex flex-col items-center justify-center text-center px-8 space-y-12">
+            <div class="space-y-6">
+                <div class="w-20 h-20 rounded-3xl bg-primary-alpha flex items-center justify-center text-[#f39200] text-3xl mx-auto border border-[#f39200]/10">
                     <i class="fas fa-sparkles"></i>
                 </div>
-                <div class="space-y-2">
-                    <h1 class="text-4xl font-black text-white tracking-tight">Hi, <span id="user-name-display" class="text-primary italic">Friend</span></h1>
-                    <p class="text-slate-400 text-sm font-medium leading-relaxed">Great to have you here. Let's briefly personalize your experience.</p>
+                <div class="space-y-3">
+                    <h1 class="text-4xl md:text-5xl font-black tracking-tight">Welcome to your workspace</h1>
+                    <p class="text-text-secondary text-lg font-medium max-w-md mx-auto leading-relaxed">
+                        Let's personalize your experience based on how you plan to use the platform.
+                    </p>
                 </div>
             </div>
 
-            <button onclick="startOnboarding()" class="btn-action btn-primary group">
-                Start Customization <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+            <button onclick="startOnboarding()" class="btn-premium btn-next group">
+                Continue <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
             </button>
-        </div>
+        </section>
 
-        <!-- ONBOARDING FLOW -->
-        <div id="onboarding-flow" class="hidden space-y-10">
-            <div class="space-y-4">
-                <div class="step-indicator">
-                    <div id="progress-fill" class="step-progress" style="width: 0%"></div>
-                </div>
-                <div class="space-y-1">
-                    <h3 id="step-title" class="text-2xl font-black text-white tracking-tight">Configuration</h3>
-                    <p id="step-subtitle" class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Step 1 of 6</p>
-                </div>
+        <!-- SCREEN: QUESTION FLOW -->
+        <section id="onboarding-flow" class="hidden h-full w-full">
+            <div class="step-transition-container" id="question-wrapper">
+                <!-- Content will be injected and animated here -->
             </div>
 
-            <div id="questions-container" class="min-h-[220px]">
-                <!-- Dynamic Content -->
-            </div>
-
-            <div class="flex gap-4">
-                <button id="btn-back" onclick="goToPrevStep()" class="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all disabled:opacity-0">
-                    <i class="fas fa-chevron-left"></i>
+            <!-- Controls Footer -->
+            <div class="fixed bottom-0 left-0 w-full p-8 md:p-12 flex justify-between items-center max-w-5xl mx-auto left-1/2 -translate-x-1/2">
+                <button id="btn-back" onclick="goToPrevStep()" class="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-text-secondary hover:text-text transition-all disabled:opacity-0" disabled>
+                    <i class="fas fa-chevron-left"></i> Back
                 </button>
-                <button id="btn-next" onclick="goToNextStep()" class="btn-action btn-primary flex-1 disabled:opacity-30">
-                    Continue
+                <div id="save-status" class="text-[8px] font-black text-emerald-500 uppercase tracking-widest opacity-0 transition-opacity">
+                     Saved
+                </div>
+                <button id="btn-next" onclick="goToNextStep()" class="btn-premium btn-next disabled:opacity-30" disabled>
+                    Next Phase <i class="fas fa-chevron-right"></i>
                 </button>
             </div>
-        </div>
+        </section>
 
     </div>
 
@@ -235,21 +260,96 @@
         let currentUser = null;
         let onboardingData = {};
         let currentStepIndex = 0;
+        let isSaving = false;
 
         const questions = [
-            { id: 'preferred_name', title: "Preferred Name", subtitle: "How should we address you?", type: 'text', field: 'preferred_name', placeholder: "Your name" },
             {
-                id: 'purpose', title: "Primary Goal", subtitle: "What brings you to Signly?", type: 'choice', field: 'purpose',
+                id: 'purpose',
+                title: "What brings you here?",
+                desc: "Choose the option that best describes your presence today.",
+                type: 'choice',
+                field: 'purpose',
                 options: [
-                    { id: 'personal', label: 'Personal', desc: 'Daily interaction', icon: 'fa-heart' },
-                    { id: 'work', label: 'Professional', desc: 'Workplace collab', icon: 'fa-briefcase' },
-                    { id: 'learning', label: 'Learning', desc: 'Acquiring signs', icon: 'fa-graduation-cap' }
+                    { id: 'explore', label: 'Explore the platform', icon: '🚀' },
+                    { id: 'grow', label: 'Learn and grow', icon: '📚' },
+                    { id: 'manage', label: 'Manage projects and tasks', icon: '💼' },
+                    { id: 'collaborate', label: 'Connect and collaborate', icon: '🤝' },
+                    { id: 'goals', label: 'Work toward specific goals', icon: '🎯' },
+                    { id: 'features', label: 'Explore available features', icon: '🔎' }
                 ]
             },
-            { id: 'experience_level', title: "Proficiency", subtitle: "Your sign language level.", type: 'choice', field: 'experience_level', options: [{ id: 'beginner', label: 'Beginner', desc: 'Just starting', icon: 'fa-seedling' }, { id: 'advanced', label: 'Advanced', desc: 'Fluent user', icon: 'fa-crown' }] },
-            { id: 'preferred_language', title: "Language", subtitle: "Select your main dialect.", type: 'select', field: 'preferred_language', options: ['American Sign Language (ASL)', 'British Sign Language (BSL)', 'International Sign'] },
-            { id: 'accessibility_needs', title: "Interface", subtitle: "Focus the visual output.", type: 'choice', field: 'accessibility_needs', options: [{ id: 'deaf', label: 'Optimized', desc: 'Full Visual Focus', icon: 'fa-deaf' }, { id: 'hearing', label: 'Standard', desc: 'General Interaction', icon: 'fa-user' }] },
-            { id: 'recognition_preference', title: "Input Node", subtitle: "How will you sign?", type: 'choice', field: 'recognition_preference', options: [{ id: 'camera', label: 'Live Camera', desc: 'Real-time sync', icon: 'fa-video' }, { id: 'upload', label: 'Video Upload', desc: 'Batch processing', icon: 'fa-file-upload' }] }
+            {
+                id: 'primary_goal',
+                title: "What do you want to accomplish?",
+                desc: "Help us understand your main priority.",
+                type: 'choice',
+                field: 'primary_goal',
+                options: [
+                    { id: 'organize', label: 'Organize my activities' },
+                    { id: 'productivity', label: 'Improve productivity' },
+                    { id: 'build', label: 'Build projects' },
+                    { id: 'skills', label: 'Develop skills' },
+                    { id: 'team', label: 'Collaborate with others' },
+                    { id: 'progress', label: 'Track progress' }
+                ]
+            },
+            {
+                id: 'usage_style',
+                title: "How do you prefer working?",
+                desc: "Select the workflow that fits you best.",
+                type: 'choice',
+                field: 'usage_style',
+                options: [
+                    { id: 'simple', label: 'Simple and focused' },
+                    { id: 'detailed', label: 'Detailed management' },
+                    { id: 'creative', label: 'Creative workflow' },
+                    { id: 'team', label: 'Team collaboration' },
+                    { id: 'flexible', label: 'Flexible customization' }
+                ]
+            },
+            {
+                id: 'experience_level',
+                title: "Where are you currently?",
+                desc: "Your familiarity level with tools like ours.",
+                type: 'choice',
+                field: 'experience_level',
+                options: [
+                    { id: 'beginner', label: 'Beginner' },
+                    { id: 'comfortable', label: 'Comfortable user' },
+                    { id: 'experienced', label: 'Experienced user' },
+                    { id: 'professional', label: 'Professional user' }
+                ]
+            },
+            {
+                id: 'interests',
+                title: "What areas interest you?",
+                desc: "Select all that apply to personalize your stream.",
+                type: 'multi',
+                field: 'interests',
+                options: [
+                    { id: 'tech', label: 'Technology' },
+                    { id: 'learning', label: 'Learning' },
+                    { id: 'business', label: 'Business' },
+                    { id: 'research', label: 'Research' },
+                    { id: 'creativity', label: 'Creativity' },
+                    { id: 'productivity', label: 'Productivity' },
+                    { id: 'community', label: 'Community' },
+                    { id: 'projects', label: 'Projects' }
+                ]
+            },
+            {
+                id: 'workspace_preference',
+                title: "How should your workspace feel?",
+                desc: "The visual and operational atmosphere.",
+                type: 'choice',
+                field: 'workspace_preference',
+                options: [
+                    { id: 'clean', label: 'Clean and simple' },
+                    { id: 'organized', label: 'Organized and structured' },
+                    { id: 'flexible', label: 'Flexible and customizable' },
+                    { id: 'efficient', label: 'Fast and efficient' }
+                ]
+            }
         ];
 
         async function initApp() {
@@ -258,13 +358,15 @@
                 const userRes = await fetch(`${API_URL}/api/user/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (!userRes.ok) throw new Error("Auth failed");
                 currentUser = await userRes.json();
-                document.getElementById('user-name-display').innerText = (currentUser.name || currentUser.username).split(' ')[0];
 
                 const statusRes = await fetch(`${API_URL}/api/onboarding/status`, { headers: { 'Authorization': `Bearer ${token}` } });
                 const status = await statusRes.json();
                 if (status.completed) { window.location.href = 'workspace.html'; return; }
 
                 onboardingData = status.data || {};
+                // If it's the new multi-select interest, ensure it's an array
+                if (!Array.isArray(onboardingData.interests)) onboardingData.interests = [];
+
                 currentStepIndex = status.last_step || 0;
 
                 document.getElementById('splash-loader').style.opacity = '0';
@@ -275,44 +377,98 @@
         function startOnboarding() {
             gsap.to("#welcome-screen", { opacity: 0, y: -20, duration: 0.4, onComplete: () => {
                 document.getElementById('welcome-screen').classList.add('hidden');
+                document.getElementById('onboarding-nav').classList.remove('hidden');
                 document.getElementById('onboarding-flow').classList.remove('hidden');
-                gsap.from("#onboarding-flow", { opacity: 0, y: 20, duration: 0.4 });
                 renderStep();
             }});
         }
 
-        function renderStep() {
+        function renderStep(direction = 'next') {
             const step = questions[currentStepIndex];
-            const container = document.getElementById('questions-container');
-            document.getElementById('step-title').innerText = step.title;
-            document.getElementById('step-subtitle').innerText = `Step ${currentStepIndex + 1} of ${questions.length}`;
-            document.getElementById('progress-fill').style.width = `${((currentStepIndex + 1) / questions.length) * 100}%`;
-            document.getElementById('btn-back').disabled = currentStepIndex === 0;
-            document.getElementById('btn-next').innerText = currentStepIndex === questions.length - 1 ? 'Finish Setup' : 'Continue';
-            document.getElementById('btn-next').disabled = !onboardingData[step.field];
+            const wrapper = document.getElementById('question-wrapper');
 
-            let html = '';
-            if (step.type === 'text') {
-                html = `<input type="text" class="input-glass mt-6" placeholder="${step.placeholder}" value="${onboardingData[step.field] || ''}" oninput="updateValue('${step.field}', this.value)">`;
-            } else if (step.type === 'choice') {
-                html = `<div class="grid grid-cols-1 gap-3 mt-6">${step.options.map(opt => `
-                    <div onclick="updateValue('${step.field}', '${opt.id}')" class="option-card ${onboardingData[step.field] === opt.id ? 'selected' : ''}">
-                        <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-primary"><i class="fas ${opt.icon}"></i></div>
-                        <div><p class="text-sm font-bold text-white">${opt.label}</p><p class="text-[10px] text-slate-500 font-medium">${opt.desc}</p></div>
-                    </div>`).join('')}</div>`;
-            } else if (step.type === 'select') {
-                html = `<select class="input-glass mt-6 appearance-none" onchange="updateValue('${step.field}', this.value)">
-                    <option value="" disabled ${!onboardingData[step.field] ? 'selected' : ''}>Select dialect...</option>
-                    ${step.options.map(opt => `<option value="${opt}" ${onboardingData[step.field] === opt ? 'selected' : ''}>${opt}</option>`).join('')}
-                </select>`;
-            }
-            container.innerHTML = html;
+            // Prepare the new HTML
+            let html = `
+                <div class="w-full space-y-12 animate-container">
+                    <div class="text-center space-y-4">
+                        <h2 class="text-3xl md:text-4xl font-black tracking-tight leading-tight">${step.title}</h2>
+                        <p class="text-text-secondary font-medium">${step.desc}</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+            `;
+
+            step.options.forEach(opt => {
+                const isSelected = step.type === 'multi'
+                    ? onboardingData[step.field]?.includes(opt.id)
+                    : onboardingData[step.field] === opt.id;
+
+                html += `
+                    <div onclick="updateValue('${step.field}', '${opt.id}', ${step.type === 'multi'})"
+                         class="question-card ${isSelected ? 'selected' : ''}">
+                        ${step.type === 'multi' ? '<div class="multi-select-badge"><i class="fas fa-check"></i></div>' : ''}
+                        <div class="flex items-center gap-4">
+                            ${opt.icon ? `<span class="text-xl">${opt.icon}</span>` : ''}
+                            <span class="font-bold text-sm tracking-tight">${opt.label}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div></div>`;
+
+            // Animate out current
+            gsap.to("#question-wrapper > div", {
+                opacity: 0,
+                x: direction === 'next' ? -30 : 30,
+                duration: 0.3,
+                onComplete: () => {
+                    wrapper.innerHTML = html;
+                    updateUI();
+                    // Animate in new
+                    gsap.from(".animate-container", { opacity: 0, x: direction === 'next' ? 30 : -30, duration: 0.5, ease: 'power4.out' });
+                }
+            });
         }
 
-        function updateValue(field, value) {
-            onboardingData[field] = value;
+        function updateUI() {
+            const step = questions[currentStepIndex];
+            const progress = ((currentStepIndex + 1) / questions.length) * 100;
+
+            document.getElementById('progress-fill').style.width = `${progress}%`;
+            document.getElementById('step-number').innerText = `Step ${currentStepIndex + 1} of ${questions.length}`;
+            document.getElementById('completion-percent').innerText = `${Math.round(progress)}% Complete`;
+
+            document.getElementById('btn-back').disabled = currentStepIndex === 0;
+            document.getElementById('btn-next').innerText = currentStepIndex === questions.length - 1 ? 'Finish Setup' : 'Continue';
+
+            const value = onboardingData[step.field];
+            const isValid = step.type === 'multi' ? (Array.isArray(value) && value.length > 0) : !!value;
+            document.getElementById('btn-next').disabled = !isValid;
+        }
+
+        function updateValue(field, value, isMulti = false) {
+            if (isMulti) {
+                if (!Array.isArray(onboardingData[field])) onboardingData[field] = [];
+                const index = onboardingData[field].indexOf(value);
+                if (index > -1) onboardingData[field].splice(index, 1);
+                else onboardingData[field].push(value);
+            } else {
+                onboardingData[field] = value;
+            }
+
             saveToBackend();
-            renderStep();
+
+            // Re-render only cards for immediate feedback
+            const cards = document.querySelectorAll('.question-card');
+            questions[currentStepIndex].options.forEach((opt, idx) => {
+                const selected = isMulti
+                    ? onboardingData[field].includes(opt.id)
+                    : onboardingData[field] === opt.id;
+                cards[idx].classList.toggle('selected', selected);
+            });
+
+            updateUI();
         }
 
         async function saveToBackend(final = false) {
@@ -325,23 +481,61 @@
                     body: JSON.stringify({ ...onboardingData, last_step: currentStepIndex, completed: final })
                 });
                 setTimeout(() => statusIndicator.style.opacity = '0', 1000);
-            } catch (err) {}
+            } catch (err) { console.error("Save error:", err); }
         }
 
         function goToNextStep() {
-            if (currentStepIndex < questions.length - 1) { currentStepIndex++; renderStep(); } else { finishOnboarding(); }
+            if (currentStepIndex < questions.length - 1) {
+                currentStepIndex++;
+                renderStep('next');
+            } else {
+                finishOnboarding();
+            }
         }
 
         function goToPrevStep() {
-            if (currentStepIndex > 0) { currentStepIndex--; renderStep(); }
+            if (currentStepIndex > 0) {
+                currentStepIndex--;
+                renderStep('prev');
+            }
         }
 
         async function finishOnboarding() {
-            const btn = document.getElementById('btn-next');
-            btn.innerHTML = '<i class="fas fa-circle-notch animate-spin"></i> Finalizing';
-            btn.disabled = true;
-            await saveToBackend(true);
-            window.location.href = 'workspace.html';
+            const wrapper = document.getElementById('question-wrapper');
+            const nav = document.getElementById('onboarding-nav');
+            const footer = document.querySelector('#onboarding-flow > div:last-child');
+
+            gsap.to([wrapper, nav, footer], { opacity: 0, y: -20, duration: 0.5, stagger: 0.1, onComplete: async () => {
+                await saveToBackend(true);
+
+                // Show Final Screen
+                wrapper.innerHTML = `
+                    <div class="text-center space-y-12 animate__animated animate__zoomIn">
+                        <div class="space-y-6">
+                            <div class="text-6xl">🎉</div>
+                            <h2 class="text-4xl font-black">Your workspace is ready</h2>
+                            <div class="p-8 bg-primary-alpha rounded-3xl border border-primary/10 max-w-sm mx-auto space-y-4">
+                                <div class="flex justify-between text-xs font-bold uppercase tracking-widest">
+                                    <span class="text-text-secondary">Purpose</span>
+                                    <span class="text-[#f39200]">${onboardingData.purpose || 'Exploration'}</span>
+                                </div>
+                                <div class="flex justify-between text-xs font-bold uppercase tracking-widest">
+                                    <span class="text-text-secondary">Experience</span>
+                                    <span class="text-[#f39200]">${onboardingData.experience_level || 'Beginner'}</span>
+                                </div>
+                                <div class="flex justify-between text-xs font-bold uppercase tracking-widest">
+                                    <span class="text-text-secondary">Feel</span>
+                                    <span class="text-[#f39200]">${onboardingData.workspace_preference || 'Clean'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="window.location.href='workspace.html'" class="btn-premium btn-next mx-auto px-12 py-5 text-lg">
+                            Enter Workspace
+                        </button>
+                    </div>
+                `;
+                gsap.to(wrapper, { opacity: 1, y: 0, duration: 0.5 });
+            }});
         }
 
         initApp();

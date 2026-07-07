@@ -121,6 +121,10 @@ class OnboardingProfileModel(Base):
     preferred_language = Column(String, nullable=True)
     experience_level = Column(String, nullable=True)
     purpose = Column(String, nullable=True)
+    primary_goal = Column(String, nullable=True)
+    usage_style = Column(String, nullable=True)
+    interests = Column(JSON, default=[])
+    workspace_preference = Column(String, nullable=True)
     recognition_preference = Column(String, nullable=True)
     accessibility_needs = Column(String, nullable=True)
     accessibility_preferences = Column(JSON, default={})
@@ -287,7 +291,8 @@ def init_db():
                 # 2. Migrate onboarding_profiles table
                 onboarding_cols = [
                     "email", "preferred_name", "country", "preferred_language",
-                    "experience_level", "purpose", "recognition_preference", "accessibility_needs",
+                    "experience_level", "purpose", "primary_goal", "usage_style",
+                    "workspace_preference", "recognition_preference", "accessibility_needs",
                     "last_step", "completed", "completed_at"
                 ]
                 for col in onboarding_cols:
@@ -304,7 +309,7 @@ def init_db():
                         pass
 
                 # Add JSON columns
-                for col in ["accessibility_preferences", "learning_goals"]:
+                for col in ["accessibility_preferences", "learning_goals", "interests"]:
                     try:
                         conn.execute(text(f"ALTER TABLE onboarding_profiles ADD COLUMN {col} TEXT"))
                     except:
