@@ -37,21 +37,39 @@ class ConnectionManager:
             logger.warning(f"WS: Redis Sync Unavailable (Standalone Mode): {e}")
 
     async def _redis_listener(self):
-        async for message in self.pubsub.listen():
-            if message["type"] == "message":
-                try:
-                    channel = message["channel"].decode() if isinstance(message["channel"], bytes) else message["channel"]
-                    payload = json.loads(message["data"])
+        while True:
+            try:
+                if not self.pubsub:
+                    await asyncio.sleep(5)
+                    continue
 
-                    if channel == "snlag_broadcast":
-                        scope = payload.pop("_ws_scope", "user")
-                        await self._local_broadcast(payload, scope)
-                    elif channel == "snlag_signaling":
-                        target_id = str(payload.get("target_id"))
-                        if target_id in self.active_connections:
-                            await self.active_connections[target_id].send_text(json.dumps(payload))
-                except Exception as e:
-                    logger.debug(f"WS: Sync Decode Error: {e}")
+                async for message in self.pubsub.listen():
+                    if message["type"] == "message":
+                        try:
+                            channel = message["channel"].decode() if isinstance(message["channel"], bytes) else message["channel"]
+                            payload = json.loads(message["data"])
+
+                            if channel == "snlag_broadcast":
+                                scope = payload.pop("_ws_scope", "user")
+                                await self._local_broadcast(payload, scope)
+                            elif channel == "snlag_signaling":
+                                target_id = str(payload.get("target_id"))
+                                if target_id in self.active_connections:
+                                    await self.active_connections[target_id].send_text(json.dumps(payload))
+                        except Exception as e:
+                            logger.debug(f"WS: Sync Decode Error: {e}")
+            except Exception as e:
+                logger.warning(f"WS: Redis Sync Connection Lost: {e}. Retrying in 5s...")
+                try:
+                    # Attempt to re-initialize pubsub
+                    import redis.asyncio as redis
+                    self.redis_client = redis.from_url(CELERY_BROKER_URL, protocol=2)
+                    self.pubsub = self.redis_client.pubsub()
+                    await self.pubsub.subscribe("snlag_broadcast")
+                    await self.pubsub.subscribe("snlag_signaling")
+                except:
+                    pass
+                await asyncio.sleep(5)
 
     async def connect(self, websocket: WebSocket, user_id: str, scope: str = "user"):
         await websocket.accept()
