@@ -1,20 +1,19 @@
 import logging
-from ai_orchestration.core.config import ADMIN_USERNAME, ADMIN_PASSWORD
+from ai_orchestration.core.config import ADMIN_USERNAME, ADMIN_PASSWORD, ADMIN_EMAIL
 from ai_orchestration.auth.security import get_password_hash
-from database_layer.db_manager import SessionLocal, UserModel
+from database_layer.db_manager import SessionLocal, AdminModel
 
 logger = logging.getLogger("SnLag_AuthInit")
 
 def ensure_admin_exists():
     db = SessionLocal()
     try:
-        if db.query(UserModel).filter(UserModel.role == "admin").count() == 0:
-            admin = UserModel(
+        if db.query(AdminModel).count() == 0:
+            admin = AdminModel(
                 username=ADMIN_USERNAME,
-                email=f"{ADMIN_USERNAME}@snlag.local",
-                role="admin",
+                email=ADMIN_EMAIL or f"{ADMIN_USERNAME}@signly.local",
                 is_active=True,
-                hashed_password=get_password_hash(ADMIN_PASSWORD)
+                password_hash=get_password_hash(ADMIN_PASSWORD)
             )
             db.add(admin)
             db.commit()

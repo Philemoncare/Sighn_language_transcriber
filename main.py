@@ -13,7 +13,7 @@ if __name__ == "__main__":
     # Change directory to the root to ensure relative paths for logs/db work as expected
     os.chdir(project_root)
 
-    print("--- SnLag Universal Core Launcher ---")
+    print("--- Signly Launcher ---")
     try:
         from ai_orchestration.main import app
         import uvicorn

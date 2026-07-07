@@ -1,114 +1,253 @@
 /**
- * SnLag Shared UI Library (Neural UI v3.0)
- * Single source of truth for branding and unified components.
+ * Signly Design System Components v12.0
+ * Modern SaaS-grade UI components with Light/Dark Mode support.
  */
 
 const SnLagUI = {
     /**
-     * PREMIUM LOGO SYSTEM
-     * Consumed by Navbar, Auth, Admin, and Mobile interfaces.
+     * Sidebar Navigation (Desktop)
      */
-    getLogo(size = 'md', isLight = false) {
-        const sizes = {
-            xs: 'w-6 h-6',
-            sm: 'w-8 h-8',
-            md: 'w-12 h-12',
-            lg: 'w-16 h-16',
-            xl: 'w-24 h-24'
-        };
-        const iconSizes = {
-            xs: 'text-[10px]',
-            sm: 'text-xs',
-            md: 'text-xl',
-            lg: 'text-2xl',
-            xl: 'text-4xl'
-        };
-        const textSizes = {
-            xs: 'text-xs',
-            sm: 'text-sm',
-            md: 'text-xl',
-            lg: 'text-2xl',
-            xl: 'text-4xl'
-        };
-
+    getSidebar(activeId = 'dashboard', userData = {}) {
         return `
-            <div class="flex items-center gap-3 group cursor-pointer select-none">
-                <div class="${sizes[size]} bg-primary rounded-[30%] flex items-center justify-center text-white shadow-xl shadow-primary/20 rotate-3 transition-all duration-700 group-hover:rotate-0 group-hover:scale-110 group-hover:shadow-primary/40 relative overflow-hidden">
-                    <div class="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent"></div>
-                    <i class="fas fa-brain ${iconSizes[size]} relative z-10"></i>
+            <aside class="sidebar motion-entrance">
+                <div class="flex items-center justify-between px-6 py-8 mb-4">
+                    ${this.getLogo()}
                 </div>
-                <div class="flex flex-col leading-none">
-                    <h1 class="${textSizes[size]} font-900 tracking-tighter ${isLight ? 'text-white' : 'text-neutral-900 dark:text-white'} transition-colors duration-500">
-                        SnLag<span class="text-primary font-900 italic">CORE</span>
-                    </h1>
-                    <p class="text-[7px] font-800 text-neutral-400 dark:text-neutral-500 uppercase tracking-[0.4em] mt-1 transition-colors duration-500">Universal Intel</p>
+
+                <nav class="flex-1 px-4 space-y-8 overflow-y-auto">
+                    <div class="space-y-1">
+                        <p class="px-4 text-[10px] font-bold text-muted uppercase tracking-[0.2em] mb-4">Platform</p>
+                        ${this.getSidebarLink('dashboard', 'fa-th-large', 'Workspace', activeId === 'dashboard')}
+                        ${this.getSidebarLink('meetings', 'fa-video', 'Live Engine', activeId === 'meetings')}
+                        ${this.getSidebarLink('library', 'fa-book-open', 'Gesture Library', activeId === 'library')}
+                    </div>
+
+                    <div class="space-y-1">
+                        <p class="px-4 text-[10px] font-bold text-muted uppercase tracking-[0.2em] mb-4">Personal</p>
+                        ${this.getSidebarLink('history', 'fa-history', 'Activity Log', activeId === 'history')}
+                        ${this.getSidebarLink('profile', 'fa-user-circle', 'Identity', activeId === 'profile')}
+                        ${this.getSidebarLink('settings', 'fa-sliders-h', 'Preferences', activeId === 'settings')}
+                    </div>
+                </nav>
+
+                <div class="px-4 py-6 mt-auto border-t border-border space-y-4">
+                    <div class="flex items-center justify-between px-4">
+                        <span class="text-[10px] font-bold text-muted uppercase tracking-widest">Theme</span>
+                        <button onclick="toggleTheme()" class="theme-toggle">
+                            <i class="fas fa-moon block dark:hidden"></i>
+                            <i class="fas fa-sun hidden dark:block"></i>
+                        </button>
+                    </div>
+                    ${this.getCompactUserCard(userData)}
+                </div>
+            </aside>
+        `;
+    },
+
+    getSidebarLink(id, icon, label, isActive) {
+        return `
+            <button onclick="switchView('${id}')"
+                class="nav-link w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all group
+                ${isActive ? 'active text-primary bg-primary-alpha' : 'text-muted hover:text-primary hover:bg-bg'}">
+                <i class="fas ${icon} nav-icon"></i>
+                <span class="font-bold">${label}</span>
+            </button>
+        `;
+    },
+
+    /**
+     * Bottom Navigation (Mobile)
+     */
+    getBottomNav(activeId = 'dashboard') {
+        return `
+            <nav class="bottom-nav">
+                ${this.getBottomNavLink('dashboard', 'fa-th-large', 'Home', activeId === 'dashboard')}
+                ${this.getBottomNavLink('meetings', 'fa-video', 'Live', activeId === 'meetings')}
+                ${this.getBottomNavLink('library', 'fa-book-open', 'Library', activeId === 'library')}
+                ${this.getBottomNavLink('settings', 'fa-sliders-h', 'Settings', activeId === 'settings')}
+            </nav>
+        `;
+    },
+
+    getBottomNavLink(id, icon, label, isActive) {
+        return `
+            <button onclick="switchView('${id}')"
+                class="nav-link ${isActive ? 'active text-primary' : 'text-muted'}">
+                <i class="fas ${icon} nav-icon"></i>
+                <span class="text-[10px] font-bold uppercase tracking-widest">${label}</span>
+            </button>
+        `;
+    },
+
+    getLogo() {
+        return `
+            <div class="flex items-center gap-3 select-none cursor-pointer" onclick="window.location.href='index.html'">
+                <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-primary text-white shadow-lg shadow-primary/20">
+                    <i class="fas fa-hand-holding-heart"></i>
+                </div>
+                <span class="text-xl font-black tracking-tighter text-primary">Signly</span>
+            </div>
+        `;
+    },
+
+    getCompactUserCard(user) {
+        return `
+            <div class="flex items-center gap-4 p-3 rounded-2xl bg-surface-raised border border-border group relative cursor-pointer hover:bg-bg transition-colors" onclick="toggleUserMenu()">
+                <div class="relative">
+                    <img src="${user.avatar_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100'}"
+                         class="w-10 h-10 rounded-xl object-cover transition-all">
+                    <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-surface"></div>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-primary truncate">${user.name || 'Alex Neural'}</p>
+                    <p class="text-[10px] font-bold text-muted uppercase tracking-widest">Premium Node</p>
+                </div>
+                <i class="fas fa-chevron-up text-muted text-[10px]"></i>
+
+                <div id="user-popup" class="absolute bottom-full left-0 w-full mb-3 bg-surface border border-border rounded-2xl shadow-premium p-2 hidden animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <button onclick="switchView('profile')" class="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-xs font-bold text-muted hover:text-primary hover:bg-bg transition-all">
+                        <i class="fas fa-user-circle"></i> Profile
+                    </button>
+                    <div class="h-px bg-border my-1 mx-2"></div>
+                    <button onclick="logout()" class="flex items-center gap-3 w-full px-3 py-2 rounded-xl text-xs font-bold text-rose-500 hover:bg-rose-500/10 transition-all">
+                        <i class="fas fa-sign-out-alt"></i> Sign Out
+                    </button>
                 </div>
             </div>
         `;
     },
 
-    getNotificationDropdown() {
+    getWelcomeHeader(username = 'Neural Node') {
+        const displayName = username ? username.split(' ')[0] : 'Node';
         return `
-            <div id="notif-dropdown" class="absolute top-full right-0 mt-6 w-80 bg-white dark:bg-neutral-900 rounded-[2.5rem] shadow-3xl border border-neutral-100 dark:border-neutral-800 p-8 hidden animate__animated animate__fadeInUp animate__faster z-[200]">
-                <div class="flex justify-between items-center mb-8">
-                    <div class="flex items-center gap-3">
-                        <i class="fas fa-satellite-dish text-primary"></i>
-                        <h4 class="text-xs font-900 uppercase tracking-widest text-neutral-800 dark:text-neutral-200">Signals</h4>
-                    </div>
-                    <span class="bg-primary/10 text-primary text-[8px] font-900 px-2.5 py-1 rounded-full uppercase">2 Node Activities</span>
-                </div>
-                <div class="space-y-4">
-                    <div class="flex gap-4 p-4 rounded-3xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-100 dark:border-neutral-800 transition-all hover:scale-[1.02] cursor-pointer">
-                        <div class="w-10 h-10 rounded-2xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-primary text-sm">
-                            <i class="fas fa-microchip"></i>
-                        </div>
-                        <div class="flex-1 overflow-hidden">
-                            <p class="text-[11px] font-800 text-neutral-700 dark:text-neutral-300">Extraction Success</p>
-                            <p class="text-[9px] text-neutral-400 truncate">Greetings_V2 node initialized</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-4 p-4 rounded-3xl hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-all hover:scale-[1.02] cursor-pointer border border-transparent hover:border-neutral-100 dark:hover:border-neutral-800">
-                        <div class="w-10 h-10 rounded-2xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-500 text-sm">
-                            <i class="fas fa-shield-alt"></i>
-                        </div>
-                        <div class="flex-1 overflow-hidden">
-                            <p class="text-[11px] font-800 text-neutral-700 dark:text-neutral-300">Security Sync</p>
-                            <p class="text-[9px] text-neutral-400 truncate">Neural Link established from unknown IP</p>
-                        </div>
-                    </div>
-                </div>
-                <button class="w-full mt-8 text-[9px] font-900 uppercase text-neutral-400 hover:text-primary transition-colors py-4 border-t border-neutral-100 dark:border-neutral-800">Clear Data Streams</button>
+            <div class="mb-12 space-y-2 motion-entrance">
+                <h1 class="text-primary">Hello, ${displayName}</h1>
+                <p class="text-muted font-medium">Neural Interface Link stable. How can we communicate today?</p>
             </div>
         `;
     },
 
-    getUserMenu(username, role) {
+    getStatCard(label, value, icon, trend = null) {
         return `
-            <div id="user-dropdown" class="absolute top-full right-0 mt-6 w-72 bg-white dark:bg-neutral-900 rounded-[3rem] shadow-3xl border border-neutral-100 dark:border-neutral-800 overflow-hidden hidden animate__animated animate__fadeInUp animate__faster z-[200]">
-                <div class="p-10 bg-neutral-50 dark:bg-neutral-800/40 border-b border-neutral-100 dark:border-neutral-800 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full -mr-12 -mt-12 blur-2xl"></div>
-                    <p class="text-[10px] font-900 text-neutral-400 uppercase tracking-widest mb-1">Identity Context</p>
-                    <p class="text-sm font-900 text-neutral-900 dark:text-white truncate">${username}</p>
-                    <div class="flex items-center gap-2 mt-3">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]"></span>
-                        <p class="text-[8px] font-800 text-primary uppercase tracking-widest">${role}</p>
+            <div class="ui-card ui-card-hover group motion-entrance">
+                <div class="flex items-start justify-between mb-8">
+                    <div class="w-12 h-12 rounded-xl bg-bg border border-border flex items-center justify-center text-muted group-hover:text-primary transition-all">
+                        <i class="fas ${icon} text-xl"></i>
+                    </div>
+                    ${trend !== null ? `<span class="px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-500 text-[10px] font-bold">+${trend}%</span>` : ''}
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">${label}</p>
+                    <h2 class="text-primary text-3xl font-black">${value}</h2>
+                </div>
+            </div>
+        `;
+    },
+
+    getModernActivityItem(title, meta, status = 'success') {
+        const colors = { success: 'bg-emerald-500', alert: 'bg-rose-500', process: 'bg-primary' };
+        return `
+            <div class="flex items-center gap-5 p-4 rounded-2xl hover:bg-bg transition-all border border-transparent hover:border-border group cursor-pointer">
+                <div class="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center text-muted">
+                    <div class="w-2 h-2 rounded-full ${colors[status] || 'bg-muted'}"></div>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-primary truncate">${title}</p>
+                    <p class="text-[10px] font-bold text-muted uppercase tracking-widest">${meta}</p>
+                </div>
+                <i class="fas fa-chevron-right text-muted text-xs opacity-0 group-hover:opacity-100 transition-all"></i>
+            </div>
+        `;
+    },
+
+    getLibraryGrid(items) {
+        return `
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 motion-entrance">
+                ${items.map(item => this.getLibraryCard(item)).join('')}
+            </div>
+        `;
+    },
+
+    getLibraryCard(item) {
+        return `
+            <div class="ui-card ui-card-hover group">
+                <div class="media-container aspect-video mb-6">
+                    <img src="${item.thumbnail}" class="media-content w-full h-full object-cover transition-all duration-700">
+                    <div class="absolute inset-0 bg-gradient-to-t from-surface/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                        <button class="btn-modern btn-modern-primary w-full py-2 text-xs">Play Sequence</button>
                     </div>
                 </div>
-                <div class="p-6 space-y-2">
-                    <button onclick="switchView('profile')" class="w-full flex items-center gap-4 px-6 py-4 rounded-2xl hover:bg-neutral-50 dark:hover:bg-neutral-800/80 text-neutral-600 dark:text-neutral-400 hover:text-primary transition-all group border border-transparent hover:border-neutral-100 dark:hover:border-neutral-800">
-                        <i class="fas fa-id-card text-base opacity-40 group-hover:opacity-100 transition-opacity"></i>
-                        <span class="text-[11px] font-800 uppercase tracking-wider">Neural Profile</span>
-                    </button>
-                    <button class="w-full flex items-center gap-4 px-6 py-4 rounded-2xl hover:bg-neutral-50 dark:hover:bg-neutral-800/80 text-neutral-600 dark:text-neutral-400 hover:text-primary transition-all group border border-transparent hover:border-neutral-100 dark:hover:border-neutral-800">
-                        <i class="fas fa-cog text-base opacity-40 group-hover:opacity-100 transition-opacity"></i>
-                        <span class="text-[11px] font-800 uppercase tracking-wider">Node Logic</span>
-                    </button>
-                    <div class="h-px bg-neutral-100 dark:bg-neutral-800 my-4 mx-8"></div>
-                    <button onclick="logout()" class="w-full flex items-center gap-4 px-6 py-4 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 text-neutral-600 dark:text-neutral-400 hover:text-red-500 transition-all group border border-transparent hover:border-red-100 dark:hover:border-red-900/30">
-                        <i class="fas fa-power-off text-base opacity-40 group-hover:opacity-100 transition-opacity"></i>
-                        <span class="text-[11px] font-800 uppercase tracking-wider">Deactivate Link</span>
-                    </button>
+                <h4 class="text-primary mb-1">${item.name}</h4>
+                <p class="text-[10px] font-bold text-muted uppercase tracking-widest">${item.category}</p>
+            </div>
+        `;
+    },
+
+    getSettingsContainer(categories) {
+        return `
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 motion-entrance">
+                <div class="lg:col-span-4 space-y-4">
+                    <h2 class="text-primary">System Preferences</h2>
+                    <p class="text-sm text-muted leading-relaxed">Configure your neural interface settings, appearance, and security protocols.</p>
                 </div>
+                <div class="lg:col-span-8 space-y-8">
+                    ${categories.join('')}
+                </div>
+            </div>
+        `;
+    },
+
+    getSettingsCategory(title, items) {
+        return `
+            <div class="ui-card space-y-6">
+                <h3 class="text-[10px] font-bold text-muted uppercase tracking-[0.3em]">${title}</h3>
+                <div class="space-y-6">
+                    ${items.join('')}
+                </div>
+            </div>
+        `;
+    },
+
+    getSettingsToggle(label, description, isActive, onToggle) {
+        return `
+            <div class="flex items-center justify-between group">
+                <div class="flex-1 pr-8">
+                    <h4 class="text-sm font-bold text-primary group-hover:text-primary transition-colors">${label}</h4>
+                    <p class="text-xs text-muted mt-1">${description}</p>
+                </div>
+                <button onclick="${onToggle}" class="w-12 h-6 rounded-full transition-all relative ${isActive ? 'bg-primary' : 'bg-border'}">
+                    <div class="absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${isActive ? 'translate-x-6' : ''}"></div>
+                </button>
+            </div>
+        `;
+    },
+
+    getErrorState(title, message, onRetry) {
+        return `
+            <div class="flex flex-col items-center justify-center min-h-[400px] text-center space-y-6 motion-entrance">
+                <div class="w-20 h-20 rounded-3xl bg-rose-500/10 flex items-center justify-center text-rose-500 text-3xl">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="space-y-2">
+                    <h2 class="text-primary">${title}</h2>
+                    <p class="text-muted max-w-sm mx-auto">${message}</p>
+                </div>
+                <button onclick="${onRetry}" class="btn-modern btn-modern-primary px-8">Retry Protocol</button>
+            </div>
+        `;
+    },
+
+    getEmptyState(title, message, actionLabel, onAction) {
+        return `
+            <div class="flex flex-col items-center justify-center min-h-[400px] text-center space-y-6 motion-entrance">
+                <div class="w-20 h-20 rounded-3xl bg-bg border border-border flex items-center justify-center text-muted text-3xl">
+                    <i class="fas fa-folder-open"></i>
+                </div>
+                <div class="space-y-2">
+                    <h2 class="text-primary">${title}</h2>
+                    <p class="text-muted max-w-sm mx-auto">${message}</p>
+                </div>
+                ${actionLabel ? `<button onclick="${onAction}" class="btn-modern btn-modern-primary px-8">${actionLabel}</button>` : ''}
             </div>
         `;
     }

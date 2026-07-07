@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signly Admin | Secure Access</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6', // Professional blue for admin
+                        dark: '#0f172a',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #0f172a; color: white; }
+        .admin-glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .input-admin {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 14px 14px 14px 48px;
+            width: 100%;
+            color: white;
+            transition: all 0.3s;
+        }
+        .input-admin:focus {
+            border-color: #3b82f6;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+        .btn-admin {
+            background: #3b82f6;
+            color: white;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 700;
+            width: 100%;
+            transition: all 0.3s;
+        }
+        .btn-admin:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    </style>
+</head>
+<body class="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.22),_transparent_35%),linear-gradient(135deg,_#020617_0%,_#0f172a_45%,_#111827_100%)] text-white">
+    <div class="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8">
+        <div class="w-full max-w-5xl grid gap-6 lg:grid-cols-[1.08fr_0.92fr] items-center">
+            <div class="rounded-[28px] border border-white/10 bg-slate-900/70 p-8 sm:p-10 shadow-2xl shadow-black/30 backdrop-blur-xl">
+                <div class="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-[10px] font-900 uppercase tracking-[0.3em] text-primary">
+                    <i class="fas fa-shield-halved"></i> Secure Control Center
+                </div>
+                <h1 class="mt-6 text-3xl sm:text-4xl font-800 tracking-tight">Modern operations for the entire sign language platform.</h1>
+                <p class="mt-4 max-w-xl text-sm sm:text-base text-slate-300 leading-7">
+                    Review datasets, manage extraction jobs, and keep your deployment healthy from one polished command center.
+                </p>
+                <div class="mt-8 space-y-3 text-sm text-slate-300">
+                    <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                        <i class="fas fa-check-circle text-emerald-400"></i>
+                        <span>Fast dataset retry and cleanup workflows</span>
+                    </div>
+                    <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                        <i class="fas fa-check-circle text-emerald-400"></i>
+                        <span>Live status monitoring and system health insights</span>
+                    </div>
+                    <div class="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                        <i class="fas fa-check-circle text-emerald-400"></i>
+                        <span>Secure admin access with deployment-safe routing</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-glass p-8 sm:p-9 rounded-[28px] shadow-2xl shadow-black/20">
+                <div class="text-center mb-8">
+                    <div class="inline-flex items-center gap-2 rounded-full border border-red-400/20 bg-red-500/10 px-3 py-1 text-[10px] font-900 uppercase tracking-[0.3em] text-red-400">
+                        Administrator Access Only
+                    </div>
+                    <h2 class="mt-4 text-2xl font-800 tracking-tight">Welcome back</h2>
+                    <p class="mt-2 text-sm text-slate-400">Sign in to continue where you left off.</p>
+                </div>
+
+                <form id="admin-login-form" onsubmit="handleAdminLogin(event)" class="space-y-6">
+                    <div class="relative">
+                        <i class="fas fa-shield-user absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                        <input type="text" id="username" class="input-admin" placeholder="Admin Username" required>
+                    </div>
+
+                    <div class="relative">
+                        <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
+                        <input type="password" id="password" class="input-admin" placeholder="Access Key" required>
+                    </div>
+
+                    <button type="submit" id="submit-btn" class="btn-admin flex items-center justify-center gap-3">
+                        <span>Initialize Session</span>
+                        <i class="fas fa-chevron-right text-xs"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const BASE_PATH = window.location.pathname.includes('/SnLag/') ? '/SnLag' : '';
+        const DASHBOARD_PATH = `${BASE_PATH}/ui_layer/admin_dashboard/dashboard.html`;
+        const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+            ? `http://${window.location.hostname}:8000` : window.location.origin;
+
+        async function handleAdminLogin(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submit-btn');
+            btn.disabled = true;
+            btn.innerText = "Authenticating...";
+
+            try {
+                const username = document.getElementById('username').value;
+                const secret = document.getElementById('password').value;
+
+                const res = await fetch(`${API_URL}/api/admin/auth/login`, {
+                    method: 'POST',
+                    body: new URLSearchParams({ username: username, password: secret })
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || "Access Denied");
+
+                localStorage.setItem('admin_token', data.access_token);
+                window.location.replace(DASHBOARD_PATH);
+            } catch (err) {
+                alert(err.message);
+                btn.disabled = false;
+                btn.innerText = "Initialize Session";
+            }
+        }
+    </script>
+</body>
+</html>

@@ -93,11 +93,11 @@ def train_model(actions=None, progress_callback=None, epochs=100, batch_size=32)
 
     # CLASS SAFETY: If only 1 action is provided, we MUST add a "background" class.
     if num_actions == 1:
-        logger.info(f"Only 1 action '{actions[0]}' detected. Adding synthetic 'nothing' class for stability.")
-        bg_data = np.random.normal(0, 0.01, (len(X), 30, 1662)).astype(np.float32)
+        logger.info(f"Only 1 action '{actions[0]}' detected. Adding synthetic 'background' class for stability.")
+        bg_data = np.random.normal(0, 0.001, (len(X), 30, 1662)).astype(np.float32)
         X = np.concatenate([X, bg_data], axis=0)
         y = np.concatenate([y, np.ones(len(y), dtype=int) * 1], axis=0)
-        actions.append("nothing")
+        actions.append("background")
         num_actions = 2
 
     y_cat = to_categorical(y, num_classes=num_actions)

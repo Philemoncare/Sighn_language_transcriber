@@ -42,4 +42,52 @@ class ApiService {
     if (res.statusCode == 200) return json.decode(res.body);
     throw Exception('Failed to start training');
   }
+
+  // --- Meeting APIs ---
+  Future<Map<String, dynamic>> createRoom(String name) async {
+    final res = await http.post(
+      Uri.parse('$baseUrl/api/meeting/rooms'),
+      headers: _headers,
+      body: json.encode({'room_name': name}),
+    );
+    if (res.statusCode == 200) return json.decode(res.body);
+    throw Exception('Failed to create room');
+  }
+
+  Future<Map<String, dynamic>> getRoomDetails(String roomId) async {
+    final res = await http.get(
+      Uri.parse('$baseUrl/api/meeting/rooms/$roomId'),
+      headers: _headers,
+    );
+    if (res.statusCode == 200) return json.decode(res.body);
+    throw Exception('Room not found');
+  }
+
+  // --- User APIs ---
+  Future<List<dynamic>> getHistory() async {
+    final res = await http.get(
+      Uri.parse('$baseUrl/api/user/history'),
+      headers: _headers,
+    );
+    if (res.statusCode == 200) return json.decode(res.body);
+    throw Exception('Failed to load history');
+  }
+
+  Future<List<dynamic>> getLibrary() async {
+    final res = await http.get(
+      Uri.parse('$baseUrl/api/user/library'),
+      headers: _headers,
+    );
+    if (res.statusCode == 200) return json.decode(res.body);
+    throw Exception('Failed to load library');
+  }
+
+  Future<Map<String, dynamic>> getMyProfile() async {
+    final res = await http.get(
+      Uri.parse('$baseUrl/api/user/profile/me'),
+      headers: _headers,
+    );
+    if (res.statusCode == 200) return json.decode(res.body);
+    throw Exception('Failed to load profile');
+  }
 }

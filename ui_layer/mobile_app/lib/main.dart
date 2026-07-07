@@ -6,6 +6,7 @@ import 'data/services/api_service.dart';
 import 'data/services/auth_service.dart';
 import 'presentation/pages/login_page.dart';
 import 'presentation/pages/home_page.dart';
+import 'data/services/meeting_service.dart';
 
 void main() {
   runApp(
@@ -14,6 +15,10 @@ void main() {
         ChangeNotifierProvider(create: (_) => AuthService()),
         ProxyProvider<AuthService, ApiService>(
           update: (_, auth, __) => ApiService(auth.token),
+        ),
+        ChangeNotifierProxyProvider<AuthService, MeetingService>(
+          create: (context) => MeetingService(null),
+          update: (context, auth, previous) => MeetingService(auth.token),
         ),
       ],
       child: const SnLagApp(),

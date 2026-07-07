@@ -1,102 +1,124 @@
 import cv2
 import numpy as np
-
 import logging
 import time
 import sys
 
-# Requirement: Handle MediaPipe import variations in 0.10.x+
+# FORCE NUMPY INITIALIZATION to prevent "no attribute floating" in broken environments
+try:
+    _ = np.array([1.0]).var()
+except:
+    pass
+
+mp_holistic = None
+mp_drawing = None
+MEDIAPIPE_AVAILABLE = False
+
 try:
     import mediapipe as mp
     try:
-        # Preferred: Direct import of solutions (Legacy API)
         import mediapipe.python.solutions.holistic as mp_holistic
         import mediapipe.python.solutions.drawing_utils as mp_drawing
     except ImportError:
-        # Fallback for standard solutions path
         import mediapipe.solutions.holistic as mp_holistic
         import mediapipe.solutions.drawing_utils as mp_drawing
-
     MEDIAPIPE_AVAILABLE = True
 except Exception as e:
     MEDIAPIPE_AVAILABLE = False
     print(f"CRITICAL: MediaPipe failed to load: {e}")
 
-# Configure performance logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("CV_Module_Optimized")
 
 class CVModule:
-    def __init__(self):
+    def __init__(self, static_mode=False):
         self.active = False
+        self.static_mode = static_mode
+        self.holistic = None
         if MEDIAPIPE_AVAILABLE:
-            try:
-                # Store the module reference
-                self.mp_holistic = mp_holistic
-
-                # PERFORMANCE FIX: Set model_complexity to 1 for better balanced accuracy
-                # Requirement 2.4: Optimized initialization
-                self.holistic = self.mp_holistic.Holistic(
-                    static_image_mode=False,
-                    model_complexity=1,             # 1 = Balanced (Better for complex backgrounds/low res)
-                    smooth_landmarks=True,
-                    min_detection_confidence=0.4,   # Lowered further to catch difficult frames
-                    min_tracking_confidence=0.4
-                )
-                self.active = True
-                logger.info("MediaPipe Holistic Initialized (Legacy API via Python Solutions)")
-                print("MEDIA_PIPELINE_ACTIVE")
-            except Exception as e:
-                logger.error(f"MediaPipe initialization failed: {e}")
-                # Log traceback for deep debugging
-                import traceback
-                logger.error(traceback.format_exc())
-
+            self._init_holistic(static_mode)
         self.last_process_time = 0
 
-    def detect_landmarks(self, frame: np.ndarray):
-        """
-        Asynchronous-ready detection with frame skipping logic.
-        """
+    def _init_holistic(self, static_mode):
+        try:
+            if self.holistic:
+                try: self.holistic.close()
+                except: pass
+
+            self.mp_holistic = mp_holistic
+            self.holistic = self.mp_holistic.Holistic(
+                static_image_mode=static_mode,
+                model_complexity=1,
+                smooth_landmarks=not static_mode,
+                min_detection_confidence=0.45,
+                min_tracking_confidence=0.45
+            )
+            self.active = True
+            self.static_mode = static_mode
+            logger.info(f"MediaPipe Holistic Initialized (static_mode={static_mode})")
+        except Exception as e:
+            logger.error(f"MediaPipe initialization failed: {e}")
+            self.active = False
+            self.holistic = None
+
+    def close(self):
+        if self.holistic:
+            try:
+                self.holistic.close()
+                logger.info("MediaPipe resources released.")
+            except Exception as e:
+                logger.error(f"Error during MediaPipe release: {e}")
+            finally:
+                self.holistic = None
+                self.active = False
+
+    def set_mode(self, static_mode: bool):
+        if self.static_mode != static_mode or not self.holistic:
+            self._init_holistic(static_mode)
+
+    def detect_landmarks(self, frame: np.ndarray, multi_hand=False):
         if not self.active or frame is None:
             return np.zeros(1662)
 
-        # Optimization: Resize large frames to speed up AI inference
-        h, w = frame.shape[:2]
-        if w > 640:
-            frame = cv2.resize(frame, (640, int(h * 640 / w)))
-
-        start_time = time.time()
-
         try:
-            # Requirement 2.3: Correct color format conversion
+            # FORCE RE-CAST to standard numpy array to bypass Numpy 2.0 / OpenCV mismatch
+            frame = np.asarray(frame, dtype=np.uint8)
+
+            h, w = frame.shape[:2]
+            if w > 1280:
+                 frame = cv2.resize(frame, (1280, int(h * 1280 / w)))
+
             image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             image.flags.writeable = False
-
-            # AI Inference
             results = self.holistic.process(image)
-
-            # Requirement 5.4: Real-time logging for every stage
-            self.last_process_time = time.time() - start_time
-            has_hand = results.left_hand_landmarks or results.right_hand_landmarks
-            has_face = results.face_landmarks is not None
-
-            # Log performance (Requirement 5.4)
-            if frame.shape[0] > 0:
-                logger.info(f"CV Speed: {self.last_process_time*1000:.1f}ms | Hand: {bool(has_hand)} | Face: {has_face}")
-
+            if multi_hand: return results
             return self._extract_keypoints(results)
         except Exception as e:
             logger.error(f"Processing Error: {e}")
             return np.zeros(1662)
 
+    def is_blurry(self, frame, threshold=100.0):
+        """
+        Ultra-stable blurry detection using OpenCV directly to avoid Numpy multiarray bugs.
+        """
+        try:
+            if frame is None: return True
+
+            # FORCE RE-CAST
+            frame_clean = np.asarray(frame, dtype=np.uint8)
+
+            gray = cv2.cvtColor(frame_clean, cv2.COLOR_BGR2GRAY)
+            lap = cv2.Laplacian(gray, cv2.CV_32F)
+            # Use OpenCV for variance to bypass Numpy multiarray attribute errors
+            _, stddev = cv2.meanStdDev(lap)
+            variance = stddev[0][0] ** 2
+            return float(variance) < threshold
+        except Exception as e:
+            logger.debug(f"Blurry Check Logic Error: {e}")
+            return False
+
     def _extract_keypoints(self, results):
-        """
-        Optimized extraction to prevent backlog (Requirement 5)
-        """
         pose = np.array([[res.x, res.y, res.z, res.visibility] for res in results.pose_landmarks.landmark]).flatten() if results.pose_landmarks else np.zeros(33*4)
         face = np.array([[res.x, res.y, res.z] for res in results.face_landmarks.landmark]).flatten() if results.face_landmarks else np.zeros(468*3)
         lh = np.array([[res.x, res.y, res.z] for res in results.left_hand_landmarks.landmark]).flatten() if results.left_hand_landmarks else np.zeros(21*3)
         rh = np.array([[res.x, res.y, res.z] for res in results.right_hand_landmarks.landmark]).flatten() if results.right_hand_landmarks else np.zeros(21*3)
-
         return np.concatenate([pose, face, lh, rh])

@@ -1,0 +1,14 @@
+{
+    "trained_at": "2026-07-01T15:13:20.952745",
+    "actions": [
+        "Hello, how are you doing?",
+        "hello",
+        "sorry",
+        "thanks"
+    ],
+    "input_shape": [
+        30,
+        1662
+    ],
+    "accuracy": 0.375
+}

@@ -1,11 +1,14 @@
 import sqlite3
 import os
 
-db_path = 'snlag.db'
+db_path = 'signly.db'
 if not os.path.exists(db_path):
-    print(f"Database {db_path} not found.")
-    exit(1)
+    db_path = 'snlag.db' # Fallback
+    if not os.path.exists(db_path):
+        print("Database not found.")
+        exit(1)
 
+print(f"Using database: {db_path}")
 conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
 
@@ -38,6 +41,12 @@ for table in ['users', 'sign_datasets', 'training_jobs', 'model_versions', 'gest
     add_column(table, 'is_deleted', 'BOOLEAN DEFAULT 0')
 
 # New SignDatasetModel fields
+add_column('sign_datasets', 'file_hash', 'TEXT')
+add_column('sign_datasets', 'parent_id', 'TEXT')
+add_column('sign_datasets', 'source_type', "TEXT DEFAULT 'video'")
+add_column('sign_datasets', 'file_path', 'TEXT')
+add_column('sign_datasets', 'is_validated', 'BOOLEAN DEFAULT 0')
+add_column('sign_datasets', 'version', 'INTEGER DEFAULT 1')
 add_column('sign_datasets', 'category', 'TEXT')
 add_column('sign_datasets', 'description', 'TEXT')
 add_column('sign_datasets', 'difficulty', "TEXT DEFAULT 'Easy'")

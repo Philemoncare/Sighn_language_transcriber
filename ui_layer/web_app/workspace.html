@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workspace | Signly</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/holistic/holistic.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="design_system.css">
+    <script src="theme_sync.js"></script>
+    <script src="components.js"></script>
+    <script src="vision_engine.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: 'var(--primary)',
+                        'primary-hover': 'var(--primary-hover)',
+                        'primary-alpha': 'var(--primary-alpha)',
+                        bg: 'var(--bg)',
+                        surface: 'var(--surface)',
+                        'surface-raised': 'var(--surface-raised)',
+                        border: 'var(--border)',
+                        muted: 'var(--muted)',
+                        'text-primary': 'var(--text)',
+                        'text-secondary': 'var(--text-secondary)'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { background-color: var(--bg); color: var(--text); }
+        #splash-loader {
+            position: fixed;
+            inset: 0;
+            background: #020617;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease;
+        }
+        #splash-loader.hidden { opacity: 0; pointer-events: none; }
+
+        @keyframes loading {
+            0% { left: -100%; width: 100%; }
+            50% { left: 0%; width: 50%; }
+            100% { left: 100%; width: 100%; }
+        }
+        .animate-loading {
+            animation: loading 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+
+        .onboarding-card {
+            background-color: var(--surface-raised);
+            border: 1px solid var(--border);
+            border-radius: 2.5rem;
+            width: 100%;
+            max-width: 600px;
+            padding: 3rem;
+            box-shadow: var(--shadow-premium);
+        }
+
+        .marquee-container {
+            height: 500px;
+            overflow: hidden;
+            mask-image: linear-gradient(to bottom, transparent, black 10%, black 90%, transparent);
+        }
+        .marquee-track {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            animation: scrollDown 40s linear infinite;
+        }
+        @keyframes scrollDown { from { transform: translateY(-50%); } to { transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-bg antialiased transition-colors duration-500 overflow-x-hidden">
+
+    <!-- Splash Loader -->
+    <div id="splash-loader">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-white shadow-premium">
+                <i class="fas fa-hand-holding-heart text-2xl"></i>
+            </div>
+            <span class="text-3xl font-black text-primary tracking-tighter">Signly</span>
+        </div>
+        <div class="w-48 h-1 bg-border rounded-full overflow-hidden relative mt-8">
+            <div class="absolute inset-0 bg-primary w-1/3 animate-loading"></div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <div id="sidebar-container"></div>
+
+        <main class="main-wrapper min-h-screen">
+            <!-- Global Header -->
+            <header class="h-20 border-b border-border flex items-center justify-between px-8 sticky top-0 bg-surface-overlay backdrop-blur-2xl z-50 transition-colors">
+                <div id="view-header">
+                    <h2 class="text-xs font-bold text-muted uppercase tracking-[0.3em]" id="current-view-label">Workspace</h2>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <button onclick="switchView('notifications')" class="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center text-muted hover:text-primary transition-all relative">
+                        <i class="fas fa-bell"></i>
+                        <span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-surface"></span>
+                    </button>
+                    <button onclick="switchView('help')" class="hidden md:flex w-10 h-10 rounded-xl bg-surface border border-border items-center justify-center text-muted hover:text-primary transition-all">
+                        <i class="fas fa-question-circle"></i>
+                    </button>
+                </div>
+            </header>
+
+            <div id="view-content" class="p-8 lg:p-12">
+                <!-- Content Injected Here -->
+            </div>
+        </main>
+
+        <div id="bottom-nav-container"></div>
+    </div>
+
+    <script>
+        const SnLagConfig = {
+            API_URL: (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+                ? `http://${window.location.hostname}:8000` : window.location.origin
+        };
+
+        const SnLagAPI = {
+            async request(endpoint, options = {}) {
+                const token = localStorage.getItem('snlag_token');
+                const headers = { 'Content-Type': 'application/json', ...options.headers };
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+
+                try {
+                    const response = await fetch(`${SnLagConfig.API_URL}${endpoint}`, { ...options, headers });
+                    if (response.status === 401) {
+                        localStorage.removeItem('snlag_token');
+                        window.location.href = 'auth.html';
+                        return null;
+                    }
+
+                    const text = await response.text();
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        if (!response.ok) throw new Error(`Server Error (${response.status}): ${text.substring(0, 100)}`);
+                        throw e;
+                    }
+                } catch (err) { console.error('API Error:', err); throw err; }
+            },
+            getUser() { return this.request('/api/user/auth/me'); },
+            getLibrary() { return this.request('/api/user/library'); },
+            getHistory() { return this.request('/api/user/history'); },
+            submitOnboarding(data) { return this.request('/api/onboarding', { method: 'POST', body: JSON.stringify(data) }); }
+        };
+
+        let currentViewId = 'dashboard';
+        let currentUser = null;
+        let onboardingData = {
+            accessibility_needs: '',
+            usage_type: '',
+            sign_language_focus: 'ASL',
+            experience_level: 'beginner',
+            primary_goal: 'General Communication'
+        };
+
+        function selectOnboarding(field, value) {
+            onboardingData[field] = value;
+            const currentStep = field === 'accessibility_needs' ? 1 : 2;
+            document.getElementById(`step-${currentStep}`).classList.add('hidden');
+            document.getElementById(`step-${currentStep + 1}`).classList.remove('hidden');
+            gsap.from(`#step-${currentStep + 1}`, { opacity: 0, x: 20, duration: 0.5 });
+        }
+
+        async function completeOnboarding() {
+            onboardingData.sign_language_focus = document.getElementById('sign_language_focus').value;
+            const res = await SnLagAPI.submitOnboarding(onboardingData);
+            if (res.status === 'success') {
+                document.getElementById('onboarding-overlay').classList.add('hidden');
+                initApp(); // Refresh user state
+            }
+        }
+
+        const views = {
+            dashboard: {
+                label: 'Workspace Overview',
+                async render() {
+                    const isDeaf = currentUser.onboarding?.accessibility_needs === 'deaf';
+                    return `
+                        <div class="max-w-7xl mx-auto space-y-12">
+                            ${SnLagUI.getWelcomeHeader(currentUser.name)}
+
+                            <!-- Role-Based Stats Grid -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                ${SnLagUI.getStatCard(isDeaf ? 'Captured Signs' : 'Spoken Translations', '14.2k', isDeaf ? 'fa-sign-language' : 'fa-microphone')}
+                                ${SnLagUI.getStatCard('Neural Precision', '98.4%', 'fa-bullseye')}
+                                ${SnLagUI.getStatCard('Network Nodes', '2', 'fa-network-wired')}
+                            </div>
+
+                            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                                <div class="lg:col-span-8 space-y-6">
+                                    <h3 class="text-sm font-bold text-text-primary uppercase tracking-widest">Recent Activity</h3>
+                                    <div class="space-y-2">
+                                        ${SnLagUI.getModernActivityItem('Neural Link Stable', '2 mins ago', 'success')}
+                                        ${SnLagUI.getModernActivityItem('Model Synced', '1 hour ago', 'process')}
+                                        ${SnLagUI.getModernActivityItem('Session Refreshed', 'Yesterday', 'success')}
+                                    </div>
+                                </div>
+
+                                <div class="lg:col-span-4 ui-card bg-primary-alpha border-primary/10 flex flex-col justify-between">
+                                    <div>
+                                        <h3 class="text-lg font-bold text-primary mb-2">${isDeaf ? 'Initialize Vision' : 'Speech Engine'}</h3>
+                                        <p class="text-sm text-muted leading-relaxed">${isDeaf ? 'Position camera to start translating your signs.' : 'Start speaking to translate your voice into sign language.'}</p>
+                                    </div>
+                                    <button onclick="switchView('meetings')" class="btn-modern btn-modern-primary w-full mt-8">Connect Node</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            },
+            meetings: {
+                label: 'Live Vision Engine',
+                async render() {
+                    const isDeaf = currentUser.onboarding?.accessibility_needs === 'deaf';
+                    return `
+                        <div id="vision-container" class="relative w-full h-full min-h-[600px] flex items-center justify-center motion-entrance">
+                            <div id="vision-idle" class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center w-full">
+                                <div class="space-y-8">
+                                    <h1 class="text-5xl font-black text-text-primary leading-tight">${isDeaf ? 'Live Neural <br><span class="text-primary italic">Interpretation</span>' : 'Speech to <br><span class="text-primary italic">Sign Avatar</span>'}</h1>
+                                    <p class="text-xl text-text-secondary leading-relaxed font-medium">${isDeaf ? 'Position your device. Our engine will track hand gestures and translate them instantly.' : 'Talk or type to see your words translated into sign language by our 3D avatar.'}</p>
+                                    <div class="flex flex-wrap gap-4">
+                                        <button onclick="startVisionEngine()" class="btn-modern btn-modern-primary px-12 py-5 text-lg">Start Capture</button>
+                                        <button class="btn-modern btn-modern-secondary px-8 py-5">Recalibrate</button>
+                                    </div>
+                                </div>
+                                <div class="marquee-container rounded-[3rem] border border-border">
+                                    <div class="marquee-track">
+                                        <img src="https://images.unsplash.com/photo-1546776310-eef45dd6d63c?q=80&w=600" class="w-full rounded-[3rem] grayscale opacity-40" alt="Gesture preview">
+                                        <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=600" class="w-full rounded-[3rem] grayscale opacity-40" alt="Gesture preview">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="vision-active" class="hidden w-full h-full flex flex-col gap-6">
+                                <div class="relative flex-1 bg-bg rounded-[2.5rem] overflow-hidden border border-border shadow-premium">
+                                    <video id="vision-video" class="hidden"></video>
+                                    <canvas id="vision-canvas" class="w-full h-full object-cover"></canvas>
+                                    <div class="absolute bottom-8 left-1/2 -translate-x-1/2 w-full max-w-2xl px-6">
+                                        <div class="bg-surface-overlay backdrop-blur-2xl border border-border rounded-3xl p-8 shadow-2xl text-center">
+                                            <p class="text-[10px] font-bold text-muted uppercase tracking-[0.3em] mb-4">Neural Result</p>
+                                            <h2 id="translation-output" class="text-4xl font-black text-primary italic">Awaiting signs...</h2>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-center gap-4">
+                                    <button onclick="stopVisionEngine()" class="btn-modern bg-rose-500/10 text-rose-500 border-rose-500/20 hover:bg-rose-500 hover:text-white px-10">End Session</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            },
+            library: {
+                label: 'Gesture Library',
+                async render() {
+                    const items = await SnLagAPI.getLibrary() || [];
+                    return `
+                        <div class="space-y-8">
+                            <h2 class="text-text-primary">Universal Vocabulary</h2>
+                            ${items.length > 0 ? SnLagUI.getLibraryGrid(items) : SnLagUI.getEmptyState('Library Syncing', 'Retrieving gesture mapping from neural cloud...', 'Retry', 'switchView("library")')}
+                        </div>
+                    `;
+                }
+            },
+            profile: {
+                label: 'Identity Status',
+                async render() {
+                    const role = currentUser.onboarding?.accessibility_needs || 'User';
+                    return `
+                        <div class="max-w-5xl mx-auto space-y-12">
+                            <div class="flex items-center gap-8 motion-entrance">
+                                <img src="${currentUser.avatar_url || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200'}" class="w-32 h-32 rounded-3xl object-cover border-4 border-surface shadow-premium">
+                                <div class="space-y-2">
+                                    <h1 class="text-text-primary">${currentUser.name}</h1>
+                                    <div class="inline-flex px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-black text-primary uppercase tracking-widest">${role} NODE</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+        };
+
+        async function initApp() {
+            // Apply theme from storage immediately
+            const savedTheme = localStorage.getItem('snlag_theme') || 'dark';
+            document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+
+            const token = localStorage.getItem('snlag_token');
+            if (!token) { window.location.href = 'auth.html'; return; }
+
+            try {
+                const data = await SnLagAPI.getUser();
+                if (!data) {
+                    document.getElementById('splash-loader').classList.add('hidden');
+                    return;
+                }
+
+                currentUser = data;
+                currentUser.name = data.name || data.username || 'Neural Node';
+
+                const onboardingCompleted = data.onboarding?.completed;
+                if (!onboardingCompleted) {
+                    window.location.href = 'welcome.html';
+                    return;
+                }
+
+                document.getElementById('splash-loader').classList.add('hidden');
+                await switchView('dashboard', false);
+            } catch (err) {
+                console.error('App Init Error:', err);
+                document.getElementById('splash-loader').classList.add('hidden');
+                const contentEl = document.getElementById('view-content');
+                if (contentEl) contentEl.innerHTML = `<div class="p-20 text-center opacity-50">Profile sync failed. Error: ${err.message}</div>`;
+            }
+        }
+
+        async function switchView(id, pushHistory = true) {
+            try {
+                if (!views[id]) return;
+                currentViewId = id;
+                const labelEl = document.getElementById('current-view-label');
+                if (labelEl) labelEl.innerText = views[id].label;
+
+                const contentEl = document.getElementById('view-content');
+                if (contentEl) {
+                    const content = await views[id].render();
+                    contentEl.innerHTML = content;
+                    gsap.from("#view-content > div", { opacity: 0, y: 10, duration: 0.5, ease: "power3.out" });
+                }
+
+                renderNavs();
+                if (pushHistory) history.pushState({ viewId: id }, views[id].label, `#${id}`);
+            } catch (err) {
+                console.error('Switch View Error:', err);
+                // Fallback render to avoid empty screen
+                const contentEl = document.getElementById('view-content');
+                if (contentEl) contentEl.innerHTML = `<div class="p-20 text-center opacity-50">Content sync error. Please refresh.</div>`;
+            }
+        }
+
+        function renderNavs() {
+            const sidebar = document.getElementById('sidebar-container');
+            const bottom = document.getElementById('bottom-nav-container');
+            const userData = currentUser || { name: 'Neural Node', avatar_url: '' };
+            if (sidebar) sidebar.innerHTML = SnLagUI.getSidebar(currentViewId, userData);
+            if (bottom) bottom.innerHTML = SnLagUI.getBottomNav(currentViewId);
+        }
+
+        function toggleUserMenu() {
+            const popup = document.getElementById('user-popup');
+            if (popup) popup.classList.toggle('hidden');
+        }
+
+        function logout() {
+            localStorage.removeItem('snlag_token');
+            window.location.href = 'index.html';
+        }
+
+        let engine = null;
+        async function startVisionEngine() {
+            document.getElementById('vision-idle').classList.add('hidden');
+            const active = document.getElementById('vision-active');
+            active.classList.remove('hidden');
+            const video = document.getElementById('vision-video');
+            const canvas = document.getElementById('vision-canvas');
+            if (!engine) {
+                engine = new VisionEngine(video, canvas);
+                await engine.initialize();
+                window.addEventListener('signly-prediction', (e) => {
+                    const out = document.getElementById('translation-output');
+                    if (out) out.innerText = e.detail.text;
+                });
+            }
+            await engine.start();
+        }
+
+        function stopVisionEngine() {
+            if (engine) engine.stop();
+            document.getElementById('vision-active').classList.add('hidden');
+            document.getElementById('vision-idle').classList.remove('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+================================================================================
+SNLAG NEURAL INTERFACE (SIGNLY): MASTER SYSTEM ARCHITECTURE & TECHNICAL SPEC
+================================================================================
+Project: SnLag Neural Interface
+Objective: AI-Powered Bidirectional Sign Language Translation (Sign-to-Speech & Speech-to-Sign)
+Version: 2.0.0 (Current System State)
+
+--------------------------------------------------------------------------------
+1. SYSTEM OVERVIEW & STACK
+--------------------------------------------------------------------------------
+- Backend: FastAPI (Python 3.10+), SQLAlchemy (ORM), Uvicorn/Gunicorn.
+- Frontend: Web (Tailwind, Three.js, Vanilla JS), Mobile (Flutter/Dart).
+- AI/ML Core: TensorFlow/Keras (LSTM), MediaPipe (Holistic), FAISS (Vector Hub).
+- Infrastructure: Redis (Pub/Sub Sync + Celery Broker), Celery (Background Forge), PostgreSQL/SQLite.
+
+--------------------------------------------------------------------------------
+2. SYSTEM ARCHITECTURE (LAYERED MODEL)
+--------------------------------------------------------------------------------
+[ PRESENTATION LAYER ]
+  - Web Client: MediaPipe Landmark Extraction (1662 features) + Three.js Avatar Rendering.
+  - Mobile Client: Flutter UI for real-time translation and meeting participation.
+  - Admin Dashboard: Monitoring harvesting, training control, and system logs.
+
+[ APPLICATION LAYER (FastAPI) ]
+  - API Gateway: REST endpoints for Auth (User/Admin), Onboarding, Meetings, and User Profiles.
+  - WebSocket Hub: Binary Float32 landmark streaming + WebRTC signaling.
+  - Connection Manager: Multi-user room orchestration + Redis cross-node sync (RESP2).
+
+[ DOMAIN LAYER (AI ENGINES) ]
+  - AI Orchestrator: Central controller for Module 1 (Speech-to-Sign) & Module 2 (Sign-to-Speech).
+  - Vector Hub: FAISS embedding search (k=1, dist < 0.05) for low-confidence inference correction.
+  - Training Forge: Celery-based background pipeline for model building and validation.
+
+[ DATA & STORAGE LAYER ]
+  - Relational: SQL DB (SQLite/Postgres) for users, sessions, history, and metadata.
+  - Neural Store: .h5 (Weights), .npy (Sequences), .json (Mapping).
+  - Cache/Bus: Redis for real-time broadcast, signaling, and Celery task queuing.
+
+--------------------------------------------------------------------------------
+3. USE CASE ARCHITECTURE (ACTORS & ACTIONS)
+--------------------------------------------------------------------------------
+- ACTOR: DEAF USER
+  1. Capture sign gestures via Vision Engine (MediaPipe).
+  2. Receive real-time speech (Base64 Audio) / text feedback.
+  3. Participate in translated meetings with 3D Avatar support.
+- ACTOR: HEARING USER
+  1. Input speech/text for translation to sign.
+  2. View 3D Avatar rendering of signs.
+- ACTOR: ADMINISTRATOR
+  1. Review harvested landmark sequences (Collected Data).
+  2. Trigger neural model training jobs (Neural Forge).
+  3. Manage system gesture vocabulary and model versions.
+
+--------------------------------------------------------------------------------
+4. ENTITY RELATIONSHIP ARCHITECTURE (DATABASE SCHEMA)
+--------------------------------------------------------------------------------
+- USERS: id, username, email, password_hash, preferences, role, is_active.
+- ONBOARDING_PROFILES: user_id, usage_type, accessibility_needs, sign_focus.
+- CONVERSATIONS: user_id, message_type, original_text, translated_text, confidence.
+- COLLECTED_DATA: user_id, payload (landmarks), label, is_validated, confidence.
+- SIGN_DATASETS: label, file_path, landmark_path, status (QUEUED -> COMPLETED), progress.
+- TRAINING_JOBS: job_name, status (pending -> completed/failed), metrics (acc/loss).
+- GESTURE_LIBRARY: gesture_name, category, language_code, landmark_mapping.
+- SYSTEM_LOGS: level, service, message, duration, timestamp.
+
+--------------------------------------------------------------------------------
+5. PIPELINE FLOWCHART (SIGN-TO-SPEECH LOGIC)
+--------------------------------------------------------------------------------
+START -> Camera Feed -> MediaPipe (1662 Landmarks) -> Buffer (30 Frames)
+      -> Send Binary via WebSocket (min interval: 0.15s) -> AI Orchestrator
+      -> LSTM Model Prediction
+      -> IF Confidence < 0.90:
+         -> FAISS Vector Search -> Nearest Neighbor Semantic Correction
+      -> IF Confidence > 0.92:
+         -> Harvest Data for Training (Automatic Collection)
+      -> Generate TTS Audio (Google/Local)
+      -> Broadcast Result to User & Room Participants (Redis Pub/Sub)
+END
+
+--------------------------------------------------------------------------------
+6. APPLICATION & BACKEND ARCHITECTURE
+--------------------------------------------------------------------------------
+- CLIENT ARCHITECTURE:
+  [ Vision Engine ] ---> [ WS Client ] <---> [ Store ] ---> [ Avatar Renderer ]
+                           |
+                        [ WebRTC ] <---> [ Meeting Participants ]
+
+- BACKEND ARCHITECTURE:
+  [ Nginx ] ---> [ Uvicorn ] ---> [ FastAPI App ]
+                                    |
+            [ Auth Middleware ] <---|---> [ WebSocket Handler ]
+                                    |
+            [ DB Manager ] <--- [ AI Orchestrator ] ---> [ Redis PubSub ]
+                                    |
+                              [ Celery Worker ] <--- [ Neural Forge ]
+
+--------------------------------------------------------------------------------
+7. API & MICROSERVICE ARCHITECTURE
+--------------------------------------------------------------------------------
+- REST API ENDPOINTS:
+  - /api/user/auth: Login, Register, Refresh (JWT).
+  - /api/admin/auth: Administrative Login.
+  - /api/meeting: Create, Join, Peer Signaling.
+  - /api/onboarding: Profile Setup & Accessibility Needs.
+  - /api/admin: Dataset management & Training Forge control.
+  - /api/translation: Stateless REST translation.
+- WEBSOCKET PROTOCOL:
+  - Inbound (Binary): Float32Array landmark sequences (30 frames).
+  - Inbound (JSON): Meeting actions (mute, camera, hand_raise, join_room, webrtc_offer).
+  - Outbound (JSON): Predictions, Audio (Base64), Room State, Signaling data.
+
+--------------------------------------------------------------------------------
+8. CLASS & DATA FLOW ARCHITECTURE (DFD)
+--------------------------------------------------------------------------------
+- CORE CLASSES:
+  - AIOrchestrator: Coordinates Module 1/2 and FAISS integration.
+  - ConnectionManager: Manages active WebSockets, Room States, and Redis Pub/Sub.
+  - SequenceModel: Wraps Keras .h5 for inference and alphabet alignment.
+  - SignToSpeechPipeline / SpeechToSignPipeline: Encapsulated functional logic.
+
+- DATA FLOW (DFD Level 1):
+  [USER] --(Landmarks)--> [Inference Engine] --(Prediction)--> [History DB]
+                               |
+                        (Low Confidence)
+                               |
+                        [Vector Search Hub] --(Correction)--> [Broadcast Hub]
+
+--------------------------------------------------------------------------------
+9. STATE & CI/CD ARCHITECTURE
+--------------------------------------------------------------------------------
+- TRAINING JOB STATES:
+  [PENDING] -> [TRAINING] -> [EVALUATING] -> [COMPLETED] or [FAILED]
+
+- CI/CD PIPELINE:
+  [Github Commit] -> [Pytest Unit Tests] -> [Docker Build] -> [Registry Push]
+                  -> [Cloud Deployment] -> [Health Monitoring (/health)]
+
+--------------------------------------------------------------------------------
+10. SEQUENCE ARCHITECTURE (REAL-TIME BROADCAST)
+--------------------------------------------------------------------------------
+1. USER A (Signer) sends landmark buffer to BACKEND via WebSocket.
+2. BACKEND runs AI Inference (LSTM + FAISS Correction).
+3. BACKEND sends "HELLO" result to USER A.
+4. BACKEND publishes message to REDIS channel "snlag_broadcast".
+5. REDIS broadcasts to all connected BACKEND instances.
+6. BACKEND instances send "HELLO" to USER B (Listener) in Room 101.
+7. USER B renders result in HUD and plays TTS.
+================================================================================

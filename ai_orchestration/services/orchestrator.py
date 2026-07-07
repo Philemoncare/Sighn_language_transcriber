@@ -21,6 +21,7 @@ from module2_sign_to_speech.pipeline import SignToSpeechPipeline
 from ai_orchestration.services.training_pipeline import TrainingPipeline
 
 from database_layer.db_manager import GestureLibraryModel
+from ai_orchestration.services.embedding_engine import embedding_engine
 
 logger = logging.getLogger("AI_Orchestrator")
 
@@ -87,7 +88,45 @@ class AIOrchestrator:
 
     async def sign_to_speech(self, landmarks_sequence: List, language: str = "English") -> Dict:
         """Executes Module 2 Pipeline"""
-        return await self.m2_pipeline.execute(landmarks_sequence, language)
+        res = await self.m2_pipeline.execute(landmarks_sequence, language)
+
+        # Requirement 4 & 7: Contextual AI Embedding Assistance
+        # If prediction confidence is low, search the vector database for the nearest validated neighbor.
+        if res.get("status") == "success" and res.get("confidence", 0) < 0.90:
+            logger.info(f"Orchestration: Low confidence ({res['confidence']}). Querying Vector Store...")
+
+            # Use the mean landmark as a query vector (consistent with stage_embedding)
+            query_vector = np.mean(landmarks_sequence, axis=0) if landmarks_sequence else np.zeros(1662)
+
+            # Simple 768-dim truncation for initial FAISS implementation
+            query_vector_768 = query_vector[:768].tolist()
+
+            similar = embedding_engine.search(query_vector_768, k=1)
+            if similar:
+                match = similar[0]
+                # If we find a very close match in the vector space, we can boost confidence or suggest correction
+                logger.info(f"Orchestration: Vector match found for DS#{match['dataset_id']} (dist: {match['distance']})")
+
+                # Logic: If distance is very small, it's likely the same sign
+                if match['distance'] < 0.05: # Threshold for 'high similarity'
+                     db = SessionLocal()
+                     from database_layer.db_manager import SignDatasetModel
+                     match_ds = db.query(SignDatasetModel).filter(SignDatasetModel.id == match['dataset_id']).first()
+                     if match_ds and match_ds.label != res.get("sign"):
+                         logger.info(f"Orchestration: Correcting '{res.get('sign')}' -> '{match_ds.label}' via Vector Hub.")
+                         res["sign"] = match_ds.label
+                         res["text"] = match_ds.label # Update for TTS
+                         res["confidence"] = max(res["confidence"], 0.92) # Boost via semantic similarity
+                     db.close()
+
+        # Requirement 5: Enrich with Semantic Insights
+        if res.get("status") == "success":
+            sign = res.get("sign", "")
+            res["meaning"] = f"Action: {sign.upper()}"
+            # Detect if it's likely a single letter or word (Metadata)
+            res["sign_type"] = "letter" if len(sign) == 1 else "word"
+
+        return res
 
 # Singleton Instance
 orchestrator = AIOrchestrator()

@@ -1,32 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SnLag Universal | Next-Gen AI Translation</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Signly | AI-Powered Sign Language Interface</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/holistic/holistic.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    <script src="components.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="design_system.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="theme_sync.js"></script>
 
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        primary: '#f97316',
-                        secondary: '#fbbf24',
-                        dark: '#0a0a0a',
-                        glass: 'rgba(255, 255, 255, 0.7)',
+                        primary: 'var(--primary)',
+                        'primary-hover': 'var(--primary-hover)',
+                        'primary-alpha': 'var(--primary-alpha)',
+                        bg: 'var(--bg)',
+                        surface: 'var(--surface)',
+                        'surface-raised': 'var(--surface-raised)',
+                        border: 'var(--border)',
+                        muted: 'var(--muted)',
+                        'text-primary': 'var(--text)',
+                        'text-secondary': 'var(--text-secondary)'
                     },
-                    borderRadius: {
-                        '4xl': '2rem',
-                        '5xl': '3rem',
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
                     }
                 }
             }
@@ -34,1122 +45,818 @@
     </script>
 
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #fafafa; color: #171717; overflow-x: hidden; }
-        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); border: 1px solid rgba(255, 255, 255, 0.4); }
-        .glass-dark { background: rgba(10, 10, 10, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .gradient-text { background: linear-gradient(135deg, #f97316, #fbbf24, #ea580c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
-        .video-container {
+        .nav-glass { transition: all 0.4s var(--transition-base); }
+        .nav-scrolled {
+            background-color: var(--surface-overlay);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding-top: 1rem !important;
+            padding-bottom: 1rem !important;
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.1);
+            border-bottom: 1px solid var(--border);
+        }
+        .workflow-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--primary);
             position: relative;
-            border-radius: 3rem;
+        }
+        .workflow-dot::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border: 1px solid var(--primary);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        .preview-glass {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .stat-card {
+            background: var(--surface-raised);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+        }
+        @keyframes connector-flow {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+        .animate-connector-flow {
+            animation: connector-flow 3s linear infinite;
+        }
+
+        /* Loader Styles */
+        #loader-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background-color: #020617;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            transition: opacity 0.6s ease, visibility 0.6s;
+        }
+
+        .loader-progress-bg {
+            width: 240px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 1px;
             overflow: hidden;
-            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.2);
-            background: #020617;
-            width: 100%;
+            position: relative;
+        }
+
+        .loader-progress-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
             height: 100%;
-            min-height: 550px;
+            width: 0%;
+            background: var(--primary);
+            transition: width 0.4s ease;
         }
-        #webcam { transform: scaleX(-1); width: 100%; height: 100%; object-fit: cover; }
-        #output_canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: scaleX(-1); }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            box-shadow: 0 12px 30px -10px rgba(249, 115, 22, 0.5);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .btn-primary:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 20px 40px -10px rgba(249, 115, 22, 0.6); }
-
-        .lang-card { transition: all 0.3s; cursor: pointer; border-radius: 12px; color: #737373; font-size: 11px; font-weight: 700; border: 1px solid transparent; }
-        .lang-card.active { background: white; color: #f97316; border-color: #e5e5e5; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); }
-
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #d4d4d4; border-radius: 10px; }
-
-        .card-modern { background: white; border-radius: 3.5rem; box-shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.05); border: 1px solid rgba(0,0,0,0.03); }
-
-        .nav-scrolled { padding-top: 1rem !important; padding-bottom: 1rem !important; }
-        .nav-scrolled .nav-container { border-radius: 2rem; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.1); }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-        }
-        .floating { animation: float 6s ease-in-out infinite; }
-
-        /* Streaming text effect */
-        .typing-effect { border-right: 3px solid #6366f1; animation: blink 0.75s step-end infinite; }
-        @keyframes blink { from, to { border-color: transparent } 50% { border-color: #6366f1 } }
     </style>
 </head>
-    <div id="app-shell" class="hidden min-h-screen pt-32">
-        <!-- Navigation -->
-    <nav id="main-nav" class="fixed top-0 left-0 right-0 px-4 md:px-8 py-8 z-[100] transition-all duration-700">
-        <div class="nav-container max-w-[1800px] mx-auto glass px-6 md:px-10 py-4 flex items-center justify-between transition-all duration-700">
+<body class="bg-bg text-text-primary transition-colors duration-500 antialiased overflow-x-hidden">
 
-            <!-- Left: Branding & Core Nav -->
-            <div class="flex items-center gap-12">
-                <div id="nav-brand-container"></div>
+    <!-- Loading Screen -->
+    <div id="loader-overlay">
+        <div class="flex items-center gap-4 scale-125">
+            <div class="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-white shadow-2xl shadow-primary/20">
+                <i class="fas fa-hand-holding-heart text-xl"></i>
+            </div>
+            <span class="text-3xl font-black text-primary tracking-tighter">Signly</span>
+        </div>
+        <div class="loader-progress-bg">
+            <div id="loader-fill" class="loader-progress-fill"></div>
+        </div>
+    </div>
 
-                <div class="hidden xl:flex items-center gap-1 text-[10px] font-900 uppercase tracking-widest text-neutral-400">
-                    <button onclick="switchView('home')" class="px-6 py-2 rounded-xl hover:text-primary hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all">Dashboard</button>
-                    <button class="px-6 py-2 rounded-xl hover:text-primary hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all">Neural Forge</button>
-                    <button class="px-6 py-2 rounded-xl hover:text-primary hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all">Library</button>
-                    <button class="px-6 py-2 rounded-xl hover:text-primary hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all">Live Vision</button>
+    <!-- 1. Floating Navigation -->
+    <nav id="navbar" class="fixed top-0 left-0 w-full z-[1000] px-8 py-8 transition-all duration-300">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <!-- Left: Logo -->
+            <div class="flex items-center gap-3 select-none cursor-pointer" onclick="window.location.href='/'">
+                <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-xl shadow-primary/20">
+                    <i class="fas fa-hand-holding-heart text-lg"></i>
                 </div>
+                <span class="text-xl font-black text-text-primary tracking-tighter">Signly</span>
             </div>
 
-            <!-- Center: Global Search (Desktop) -->
-            <div class="hidden lg:flex items-center flex-1 max-w-md mx-12">
-                <div class="relative w-full group">
-                    <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-neutral-300 group-focus-within:text-primary transition-colors"></i>
-                    <input type="text" placeholder="Neural Search..."
-                           class="w-full bg-neutral-100/50 dark:bg-neutral-800/50 border border-transparent focus:border-primary/20 rounded-2xl pl-12 pr-6 py-2.5 outline-none transition-all text-xs font-700">
-                </div>
+            <!-- Center: Links -->
+            <div class="hidden lg:flex items-center gap-10 bg-surface/50 backdrop-blur-xl px-10 py-3.5 rounded-full border border-border shadow-sm">
+                <a href="#features" class="text-[10px] font-black uppercase tracking-[0.2em] text-muted hover:text-primary transition-colors">Features</a>
+                <a href="#how-it-works" class="text-[10px] font-black uppercase tracking-[0.2em] text-muted hover:text-primary transition-colors">How It Works</a>
+                <a href="#ai-tech" class="text-[10px] font-black uppercase tracking-[0.2em] text-muted hover:text-primary transition-colors">AI Technology</a>
+                <a href="#about" class="text-[10px] font-black uppercase tracking-[0.2em] text-muted hover:text-primary transition-colors">About</a>
+                <a href="#faq" class="text-[10px] font-black uppercase tracking-[0.2em] text-muted hover:text-primary transition-colors">FAQ</a>
             </div>
 
-            <!-- Right: Utilities & Profile -->
-            <div class="flex items-center gap-4">
-                <div id="admin-shortcut" class="hidden lg:block"></div>
+            <!-- Right: Auth -->
+            <div class="flex items-center gap-5">
+                <button onclick="toggleTheme()" class="w-11 h-11 rounded-full border border-border flex items-center justify-center text-muted hover:text-primary transition-all bg-surface/50 backdrop-blur-md">
+                    <i class="fas fa-moon dark:hidden"></i>
+                    <i class="fas fa-sun hidden dark:block"></i>
+                </button>
+                <a href="/login" class="hidden sm:block text-[10px] font-black uppercase tracking-[0.25em] text-muted hover:text-primary">Sign In</a>
+                <a href="/register" class="bg-primary text-white px-8 py-3.5 rounded-full text-[10px] font-black uppercase tracking-[0.25em] hover:bg-primary-hover transition-all shadow-xl shadow-primary/20">Get Started</a>
 
-                <div class="flex items-center gap-2">
-                    <button onclick="toggleDropdown('notif')" class="w-11 h-11 rounded-2xl hover:bg-neutral-50 dark:hover:bg-neutral-800 flex items-center justify-center text-neutral-400 relative transition-all">
-                        <i class="fas fa-bell"></i>
-                        <span class="absolute top-3 right-3 w-2 h-2 bg-primary rounded-full border-2 border-white dark:border-neutral-900"></span>
-                    </button>
-
-                    <div class="relative">
-                        <div onclick="toggleDropdown('user')" class="flex items-center gap-3 p-1.5 rounded-2xl hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer transition-all border border-transparent hover:border-neutral-100 dark:hover:border-neutral-700">
-                            <img id="nav-avatar" src="/public/image/3d.jpg" class="w-9 h-9 rounded-xl object-cover shadow-sm">
-                            <div class="hidden sm:block pr-2">
-                                <p id="nav-username" class="text-[10px] font-900 text-neutral-900 dark:text-white leading-none mb-1">Identity</p>
-                                <p id="nav-role" class="text-[7px] font-800 text-neutral-400 uppercase tracking-widest leading-none">Access Node</p>
-                            </div>
-                        </div>
-                        <div id="user-menu-root"></div>
-                    </div>
-                </div>
-
-                <!-- Mobile Menu Trigger -->
-                <button onclick="toggleMobileMenu()" class="xl:hidden w-11 h-11 rounded-2xl bg-neutral-900 text-white flex items-center justify-center text-sm shadow-xl shadow-neutral-900/20 active:scale-95 transition-all">
-                    <i id="mobile-trigger-icon" class="fas fa-bars-staggered"></i>
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-btn" class="lg:hidden w-11 h-11 rounded-full border border-border flex items-center justify-center text-muted hover:text-primary transition-all bg-surface/50 backdrop-blur-md">
+                    <i class="fas fa-bars"></i>
                 </button>
             </div>
+        </div>
 
-            <div id="notif-root" class="relative"></div>
+        <!-- Mobile Menu Container -->
+        <div id="mobile-menu" class="lg:hidden hidden absolute top-full left-0 w-full bg-surface/95 backdrop-blur-2xl border-b border-border p-8 space-y-8">
+             <div class="flex flex-col gap-6 text-center">
+                <a href="#features" onclick="toggleMobileMenu()" class="text-[10px] font-black uppercase tracking-[0.2em] text-muted hover:text-primary transition-colors">Features</a>
+                <a href="#how-it-works" onclick="toggleMobileMenu()" class="text-[10px] font-black uppercase tracking-[0.2em] text-muted hover:text-primary transition-colors">How It Works</a>
+                <a href="#ai-tech" onclick="toggleMobileMenu()" class="text-[10px] font-black uppercase tracking-[0.2em] text-muted hover:text-primary transition-colors">AI Technology</a>
+                <a href="#about" onclick="toggleMobileMenu()" class="text-[10px] font-black uppercase tracking-[0.2em] text-muted hover:text-primary transition-colors">About</a>
+                <a href="#faq" onclick="toggleMobileMenu()" class="text-[10px] font-black uppercase tracking-[0.2em] text-muted hover:text-primary transition-colors">FAQ</a>
+             </div>
+             <div class="h-px bg-border"></div>
+             <div class="flex flex-col gap-4">
+                <a href="/login" class="text-center text-[10px] font-black uppercase tracking-[0.25em] text-muted hover:text-primary py-4">Sign In</a>
+                <a href="/register" class="bg-primary text-white text-center py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.25em] hover:bg-primary-hover transition-all">Get Started</a>
+             </div>
         </div>
     </nav>
 
-        <!-- Mobile Drawer -->
-        <div id="mobile-drawer" class="fixed inset-0 z-[150] hidden">
-            <div class="absolute inset-0 bg-neutral-950/40 backdrop-blur-sm" onclick="toggleMobileMenu()"></div>
-            <div class="absolute right-0 top-0 bottom-0 w-full max-w-sm bg-white dark:bg-neutral-900 shadow-3xl p-10 flex flex-col transform translate-x-full transition-transform duration-500 ease-out">
-                <div class="flex justify-between items-center mb-12">
-                    <div id="mobile-brand"></div>
-                    <button onclick="toggleMobileMenu()" class="w-12 h-12 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-500">
-                        <i class="fas fa-times"></i>
-                    </button>
+    <!-- 2. Hero Section -->
+    <section id="home" class="min-h-screen flex items-center pt-24 pb-20 relative overflow-hidden bg-bg">
+        <div class="max-w-7xl mx-auto px-8 w-full">
+            <div class="grid lg:grid-cols-[1fr_0.8fr] gap-16 items-center">
+                <div class="space-y-10 animate-hero-text relative z-10">
+                    <div class="space-y-6">
+                        <div class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-[9px] font-black text-primary uppercase tracking-[0.3em] backdrop-blur-md">
+                            <span class="w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_10px_var(--primary)] animate-pulse"></span>
+                            Neural Interface v2.0
+                        </div>
+                        <h1 class="text-5xl lg:text-7xl font-black text-text-primary leading-[0.95] tracking-tight uppercase italic">
+                            Universal <span class="text-primary not-italic">Signly</span> <br>Engine
+                        </h1>
+                    </div>
+                    <p class="text-lg text-text-secondary leading-relaxed max-w-lg font-medium opacity-60">
+                        Bridging the communication gap with state-of-the-art neural networks. Real-time translation, continuous learning, and community-driven datasets.
+                    </p>
+                    <div class="flex flex-wrap gap-5 pt-2">
+                        <a href="/register" class="bg-primary text-white px-10 py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.25em] hover:bg-primary-hover transition-all shadow-xl shadow-primary/20 flex items-center gap-3 group">
+                            Launch Interface <i class="fas fa-arrow-right group-hover:translate-x-1.5 transition-transform"></i>
+                        </a>
+                        <a href="/login" class="bg-white/5 border border-white/10 text-text-primary px-10 py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.25em] hover:bg-white/10 transition-all backdrop-blur-md">
+                            Access Node
+                        </a>
+                    </div>
                 </div>
 
-                <div class="space-y-2 flex-1">
-                    <button onclick="switchView('home'); toggleMobileMenu()" class="w-full text-left px-8 py-4 rounded-2xl bg-primary text-white font-800 shadow-xl shadow-primary/20 flex items-center gap-4">
-                        <i class="fas fa-th-large w-6"></i> Dashboard
-                    </button>
-                    <button class="w-full text-left px-8 py-4 rounded-2xl text-neutral-500 dark:text-neutral-400 font-800 flex items-center gap-4 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all">
-                        <i class="fas fa-microchip w-6"></i> Neural Forge
-                    </button>
-                    <button class="w-full text-left px-8 py-4 rounded-2xl text-neutral-500 dark:text-neutral-400 font-800 flex items-center gap-4 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all">
-                        <i class="fas fa-brain w-6"></i> Semantic Library
-                    </button>
-                    <button class="w-full text-left px-8 py-4 rounded-2xl text-neutral-500 dark:text-neutral-400 font-800 flex items-center gap-4 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all">
-                        <i class="fas fa-video w-6"></i> Live Vision
-                    </button>
-                </div>
+                <!-- Premium Hero Illustration -->
+                <div class="relative lg:block hidden group">
+                    <div class="relative z-10 p-1.5 rounded-[3rem] bg-gradient-to-br from-white/10 to-transparent border border-white/5 backdrop-blur-3xl shadow-2xl transition-transform duration-700 group-hover:scale-[1.02]">
+                        <div class="bg-[#0b0f1a] rounded-[2.8rem] p-6 aspect-[4/3] relative overflow-hidden border border-white/5">
+                            <!-- Visual Engine Mockup -->
+                            <div class="h-full rounded-[2rem] border border-white/10 relative flex flex-col bg-slate-900/40 overflow-hidden">
+                                 <div class="absolute top-6 left-6 flex items-center gap-2">
+                                     <div class="w-2 h-2 rounded-full bg-rose-500 shadow-[0_0_8px_#f43f5e]"></div>
+                                     <span class="text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">AI Stream Active</span>
+                                 </div>
 
-                <div class="pt-10 border-t border-neutral-100 dark:border-neutral-800 space-y-4">
-                    <button onclick="switchView('profile'); toggleMobileMenu()" class="w-full flex items-center gap-4 px-8 py-4 rounded-2xl text-neutral-800 dark:text-neutral-200 font-800 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all">
-                        <i class="fas fa-user-circle w-6 text-primary"></i> My Identity
-                    </button>
-                    <button onclick="logout()" class="w-full flex items-center gap-4 px-8 py-4 rounded-2xl text-red-500 font-800 hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
-                        <i class="fas fa-power-off w-6"></i> Deactivate Link
-                    </button>
+                                 <div class="flex-1 flex items-center justify-center relative">
+                                     <!-- Abstract Hands/Logo -->
+                                     <div class="relative group-hover:rotate-6 transition-transform duration-[2s]">
+                                         <i class="fas fa-hand-holding-heart text-8xl text-primary/20 blur-xl absolute inset-0"></i>
+                                         <i class="fas fa-hand-holding-heart text-7xl text-primary relative"></i>
+                                     </div>
+
+                                     <!-- Scanning Effect -->
+                                     <div class="absolute inset-0 p-10 pointer-events-none opacity-40">
+                                         <div class="w-full h-full border border-primary/30 border-dashed rounded-[1.5rem]"></div>
+                                         <div class="absolute top-12 left-12 w-16 h-16 border-t border-l border-primary rounded-tl-2xl"></div>
+                                         <div class="absolute bottom-12 right-12 w-16 h-16 border-b border-r border-primary rounded-br-2xl"></div>
+                                     </div>
+                                 </div>
+
+                                 <!-- Result HUD -->
+                                 <div class="p-6 bg-black/40 backdrop-blur-2xl border-t border-white/5 flex items-center justify-between">
+                                     <div class="space-y-1">
+                                         <p class="text-[7px] font-black text-white/30 uppercase tracking-[0.2em]">Inference</p>
+                                         <h3 class="text-2xl font-black text-white italic">"WELCOME"</h3>
+                                     </div>
+                                     <div class="text-right space-y-1">
+                                         <p class="text-[7px] font-black text-white/30 uppercase tracking-[0.2em]">Confidence</p>
+                                         <h3 class="text-2xl font-black text-emerald-500">99.2%</h3>
+                                     </div>
+                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Background Accents -->
+                    <div class="absolute -top-20 -right-20 w-80 h-80 bg-primary/10 blur-[120px] rounded-full"></div>
+                    <div class="absolute -bottom-20 -left-20 w-64 h-64 bg-blue-500/5 blur-[100px] rounded-full"></div>
                 </div>
             </div>
         </div>
+    </section>
 
-    <!-- VIEWS -->
-    <div id="view-home" class="view-panel transition-all duration-500">
-        <main class="max-w-[1800px] w-full mx-auto px-4 md:px-8 pb-10">
-            <div class="grid grid-cols-12 gap-8 items-stretch mb-8">
-                <!-- Left Column: Camera Feed -->
-                <div class="col-span-12 lg:col-span-7 flex flex-col">
-                    <div class="card-modern p-10 flex flex-col h-full">
-                        <div class="flex items-center justify-between mb-10">
-                            <div>
-                                <h3 class="text-3xl font-800 text-neutral-900 tracking-tight">Camera</h3>
-                                <p class="text-neutral-400 text-xs font-700 uppercase tracking-widest">Show your signs clearly</p>
-                            </div>
-                        </div>
-
-                        <div class="video-container relative flex-1">
-                            <video id="webcam" autoplay playsinline class="w-full h-full object-cover"></video>
-                            <canvas id="output_canvas" class="absolute inset-0 w-full h-full"></canvas>
-
-                            <div id="camera-overlay" class="absolute inset-0 bg-neutral-950/95 flex flex-col items-center justify-center text-white backdrop-blur-3xl transition-all z-10">
-                                <div class="w-28 h-28 bg-white/5 rounded-[3rem] flex items-center justify-center mb-8 border border-white/10 shadow-3xl">
-                                    <i class="fas fa-video-slash text-4xl opacity-20"></i>
-                                </div>
-                                <p class="text-2xl font-800 tracking-tight">Camera is Ready</p>
-                                <p class="text-white/40 text-xs font-700 mt-3 uppercase tracking-[0.2em]">Press start below to begin</p>
-                            </div>
-
-                            <div id="loading-overlay" class="absolute inset-0 bg-neutral-950/80 flex flex-col items-center justify-center text-white z-20 hidden backdrop-blur-md">
-                                <div class="w-16 h-16 border-[6px] border-primary border-t-transparent rounded-full animate-spin mb-8 shadow-[0_0_20px_rgba(249,115,22,0.4)]"></div>
-                                <p class="font-800 text-xs uppercase tracking-[0.3em] text-primary">Starting AI System...</p>
-                            </div>
-
-                            <div class="absolute bottom-8 right-8 z-30">
-                                <div id="fps-badge" class="bg-black/40 backdrop-blur-xl px-5 py-2.5 rounded-2xl text-[10px] font-800 text-white border border-white/10 shadow-2xl">FPS: 0</div>
-                            </div>
-                        </div>
-
-                        <div class="flex flex-col sm:flex-row gap-5 mt-10">
-                            <button id="start-btn" class="btn-primary flex-1 text-white font-800 py-6 rounded-3xl flex items-center justify-center gap-4 text-base tracking-wider">
-                                <i class="fas fa-play text-sm"></i> START CAMERA
-                            </button>
-                            <button id="stop-btn" class="flex-1 bg-neutral-900 text-white font-800 py-6 rounded-3xl hidden text-base tracking-wider hover:bg-neutral-950 transition-all border border-neutral-800 shadow-xl">
-                                <i class="fas fa-stop text-sm"></i> STOP CAMERA
-                            </button>
-                            <div class="sm:w-48 bg-neutral-50 rounded-3xl px-8 py-2 flex items-center justify-between border border-neutral-100 shadow-inner">
-                                 <div class="flex flex-col">
-                                    <span class="text-[10px] font-800 text-neutral-400 uppercase tracking-widest">Draw</span>
-                                    <span class="text-xs font-800 text-neutral-700">Lines</span>
-                                 </div>
-                                 <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" id="overlay-toggle" class="sr-only peer" checked>
-                                    <div class="w-12 h-6.5 bg-neutral-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:rounded-full after:h-4.5 after:w-4.5 after:transition-all shadow-md"></div>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Right Column: Conversation -->
-                <div class="col-span-12 lg:col-span-5 flex flex-col">
-                    <div class="card-modern p-10 flex flex-col h-full shadow-2xl bg-white relative overflow-hidden group">
-                        <div class="absolute top-0 right-0 w-48 h-48 bg-primary/5 rounded-full -mr-24 -mt-24 blur-[80px]"></div>
-
-                        <div class="flex items-center justify-between mb-10 relative z-10">
-                            <div class="flex items-center gap-4">
-                                <div class="w-11 h-11 bg-orange-50 text-primary rounded-2xl flex items-center justify-center shadow-sm border border-orange-100">
-                                    <i class="fas fa-comments text-sm"></i>
-                                </div>
-                                <h3 class="text-xl font-800 text-neutral-800 tracking-tight">Chat Feed</h3>
-                            </div>
-                            <div id="current-prediction" class="text-[10px] font-800 text-primary/60 uppercase tracking-[0.3em] bg-primary/5 px-4 py-1.5 rounded-full border border-primary/10">READY</div>
-                        </div>
-
-                        <!-- Live Tracking Area -->
-                        <div id="live-typing-area" class="mb-8 p-8 bg-neutral-50/80 rounded-[2.5rem] border border-neutral-100 hidden relative overflow-hidden shadow-inner">
-                            <div class="absolute top-0 left-0 w-1.5 h-full bg-primary/30"></div>
-                            <p class="text-[9px] font-800 text-primary/50 uppercase tracking-[0.2em] mb-3">AI is thinking...</p>
-                            <p id="live-typing-text" class="text-2xl font-700 text-neutral-800 typing-effect inline-block break-words leading-tight"></p>
-                        </div>
-
-                        <div id="transcript-container" class="flex-1 overflow-y-auto pr-4 custom-scrollbar space-y-6 min-h-0">
-                            <!-- Dynamic Entries -->
-                            <div class="text-center py-20 opacity-20">
-                                <i class="fas fa-comment-slash text-5xl mb-4"></i>
-                                <p class="text-xs font-800 uppercase tracking-widest">No messages yet</p>
-                            </div>
-                        </div>
-
-                        <div class="mt-8 pt-8 border-t border-neutral-50 flex justify-between items-center relative z-10">
-                            <button onclick="clearHistory()" class="text-neutral-400 font-800 text-[10px] uppercase tracking-[0.2em] hover:text-red-500 transition-all">Clear history</button>
-                            <div class="flex items-center gap-5">
-                                <span class="text-[10px] font-800 text-neutral-300 uppercase tracking-widest">Confidence</span>
-                                <div class="w-32 h-2 bg-neutral-50 rounded-full overflow-hidden shadow-inner border border-neutral-100">
-                                    <div id="confidence-fill" class="h-full bg-gradient-to-r from-primary to-orange-400 w-0 transition-all duration-700 ease-out"></div>
-                                </div>
-                                <span id="confidence-text" class="text-xs font-800 text-primary min-w-[40px] text-right">0%</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Bottom Row: Digital Interpreter -->
-            <div class="card-modern p-10 flex flex-col h-[450px] bg-neutral-900 border border-neutral-800 shadow-4xl relative overflow-hidden group">
-                <div class="absolute -right-40 -top-40 w-96 h-96 bg-primary/20 rounded-full blur-[120px] group-hover:bg-primary/30 transition-all duration-1000"></div>
-
-                <div class="flex items-center justify-between mb-8 relative z-10">
-                    <div>
-                        <h3 class="text-2xl font-800 text-white tracking-tight">AI Assistant</h3>
-                        <p class="text-neutral-500 text-[10px] font-700 uppercase tracking-[0.3em]">Visual Guide</p>
-                    </div>
-                    <div id="neural-status" class="flex items-center gap-4 bg-white/5 px-6 py-3 rounded-full border border-white/5 backdrop-blur-2xl">
-                        <span class="w-2.5 h-2.5 rounded-full bg-neutral-700 shadow-[0_0_10px_rgba(255,255,255,0.1)]"></span>
-                        <span class="text-[10px] font-800 text-neutral-400 uppercase tracking-widest">Waiting...</span>
-                    </div>
-                </div>
-
-                <div class="flex gap-10 flex-1 min-h-0 relative z-10">
-                    <div id="avatar-container" class="flex-1 bg-white/5 rounded-[3.5rem] relative overflow-hidden border border-white/10 shadow-inner group-hover:border-primary/20 transition-all duration-700">
-                        <!-- 3D Canvas -->
-                    </div>
-
-                    <div class="w-1/3 flex flex-col gap-6">
-                        <div class="flex-1 bg-neutral-950/40 rounded-[2.5rem] p-6 flex flex-col items-center justify-center text-center border border-white/5 shadow-inner">
-                            <p class="text-[10px] font-800 text-neutral-500 uppercase tracking-[0.2em] mb-6">Voice Detection</p>
-                            <div id="voice-waves" class="flex items-end gap-2 h-12 opacity-30 transition-all duration-500">
-                                <div class="w-1.5 bg-primary rounded-full h-4"></div>
-                                <div class="w-1.5 bg-primary rounded-full h-10" style="animation-delay: 0.1s"></div>
-                                <div class="w-1.5 bg-primary rounded-full h-7" style="animation-delay: 0.2s"></div>
-                                <div class="w-1.5 bg-primary rounded-full h-12" style="animation-delay: 0.3s"></div>
-                                <div class="w-1.5 bg-primary rounded-full h-6" style="animation-delay: 0.4s"></div>
-                            </div>
-                        </div>
-
-                        <button id="mic-btn" class="flex-1 bg-white text-neutral-900 font-800 rounded-[2.5rem] flex flex-col items-center justify-center gap-4 transition-all hover:bg-neutral-100 group shadow-2xl active:scale-95 border border-white">
-                            <div class="w-12 h-12 bg-neutral-50 rounded-2xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
-                                <i class="fas fa-microphone text-lg text-primary"></i>
-                            </div>
-                            <span class="text-xs uppercase tracking-[0.2em]">Listen to me</span>
-                        </button>
-
-                        <button id="mic-stop-btn" class="flex-1 bg-red-500 text-white font-800 rounded-[2.5rem] hidden flex flex-col items-center justify-center gap-4 animate-pulse shadow-2xl shadow-red-500/40 border border-red-400">
-                            <i class="fas fa-stop text-lg"></i>
-                            <span class="text-xs uppercase tracking-[0.2em]">Finish Speaking</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- PROFILE VIEW -->
-    <div id="view-profile" class="view-panel hidden transition-all duration-500 pb-20">
-        <div class="max-w-[1400px] mx-auto px-4 md:px-8">
-            <!-- Header Card -->
-            <div class="card-modern overflow-hidden mb-8 border-none">
-                <div class="h-64 bg-gradient-to-r from-primary to-orange-400 relative">
-                    <img id="profile-banner" alt="Profile Banner" src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80" class="w-full h-full object-cover opacity-40">
-                    <button class="absolute top-6 right-8 bg-white/20 hover:bg-white/30 backdrop-blur-md px-6 py-2.5 rounded-xl text-white text-xs font-800 uppercase tracking-widest transition-all">
-                        Change Banner
-                    </button>
-                </div>
-                <div class="px-12 pb-10 flex flex-col md:flex-row items-end gap-8 -mt-20 relative z-10">
-                    <div class="relative group">
-                        <img id="profile-avatar" src="/public/image/3d.jpg" class="w-48 h-48 rounded-[3rem] border-[10px] border-white shadow-2xl object-cover">
-                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-[3rem] flex items-center justify-center cursor-pointer">
-                            <i class="fas fa-camera text-white text-3xl"></i>
-                        </div>
-                    </div>
-                    <div class="flex-1 mb-4">
-                        <div class="flex items-center gap-4 mb-2">
-                            <h2 id="profile-name-display" class="text-4xl font-900 text-neutral-900 tracking-tighter">Admin User</h2>
-                            <span id="profile-role-badge" class="bg-primary/10 text-primary text-[10px] font-900 px-4 py-1.5 rounded-full border border-primary/10 uppercase tracking-widest">Administrator</span>
-                        </div>
-                        <p id="profile-status" class="flex items-center gap-2 text-neutral-400 font-700 uppercase text-[10px] tracking-[0.2em]">
-                            <span class="w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_8px_#34d399]"></span> System Node Active
+    <!-- 3. Platform Overview -->
+    <section id="platform-overview" class="py-40 bg-surface">
+        <div class="max-w-7xl mx-auto px-8">
+            <div class="grid lg:grid-cols-2 gap-24 items-center">
+                <div class="space-y-12">
+                    <div class="space-y-6">
+                        <h2 class="text-5xl font-black text-text-primary tracking-tighter">What is Signly?</h2>
+                        <p class="text-xl text-text-secondary leading-relaxed font-medium opacity-80">
+                            Signly is a comprehensive AI ecosystem designed to eliminate communication barriers. By leveraging state-of-the-art neural networks, we provide real-time translation and data-driven learning tools for the global sign language community.
                         </p>
                     </div>
-                    <div class="flex gap-4 mb-4">
-                        <button onclick="saveProfile()" class="btn-primary px-8 py-4 rounded-2xl font-800 text-xs uppercase tracking-widest">Save Changes</button>
-                        <button onclick="switchView('home')" class="bg-neutral-100 hover:bg-neutral-200 px-8 py-4 rounded-2xl font-800 text-xs text-neutral-600 uppercase tracking-widest transition-all">Discard</button>
+
+                    <div class="space-y-4">
+                        <p class="text-[10px] font-black text-muted uppercase tracking-[0.4em] mb-6">Empowering Communities</p>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-6">
+                            <div class="stat-card p-6 rounded-3xl text-center space-y-4">
+                                <div class="w-12 h-12 rounded-2xl bg-bg mx-auto flex items-center justify-center text-primary border border-border"><i class="fas fa-user-graduate"></i></div>
+                                <h4 class="text-[9px] font-black uppercase tracking-widest">Students</h4>
+                            </div>
+                            <div class="stat-card p-6 rounded-3xl text-center space-y-4">
+                                <div class="w-12 h-12 rounded-2xl bg-bg mx-auto flex items-center justify-center text-primary border border-border"><i class="fas fa-chalkboard-teacher"></i></div>
+                                <h4 class="text-[9px] font-black uppercase tracking-widest">Teachers</h4>
+                            </div>
+                            <div class="stat-card p-6 rounded-3xl text-center space-y-4">
+                                <div class="w-12 h-12 rounded-2xl bg-bg mx-auto flex items-center justify-center text-primary border border-border"><i class="fas fa-microscope"></i></div>
+                                <h4 class="text-[9px] font-black uppercase tracking-widest">Researchers</h4>
+                            </div>
+                            <div class="stat-card p-6 rounded-3xl text-center space-y-4">
+                                <div class="w-12 h-12 rounded-2xl bg-bg mx-auto flex items-center justify-center text-primary border border-border"><i class="fas fa-hands-asl-interpreting"></i></div>
+                                <h4 class="text-[9px] font-black uppercase tracking-widest">Deaf Community</h4>
+                            </div>
+                            <div class="stat-card p-6 rounded-3xl text-center space-y-4">
+                                <div class="w-12 h-12 rounded-2xl bg-bg mx-auto flex items-center justify-center text-primary border border-border"><i class="fas fa-code"></i></div>
+                                <h4 class="text-[9px] font-black uppercase tracking-widest">Developers</h4>
+                            </div>
+                            <div class="stat-card p-6 rounded-3xl text-center space-y-4">
+                                <div class="w-12 h-12 rounded-2xl bg-bg mx-auto flex items-center justify-center text-primary border border-border"><i class="fas fa-universal-access"></i></div>
+                                <h4 class="text-[9px] font-black uppercase tracking-widest">Accessibility Organizations</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="relative group">
+                    <div class="rounded-[3rem] overflow-hidden border border-border shadow-2xl transition-transform duration-700 group-hover:scale-[1.02]">
+                        <img src="https://images.unsplash.com/photo-1531545517296-1661c126c11a?q=80&w=1200" class="w-full h-full object-cover" alt="Community Interaction">
+                    </div>
+                    <div class="absolute -bottom-10 -right-10 ui-card p-8 rounded-3xl shadow-2xl max-w-[240px] space-y-4 animate-float">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-quote-left text-primary"></i>
+                            <span class="text-[10px] font-black text-muted uppercase tracking-widest">Global Impact</span>
+                        </div>
+                        <p class="text-xs font-bold leading-relaxed italic">"Signly transformed our classroom communication in just one week."</p>
                     </div>
                 </div>
             </div>
+        </div>
+    </section>
 
-            <div class="grid grid-cols-12 gap-8">
-                <!-- Left: Information -->
-                <div class="col-span-12 lg:col-span-8 space-y-8">
-                    <div class="card-modern p-10">
-                        <h4 class="text-xl font-800 text-neutral-900 mb-8 flex items-center gap-3">
-                            <i class="fas fa-id-card text-primary"></i> Neural Identity
-                        </h4>
-                        <div class="grid grid-cols-2 gap-8">
-                            <div class="space-y-2">
-                                <label for="edit-fullname" class="text-[10px] font-900 text-neutral-400 uppercase tracking-[0.2em] ml-2">Full Name</label>
-                                <input type="text" id="edit-fullname" class="input-field" placeholder="Full Name">
-                            </div>
-                            <div class="space-y-2">
-                                <label for="edit-username" class="text-[10px] font-900 text-neutral-400 uppercase tracking-[0.2em] ml-2">Username</label>
-                                <input type="text" id="edit-username" class="input-field opacity-60" readonly>
-                            </div>
-                            <div class="space-y-2">
-                                <label for="edit-email" class="text-[10px] font-900 text-neutral-400 uppercase tracking-[0.2em] ml-2">Communication Email</label>
-                                <input type="email" id="edit-email" class="input-field">
-                            </div>
-                            <div class="space-y-2">
-                                <label for="comm-node" class="text-[10px] font-900 text-neutral-400 uppercase tracking-[0.2em] ml-2">Communication Node</label>
-                                <select id="comm-node" class="input-field">
-                                    <option>Internal Gateway</option>
-                                    <option>Remote Proxy</option>
-                                </select>
-                            </div>
-                            <div class="col-span-2 space-y-2">
-                                <label for="edit-bio" class="text-[10px] font-900 text-neutral-400 uppercase tracking-[0.2em] ml-2">Neural Bio</label>
-                                <textarea id="edit-bio" class="input-field min-h-[120px] resize-none" placeholder="Brief context about this identity node..."></textarea>
-                            </div>
-                        </div>
+    <!-- 4. Core Features -->
+    <section id="features" class="py-40">
+        <div class="max-w-7xl mx-auto px-8 space-y-24">
+            <div class="text-center space-y-6">
+                <h2 class="text-6xl font-black text-text-primary tracking-tighter uppercase">Universal Features</h2>
+                <div class="w-24 h-1.5 bg-primary mx-auto rounded-full"></div>
+                <p class="text-muted font-bold uppercase tracking-[0.4em] text-xs pt-2">Engineered for Precision</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
+                <!-- Feature 1 -->
+                <div class="ui-card ui-card-hover p-12 space-y-8 rounded-[2.5rem]">
+                    <div class="w-20 h-20 rounded-3xl bg-bg border border-border flex items-center justify-center text-primary text-4xl shadow-sm">
+                        <i class="fas fa-video"></i>
                     </div>
-
-                    <div class="card-modern p-10">
-                        <h4 class="text-xl font-800 text-neutral-900 mb-8 flex items-center gap-3">
-                            <i class="fas fa-shield-alt text-emerald-500"></i> Security Protocol
-                        </h4>
-                        <div class="space-y-6">
-                            <div class="flex items-center justify-between p-6 bg-neutral-50 rounded-[2rem] border border-neutral-100">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-neutral-400 shadow-sm">
-                                        <i class="fas fa-lock"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-800 text-neutral-800">Master Secret Key</p>
-                                        <p class="text-[10px] font-600 text-neutral-400 uppercase">Last modified: 14 days ago</p>
-                                    </div>
-                                </div>
-                                <button class="bg-white hover:bg-primary hover:text-white px-6 py-2.5 rounded-xl border border-neutral-200 text-[10px] font-900 uppercase tracking-widest transition-all">Rotate Key</button>
-                            </div>
-                            <div class="flex items-center justify-between p-6 bg-neutral-50 rounded-[2rem] border border-neutral-100 opacity-50">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-neutral-400 shadow-sm">
-                                        <i class="fas fa-fingerprint"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-800 text-neutral-800">Neural Sign-In (2FA)</p>
-                                        <p class="text-[10px] font-600 text-neutral-400 uppercase">Enhanced security layer</p>
-                                    </div>
-                                </div>
-                                <span class="bg-neutral-200 text-neutral-500 text-[8px] font-900 px-3 py-1 rounded-full uppercase">Inactive</span>
-                            </div>
-                        </div>
+                    <div class="space-y-4">
+                        <h3 class="text-3xl font-black text-text-primary tracking-tight">Live Vision</h3>
+                        <p class="text-lg text-text-secondary leading-relaxed opacity-80">Recognize signs in real time using your camera with sub-100ms latency and high accuracy.</p>
                     </div>
                 </div>
+                <!-- Feature 2 -->
+                <div class="ui-card ui-card-hover p-12 space-y-8 rounded-[2.5rem]">
+                    <div class="w-20 h-20 rounded-3xl bg-bg border border-border flex items-center justify-center text-primary text-4xl shadow-sm">
+                        <i class="fas fa-image"></i>
+                    </div>
+                    <div class="space-y-4">
+                        <h3 class="text-3xl font-black text-text-primary tracking-tight">Image Recognition</h3>
+                        <p class="text-lg text-text-secondary leading-relaxed opacity-80">Upload sign language images for instant AI analysis and semantic extraction.</p>
+                    </div>
+                </div>
+                <!-- Feature 3 -->
+                <div class="ui-card ui-card-hover p-12 space-y-8 rounded-[2.5rem]">
+                    <div class="w-20 h-20 rounded-3xl bg-bg border border-border flex items-center justify-center text-primary text-4xl shadow-sm">
+                        <i class="fas fa-play-circle"></i>
+                    </div>
+                    <div class="space-y-4">
+                        <h3 class="text-3xl font-black text-text-primary tracking-tight">Video Analysis</h3>
+                        <p class="text-lg text-text-secondary leading-relaxed opacity-80">Analyze sign language videos frame by frame to capture fluid grammatical movements.</p>
+                    </div>
+                </div>
+                <!-- Feature 4 -->
+                <div class="ui-card ui-card-hover p-12 space-y-8 rounded-[2.5rem]">
+                    <div class="w-20 h-20 rounded-3xl bg-bg border border-border flex items-center justify-center text-primary text-4xl shadow-sm">
+                        <i class="fas fa-hammer"></i>
+                    </div>
+                    <div class="space-y-4">
+                        <h3 class="text-3xl font-black text-text-primary tracking-tight">Neural Forge</h3>
+                        <p class="text-lg text-text-secondary leading-relaxed opacity-80">Create intelligent datasets for AI learning through our specialized background workers.</p>
+                    </div>
+                </div>
+                <!-- Feature 5 -->
+                <div class="ui-card ui-card-hover p-12 space-y-8 rounded-[2.5rem]">
+                    <div class="w-20 h-20 rounded-3xl bg-bg border border-border flex items-center justify-center text-primary text-4xl shadow-sm">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div class="space-y-4">
+                        <h3 class="text-3xl font-black text-text-primary tracking-tight">Deep Training</h3>
+                        <p class="text-lg text-text-secondary leading-relaxed opacity-80">Train advanced AI models with validated datasets to expand the system's vocabulary.</p>
+                    </div>
+                </div>
+                <!-- Feature 6 -->
+                <div class="ui-card ui-card-hover p-12 space-y-8 rounded-[2.5rem]">
+                    <div class="w-20 h-20 rounded-3xl bg-bg border border-border flex items-center justify-center text-primary text-4xl shadow-sm">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <div class="space-y-4">
+                        <h3 class="text-3xl font-black text-text-primary tracking-tight">Semantic Hub</h3>
+                        <p class="text-lg text-text-secondary leading-relaxed opacity-80">Manage recognized signs intelligently with our integrated gesture mapping system.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-                <!-- Right: Meta & Preferences -->
-                <div class="col-span-12 lg:col-span-4 space-y-8">
-                    <div class="card-modern p-10">
-                        <h4 class="text-lg font-800 text-neutral-900 mb-8 uppercase tracking-widest">Interface Logic</h4>
+    <!-- 5. AI Workflow -->
+    <section id="how-it-works" class="py-40 bg-surface overflow-hidden relative">
+        <div class="max-w-7xl mx-auto px-8 space-y-24 relative z-10">
+            <div class="text-center space-y-6">
+                <h2 class="text-6xl font-black text-text-primary tracking-tighter uppercase">Neural Pipeline</h2>
+                <div class="w-24 h-1.5 bg-primary mx-auto rounded-full"></div>
+                <p class="text-muted font-bold uppercase tracking-[0.4em] text-xs pt-2">How It Works</p>
+            </div>
+
+            <div class="relative flex flex-col lg:flex-row items-center justify-between gap-12 lg:px-12">
+                <!-- Connector Line -->
+                <div class="absolute top-[40px] left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-primary/30 to-transparent hidden lg:block overflow-hidden">
+                    <div class="w-full h-full bg-gradient-to-r from-transparent via-primary to-transparent animate-connector-flow"></div>
+                </div>
+
+                <!-- Steps -->
+                <div class="flex flex-col items-center gap-6 group relative">
+                    <div class="w-20 h-20 rounded-full bg-primary text-white flex items-center justify-center text-2xl font-black shadow-2xl group-hover:scale-110 transition-all z-10">1</div>
+                    <div class="text-center space-y-2">
+                        <h4 class="text-[11px] font-black uppercase tracking-widest text-primary">Capture</h4>
+                        <p class="text-[9px] text-muted font-bold uppercase max-w-[120px]">30-Frame Landmark Buffer</p>
+                    </div>
+                </div>
+                <div class="flex flex-col items-center gap-6 group relative">
+                    <div class="w-20 h-20 rounded-full bg-surface-raised border border-border text-text-primary flex items-center justify-center text-2xl font-black shadow-sm group-hover:scale-110 transition-all z-10">2</div>
+                    <div class="text-center space-y-2">
+                        <h4 class="text-[11px] font-black uppercase tracking-widest text-text-primary">Upload</h4>
+                        <p class="text-[9px] text-muted font-bold uppercase max-w-[120px]">Binary WS Streaming</p>
+                    </div>
+                </div>
+                <div class="flex flex-col items-center gap-6 group relative">
+                    <div class="w-20 h-20 rounded-full bg-surface-raised border border-border text-text-primary flex items-center justify-center text-2xl font-black shadow-sm group-hover:scale-110 transition-all z-10">3</div>
+                    <div class="text-center space-y-2">
+                        <h4 class="text-[11px] font-black uppercase tracking-widest text-text-primary">AI Detection</h4>
+                        <p class="text-[9px] text-muted font-bold uppercase max-w-[120px]">MediaPipe Holistic</p>
+                    </div>
+                </div>
+                <div class="flex flex-col items-center gap-6 group relative">
+                    <div class="w-20 h-20 rounded-full bg-surface-raised border border-border text-text-primary flex items-center justify-center text-2xl font-black shadow-sm group-hover:scale-110 transition-all z-10">4</div>
+                    <div class="text-center space-y-2">
+                        <h4 class="text-[11px] font-black uppercase tracking-widest text-text-primary">Sign Rec</h4>
+                        <p class="text-[9px] text-muted font-bold uppercase max-w-[120px]">LSTM Sequence Model</p>
+                    </div>
+                </div>
+                <div class="flex flex-col items-center gap-6 group relative">
+                    <div class="w-20 h-20 rounded-full bg-surface-raised border border-border text-text-primary flex items-center justify-center text-2xl font-black shadow-sm group-hover:scale-110 transition-all z-10">5</div>
+                    <div class="text-center space-y-2">
+                        <h4 class="text-[11px] font-black uppercase tracking-widest text-text-primary">Understanding</h4>
+                        <p class="text-[9px] text-muted font-bold uppercase max-w-[120px]">Contextual Analysis</p>
+                    </div>
+                </div>
+                <div class="flex flex-col items-center gap-6 group relative">
+                    <div class="w-20 h-20 rounded-full bg-surface-raised border border-border text-text-primary flex items-center justify-center text-2xl font-black shadow-sm group-hover:scale-110 transition-all z-10">6</div>
+                    <div class="text-center space-y-2">
+                        <h4 class="text-[11px] font-black uppercase tracking-widest text-text-primary">Embeddings</h4>
+                        <p class="text-[9px] text-muted font-bold uppercase max-w-[120px]">FAISS Vector Hub</p>
+                    </div>
+                </div>
+                <div class="flex flex-col items-center gap-6 group relative">
+                    <div class="w-24 h-24 rounded-full bg-emerald-500 text-white flex items-center justify-center text-3xl font-black shadow-2xl group-hover:scale-110 transition-all z-10 border-4 border-surface shadow-emerald-500/20">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div class="text-center space-y-2">
+                        <h4 class="text-[11px] font-black uppercase tracking-widest text-emerald-500">Learning</h4>
+                        <p class="text-[9px] text-muted font-bold uppercase max-w-[120px]">Validated Feedback</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Background Glow -->
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl aspect-square bg-primary/5 blur-[160px] rounded-full pointer-events-none"></div>
+    </section>
+
+    <!-- 6. AI Preview Section -->
+    <section id="ai-tech" class="py-40">
+        <div class="max-w-7xl mx-auto px-8">
+            <div class="rounded-[3rem] overflow-hidden bg-[#0a0f1a] border border-white/10 shadow-2xl relative">
+                <div class="grid lg:grid-cols-12 items-center">
+                    <div class="lg:col-span-5 p-16 space-y-10">
                         <div class="space-y-6">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-3">
-                                    <i class="fas fa-moon text-neutral-400"></i>
-                                    <span class="text-xs font-800 text-neutral-700">Dark Mode</span>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" id="theme-toggle" class="sr-only peer" onchange="updateThemePreference(this.checked)">
-                                    <div class="w-11 h-6 bg-neutral-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
-                                </label>
+                            <h2 class="text-5xl font-black text-white italic tracking-tighter leading-tight">Neural <br><span class="text-primary italic">Live Preview</span></h2>
+                            <p class="text-white/60 text-lg leading-relaxed font-medium">Experience the actual interface. Our engine tracks 1662 landmarks simultaneously to ensure flawless translation and semantic understanding.</p>
+                        </div>
+                        <div class="space-y-6">
+                            <div class="flex items-center gap-5 text-white/80 group">
+                                <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-primary group-hover:bg-primary/20 transition-all"><i class="fas fa-microchip"></i></div>
+                                <span class="text-[10px] font-black uppercase tracking-[0.3em]">TensorFlow Accelerated</span>
                             </div>
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-3">
-                                    <i class="fas fa-bell text-neutral-400"></i>
-                                    <span class="text-xs font-800 text-neutral-700">Notifications</span>
-                                </div>
-                                <label class="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" checked class="sr-only peer">
-                                    <div class="w-11 h-6 bg-neutral-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-primary after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
-                                </label>
+                            <div class="flex items-center gap-5 text-white/80 group">
+                                <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-primary group-hover:bg-primary/20 transition-all"><i class="fas fa-bolt"></i></div>
+                                <span class="text-[10px] font-black uppercase tracking-[0.3em]">Real-time Inbound (Binary)</span>
+                            </div>
+                            <div class="flex items-center gap-5 text-white/80 group">
+                                <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-primary group-hover:bg-primary/20 transition-all"><i class="fas fa-database"></i></div>
+                                <span class="text-[10px] font-black uppercase tracking-[0.3em]">Scalable Neural Store</span>
                             </div>
                         </div>
                     </div>
-
-                    <div class="card-modern p-10 bg-neutral-900 text-white border-none shadow-orange-900/10">
-                        <h4 class="text-sm font-900 uppercase tracking-[0.2em] text-primary mb-8">Node Metrics</h4>
-                        <div class="space-y-6">
-                            <div class="flex justify-between">
-                                <span class="text-[10px] font-700 text-neutral-500 uppercase">Joined Cycle</span>
-                                <span id="meta-joined" class="text-xs font-800">Jun 2026</span>
+                    <div class="lg:col-span-7 bg-slate-900/40 p-12 lg:p-20 relative">
+                        <div class="preview-glass rounded-[2.5rem] p-10 space-y-10 shadow-premium border border-white/5">
+                            <div class="flex items-center justify-between border-b border-white/5 pb-6">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-3.5 h-3.5 rounded-full bg-emerald-500 animate-pulse-slow"></div>
+                                    <span class="text-[10px] font-black text-white uppercase tracking-[0.4em]">Biometric Sync Active</span>
+                                </div>
+                                <div class="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Node: SN-99A</div>
                             </div>
-                            <div class="flex justify-between">
-                                <span class="text-[10px] font-700 text-neutral-500 uppercase">Inference Tokens</span>
-                                <span class="text-xs font-800">4,812</span>
+                            <div class="aspect-video bg-black/40 rounded-3xl border border-white/5 flex items-center justify-center relative group">
+                                <div class="absolute inset-0 grid grid-cols-12 grid-rows-12 opacity-[0.03]">
+                                    ${Array(144).fill('<div class="border-[0.2px] border-white"></div>').join('')}
+                                </div>
+                                <div class="text-center space-y-6 relative z-10">
+                                    <i class="fas fa-sign-language text-9xl text-primary opacity-40 group-hover:scale-110 transition-transform"></i>
+                                    <div class="flex justify-center gap-3">
+                                        <div class="w-1.5 h-1.5 rounded-full bg-primary animate-bounce"></div>
+                                        <div class="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:0.2s]"></div>
+                                        <div class="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:0.4s]"></div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="flex justify-between">
-                                <span class="text-[10px] font-700 text-neutral-500 uppercase">Active Links</span>
-                                <span class="text-xs font-800">1 (Mobile)</span>
+                            <div class="grid grid-cols-3 gap-8">
+                                <div class="space-y-2">
+                                    <p class="text-[8px] font-black text-white/30 uppercase tracking-[0.3em]">Recognized</p>
+                                    <p class="text-2xl font-black text-white italic">"THANK YOU"</p>
+                                </div>
+                                <div class="space-y-2">
+                                    <p class="text-[8px] font-black text-white/30 uppercase tracking-[0.3em]">Confidence</p>
+                                    <p class="text-2xl font-black text-emerald-400">0.997</p>
+                                </div>
+                                <div class="space-y-2">
+                                    <p class="text-[8px] font-black text-white/30 uppercase tracking-[0.3em]">Embedding</p>
+                                    <p class="text-xl font-black text-primary">Active</p>
+                                </div>
                             </div>
-                            <button onclick="downloadPersonalData()" class="w-full mt-6 bg-white/5 hover:bg-white/10 border border-white/10 py-4 rounded-2xl text-[10px] font-900 uppercase tracking-widest transition-all">Download Personal Data</button>
-                            <button onclick="decommissionNode()" class="w-full text-red-500 hover:text-red-400 text-[10px] font-900 uppercase tracking-widest transition-all">Decommission Node</button>
+                            <div class="space-y-3">
+                                <div class="flex justify-between text-[8px] font-black text-white/30 uppercase tracking-[0.3em]">
+                                    <span>Training Progress</span>
+                                    <span>88%</span>
+                                </div>
+                                <div class="w-full h-1 rounded-full bg-white/5 overflow-hidden">
+                                    <div class="w-[88%] h-full bg-primary animate-pulse"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    </div>
+    </section>
 
-    <div id="toast-container" class="fixed bottom-8 right-8 z-[100] space-y-4"></div>
+    <!-- 7. Why Choose Signly -->
+    <section id="about" class="py-40 bg-surface">
+        <div class="max-w-7xl mx-auto px-8 space-y-24">
+            <div class="text-center space-y-6">
+                <h2 class="text-6xl font-black text-text-primary tracking-tighter uppercase">Why Choose Signly</h2>
+                <div class="w-24 h-1.5 bg-primary mx-auto rounded-full"></div>
+                <p class="text-muted font-bold uppercase tracking-[0.4em] text-xs pt-2">The Intelligent Choice</p>
+            </div>
 
-    <script src="theme_sync.js"></script>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-12">
+                <div class="space-y-5 p-8 rounded-3xl hover:bg-bg transition-all border border-transparent hover:border-border group">
+                    <i class="fas fa-bullseye text-4xl text-primary opacity-60 group-hover:opacity-100 transition-all"></i>
+                    <h4 class="text-xl font-black text-text-primary">High Accuracy</h4>
+                    <p class="text-sm text-text-secondary leading-relaxed font-medium">Multi-stage inference ensures consistent recognition even in complex lighting.</p>
+                </div>
+                <div class="space-y-5 p-8 rounded-3xl hover:bg-bg transition-all border border-transparent hover:border-border group">
+                    <i class="fas fa-bolt text-4xl text-primary opacity-60 group-hover:opacity-100 transition-all"></i>
+                    <h4 class="text-xl font-black text-text-primary">Real-Time AI</h4>
+                    <p class="text-sm text-text-secondary leading-relaxed font-medium">Experience fluid communication without the lag of traditional systems.</p>
+                </div>
+                <div class="space-y-5 p-8 rounded-3xl hover:bg-bg transition-all border border-transparent hover:border-border group">
+                    <i class="fas fa-infinity text-4xl text-primary opacity-60 group-hover:opacity-100 transition-all"></i>
+                    <h4 class="text-xl font-black text-text-primary">Neural Evolution</h4>
+                    <p class="text-sm text-text-secondary leading-relaxed font-medium">The system grows smarter with every validated interaction via Neural Forge.</p>
+                </div>
+                <div class="space-y-5 p-8 rounded-3xl hover:bg-bg transition-all border border-transparent hover:border-border group">
+                    <i class="fas fa-shield-halved text-4xl text-primary opacity-60 group-hover:opacity-100 transition-all"></i>
+                    <h4 class="text-xl font-black text-text-primary">Secure Auth</h4>
+                    <p class="text-sm text-text-secondary leading-relaxed font-medium">Data protected by enterprise-grade JWT and encrypted sessions.</p>
+                </div>
+                <div class="space-y-5 p-8 rounded-3xl hover:bg-bg transition-all border border-transparent hover:border-border group">
+                    <i class="fas fa-laptop-mobile text-4xl text-primary opacity-60 group-hover:opacity-100 transition-all"></i>
+                    <h4 class="text-xl font-black text-text-primary">Cross Platform</h4>
+                    <p class="text-sm text-text-secondary leading-relaxed font-medium">Access from any device with a perfectly responsive experience.</p>
+                </div>
+                <div class="space-y-5 p-8 rounded-3xl hover:bg-bg transition-all border border-transparent hover:border-border group">
+                    <i class="fas fa-layer-group text-4xl text-primary opacity-60 group-hover:opacity-100 transition-all"></i>
+                    <h4 class="text-xl font-black text-text-primary">Modern Stack</h4>
+                    <p class="text-sm text-text-secondary leading-relaxed font-medium">Built on a modular, scalable architecture designed for reliability.</p>
+                </div>
+                <div class="space-y-5 p-8 rounded-3xl hover:bg-bg transition-all border border-transparent hover:border-border group">
+                    <i class="fas fa-tachometer-alt text-4xl text-primary opacity-60 group-hover:opacity-100 transition-all"></i>
+                    <h4 class="text-xl font-black text-text-primary">Fast Processing</h4>
+                    <p class="text-sm text-text-secondary leading-relaxed font-medium">Optimized background workers ensure heavy tasks never slow down core translation.</p>
+                </div>
+                <div class="space-y-5 p-8 rounded-3xl hover:bg-bg transition-all border border-transparent hover:border-border group">
+                    <i class="fas fa-server text-4xl text-primary opacity-60 group-hover:opacity-100 transition-all"></i>
+                    <h4 class="text-xl font-black text-text-primary">Scalable AI</h4>
+                    <p class="text-sm text-text-secondary leading-relaxed font-medium">Engineered to handle massive neural data streams without degradation.</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
+    <!-- 8. Statistics -->
+    <section class="py-32 bg-primary">
+        <div class="max-w-7xl mx-auto px-8">
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-16 text-center text-white">
+                <div class="space-y-4">
+                    <div class="text-7xl font-black stat-counter" data-target="98">0</div>
+                    <div class="text-[11px] font-black uppercase tracking-[0.4em] opacity-60">Accuracy Rate %</div>
+                </div>
+                <div class="space-y-4">
+                    <div class="text-7xl font-black stat-counter" data-target="1500">0</div>
+                    <div class="text-[11px] font-black uppercase tracking-[0.4em] opacity-60">Signs Learned</div>
+                </div>
+                <div class="space-y-4">
+                    <div class="text-7xl font-black stat-counter" data-target="25000">0</div>
+                    <div class="text-[11px] font-black uppercase tracking-[0.4em] opacity-60">Items Processed</div>
+                </div>
+                <div class="space-y-4">
+                    <div class="text-7xl font-black stat-counter" data-target="12000">0</div>
+                    <div class="text-[11px] font-black uppercase tracking-[0.4em] opacity-60">Global Users</div>
+                </div>
+            </div>
+        </div>
+    </section>
 
+    <!-- 9. FAQ -->
+    <section id="faq" class="py-40">
+        <div class="max-w-4xl mx-auto px-8 space-y-24">
+            <div class="text-center space-y-6">
+                <h2 class="text-6xl font-black text-text-primary tracking-tighter uppercase">Common Queries</h2>
+                <div class="w-24 h-1.5 bg-primary mx-auto rounded-full"></div>
+                <p class="text-muted font-bold uppercase tracking-[0.4em] text-xs pt-2">FAQ</p>
+            </div>
+
+            <div class="space-y-6">
+                <details class="group ui-card p-0 overflow-hidden rounded-[2rem] cursor-pointer border border-border">
+                    <summary class="flex items-center justify-between p-10 font-black text-xl text-text-primary list-none uppercase tracking-tight">
+                        How does the real-time recognition work?
+                        <i class="fas fa-plus text-primary group-open:rotate-45 transition-transform"></i>
+                    </summary>
+                    <div class="p-10 pt-0 text-lg text-text-secondary leading-relaxed border-t border-border font-medium opacity-80">
+                        Signly uses a 30-frame buffer to capture landmark sequences which are then transmitted via secure WebSocket to our AI Orchestrator for instant LSTM-based classification and semantic mapping.
+                    </div>
+                </details>
+
+                <details class="group ui-card p-0 overflow-hidden rounded-[2rem] cursor-pointer border border-border">
+                    <summary class="flex items-center justify-between p-10 font-black text-xl text-text-primary list-none uppercase tracking-tight">
+                        Is my data secure and private?
+                        <i class="fas fa-plus text-primary group-open:rotate-45 transition-transform"></i>
+                    </summary>
+                    <div class="p-10 pt-0 text-lg text-text-secondary leading-relaxed border-t border-border font-medium opacity-80">
+                        Absolutely. We prioritize user privacy with industry-standard JWT authentication, isolated session storage, and encrypted transmission protocols. All harvested data is anonymized before model integration.
+                    </div>
+                </details>
+
+                <details class="group ui-card p-0 overflow-hidden rounded-[2rem] cursor-pointer border border-border">
+                    <summary class="flex items-center justify-between p-10 font-black text-xl text-text-primary list-none uppercase tracking-tight">
+                        Can I contribute to sign language datasets?
+                        <i class="fas fa-plus text-primary group-open:rotate-45 transition-transform"></i>
+                    </summary>
+                    <div class="p-10 pt-0 text-lg text-text-secondary leading-relaxed border-t border-border font-medium opacity-80">
+                        Yes! Through the Neural Forge interface, users can contribute and validate landmark sequences, directly helping our models evolve and support more diverse sign variants.
+                    </div>
+                </details>
+            </div>
+        </div>
+    </section>
+
+    <!-- 10. Final Call To Action -->
+    <section class="py-40 bg-surface text-center">
+        <div class="max-w-5xl mx-auto px-8 space-y-16">
+            <h2 class="text-6xl lg:text-8xl font-black text-text-primary tracking-tighter leading-tight uppercase">
+                Ready to Experience <br><span class="text-primary italic">Neural</span> Sign Recognition?
+            </h2>
+            <div class="flex flex-col items-center gap-10">
+                <a href="/register" class="bg-primary text-white px-16 py-7 rounded-[2.5rem] text-lg font-black uppercase tracking-[0.3em] hover:bg-primary-hover transition-all shadow-2xl shadow-primary/40 hover:scale-105">Initialize Presence</a>
+                <div class="text-xs font-bold uppercase tracking-[0.4em] text-muted">
+                    Already an active node? <a href="/login" class="text-primary hover:underline">Sign In</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 11. Professional Footer -->
+    <footer class="py-32 border-t border-border bg-bg">
+        <div class="max-w-7xl mx-auto px-8 grid md:grid-cols-2 lg:grid-cols-4 gap-20">
+            <div class="space-y-10">
+                <div class="flex items-center gap-4 select-none cursor-pointer" onclick="window.location.href='/'">
+                    <div class="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-white shadow-lg">
+                        <i class="fas fa-hand-holding-heart text-xl"></i>
+                    </div>
+                    <span class="text-2xl font-black text-text-primary tracking-tighter">Signly</span>
+                </div>
+                <p class="text-sm text-text-secondary leading-relaxed font-medium opacity-70">Empowering the global sign language community through cutting-edge artificial intelligence and neural interface technology.</p>
+                <div class="flex gap-6">
+                    <a href="#" class="w-11 h-11 rounded-2xl bg-surface border border-border flex items-center justify-center text-muted hover:text-primary transition-all shadow-sm"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="w-11 h-11 rounded-2xl bg-surface border border-border flex items-center justify-center text-muted hover:text-primary transition-all shadow-sm"><i class="fab fa-github"></i></a>
+                    <a href="#" class="w-11 h-11 rounded-2xl bg-surface border border-border flex items-center justify-center text-muted hover:text-primary transition-all shadow-sm"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+
+            <div class="space-y-10">
+                <h4 class="text-[10px] font-black uppercase tracking-[0.4em] text-text-primary">Platform</h4>
+                <ul class="space-y-5 text-xs font-bold text-muted uppercase tracking-widest">
+                    <li><a href="#features" class="hover:text-primary transition-colors">Core Features</a></li>
+                    <li><a href="#how-it-works" class="hover:text-primary transition-colors">How It Works</a></li>
+                    <li><a href="#ai-tech" class="hover:text-primary transition-colors">AI Technology</a></li>
+                    <li><a href="/login" class="hover:text-primary transition-colors">Neural Access</a></li>
+                </ul>
+            </div>
+
+            <div class="space-y-10">
+                <h4 class="text-[10px] font-black uppercase tracking-[0.4em] text-text-primary">Resources</h4>
+                <ul class="space-y-5 text-xs font-bold text-muted uppercase tracking-widest">
+                    <li><a href="#" class="hover:text-primary transition-colors">System Docs</a></li>
+                    <li><a href="#" class="hover:text-primary transition-colors">Privacy Protocol</a></li>
+                    <li><a href="#" class="hover:text-primary transition-colors">Terms of Use</a></li>
+                    <li><a href="#" class="hover:text-primary transition-colors">Neural Support</a></li>
+                </ul>
+            </div>
+
+            <div class="space-y-10">
+                <h4 class="text-[10px] font-black uppercase tracking-[0.4em] text-text-primary">Neural Update</h4>
+                <p class="text-xs text-muted leading-relaxed font-bold uppercase tracking-widest opacity-60">Subscribe for the latest neural engine synchronization updates.</p>
+                <div class="relative">
+                    <input type="email" placeholder="NODE@NETWORK.COM" class="w-full bg-surface border border-border rounded-2xl px-6 py-4 text-[10px] font-black focus:outline-none focus:border-primary transition-all tracking-widest">
+                    <button class="absolute right-3 top-1/2 -translate-y-1/2 text-primary p-2 hover:scale-110 transition-transform"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-8 pt-32 flex flex-col sm:flex-row items-center justify-between gap-8">
+            <p class="text-[10px] font-black text-muted uppercase tracking-[0.4em]">© 2024 Signly Neural Interface. All Rights Reserved.</p>
+            <div class="flex gap-10 text-[10px] font-black text-muted uppercase tracking-[0.4em]">
+                <a href="#" class="hover:text-primary transition-colors">Security</a>
+                <a href="#" class="hover:text-primary transition-colors">Accessibility</a>
+                <a href="#" class="hover:text-primary transition-colors">Encryption</a>
+            </div>
+        </div>
+    </footer>
 
     <script>
-        const GATEWAY = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? `http://${window.location.hostname}:8000`
-            : window.location.origin;
+        // --- Loader Logic ---
+        window.addEventListener('load', () => {
+            const loaderFill = document.getElementById('loader-fill');
+            const loaderOverlay = document.getElementById('loader-overlay');
 
-        // Detection for IDE server path prefix (e.g. /SnLag/)
-        const PROJECT_BASE = window.location.pathname.startsWith('/SnLag/') ? '/SnLag' : '';
+            // Artificial progress for visual effect
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 30;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
 
-        let TOKEN = localStorage.getItem('snlag_token');
-        let currentLang = 'English';
-        let socket, holistic, camera, mediaRecorder;
-        let audioChunks = [];
-        let showOverlays = true;
-        let CURRENT_USER_ID = 1;
-
-        window.onload = () => {
-            if (!TOKEN) {
-                window.location.href = `${PROJECT_BASE}/ui_layer/web_app/auth.html`;
-            } else {
-                startSession();
-            }
-        };
-
-        // Remove handleLogin as it's now in auth.html
-        window.addEventListener('scroll', () => {
-            const nav = document.getElementById('main-nav');
-            if (window.scrollY > 50) {
-                nav.classList.add('nav-scrolled');
-            } else {
-                nav.classList.remove('nav-scrolled');
-            }
+                    setTimeout(() => {
+                        loaderOverlay.style.opacity = '0';
+                        loaderOverlay.style.visibility = 'hidden';
+                    }, 400);
+                }
+                loaderFill.style.width = `${progress}%`;
+            }, 100);
         });
 
-        // VIEW ROUTER
-        function switchView(viewId) {
-            document.querySelectorAll('.view-panel').forEach(p => p.classList.add('hidden'));
-            document.getElementById(`view-${viewId}`).classList.remove('hidden');
+        // --- Mobile Menu Toggle ---
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
 
-            // Adjust nav behavior
-            if (viewId === 'profile') {
-                document.getElementById('nav-tools').classList.add('hidden');
-                loadProfileData();
-            } else {
-                document.getElementById('nav-tools').classList.remove('hidden');
-            }
-
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function updateThemePreference(isDark) {
-            const theme = isDark ? 'dark' : 'light';
-            SnLagTheme.apply(theme);
-
-            // Persist to server
-            fetch(`${GATEWAY}/users/me`, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${TOKEN}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ preferences: { theme: theme } })
-            }).catch(() => {});
-        }
-
-        async function loadProfileData() {
-            try {
-                const res = await fetch(`${GATEWAY}/users/me`, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
-                const user = await res.json();
-
-                document.getElementById('edit-fullname').value = user.full_name || '';
-                document.getElementById('edit-username').value = user.username;
-                document.getElementById('edit-email').value = user.email || '';
-                document.getElementById('edit-bio').value = user.bio || '';
-                document.getElementById('profile-name-display').innerText = user.full_name || user.username;
-                document.getElementById('profile-role-badge').innerText = user.role.toUpperCase();
-
-                if (user.avatar_url) document.getElementById('profile-avatar').src = user.avatar_url;
-                if (user.banner_url) document.getElementById('profile-banner').src = user.banner_url;
-
-                // Sync theme toggle
-                const isDark = (user.preferences?.theme === 'dark');
-                document.getElementById('theme-toggle').checked = isDark;
-                SnLagTheme.apply(isDark ? 'dark' : 'light');
-
-            } catch (e) { showToast("Failed to sync profile", "error"); }
-        }
-
-        async function saveProfile() {
-            const data = {
-                full_name: document.getElementById('edit-fullname').value,
-                email: document.getElementById('edit-email').value,
-                bio: document.getElementById('edit-bio').value
-            };
-
-            try {
-                const res = await fetch(`${GATEWAY}/users/me`, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': `Bearer ${TOKEN}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(data)
-                });
-
-                if (res.ok) {
-                    showToast("Neural Profile Synchronized", "success");
-                    loadProfileData(); // Refresh UI
-                } else throw new Error("Sync failure");
-            } catch (e) { showToast(e.message, "error"); }
-        }
-
-        async function decommissionNode() {
-            if (confirm("CRITICAL: Decommissioning this node will permanently wipe all neural associations and data. Proceed?")) {
-                try {
-                    const res = await fetch(`${GATEWAY}/users/me`, {
-                        method: 'DELETE',
-                        headers: { 'Authorization': `Bearer ${TOKEN}` }
-                    });
-                    if (res.ok) {
-                        showToast("Node Decommissioned", "success");
-                        logout();
-                    }
-                } catch (e) { showToast("Decommissioning blocked by kernel", "error"); }
-            }
-        }
-
-        function downloadPersonalData() {
-            showToast("Generating neural archive...", "info");
-            setTimeout(() => {
-                showToast("Archive ready for download", "success");
-            }, 2000);
-        }
-
-        async function startSession() {
-            try {
-                const res = await fetch(`${GATEWAY}/users/me`, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
-                if (res.status === 401) return logout();
-                const user = await res.json();
-
-                document.getElementById('app-shell').classList.remove('hidden');
-
-                // Inject Branding
-                document.getElementById('nav-brand-container').innerHTML = SnLagUI.getLogo('md');
-                document.getElementById('mobile-brand').innerHTML = SnLagUI.getLogo('md');
-                document.getElementById('user-menu-root').innerHTML = SnLagUI.getUserMenu(user.username, user.role);
-                document.getElementById('notif-root').innerHTML = SnLagUI.getNotificationDropdown();
-
-                // Sync Navbar Meta
-                document.getElementById('nav-username').innerText = user.username;
-                document.getElementById('nav-role').innerText = user.role.toUpperCase();
-                if (user.avatar_url) document.getElementById('nav-avatar').src = user.avatar_url;
-
-                // Initial theme apply
-                SnLagTheme.apply(user.preferences?.theme || 'light');
-
-                CURRENT_USER_ID = user.id;
-                document.getElementById('user-initial').innerText = user.username[0].toUpperCase();
-                document.getElementById('header-username').innerText = user.username;
-
-                if (user.role === 'admin') {
-                    document.getElementById('admin-shortcut').innerHTML = `
-                        <a href="${PROJECT_BASE}/ui_layer/admin_dashboard/dashboard.html" class="w-11 h-11 rounded-2xl bg-orange-50 dark:bg-orange-900/10 flex items-center justify-center text-primary border border-orange-100 dark:border-orange-900/30 hover:bg-primary hover:text-white transition-all">
-                            <i class="fas fa-shield-alt"></i>
-                        </a>
-                    `;
-                }
-
-                showToast(`Neural Link Synchronized: ${user.username}`, "success");
-                connectWS(CURRENT_USER_ID);
-            } catch (e) { showToast("System connection issue", "error"); }
-        }
-
-        function toggleDropdown(type) {
-            const dropdown = document.getElementById(`${type}-dropdown`);
-            const isHidden = dropdown.classList.contains('hidden');
-
-            // Close others
-            document.querySelectorAll('[id$="-dropdown"]').forEach(d => d.classList.add('hidden'));
+        function toggleMobileMenu() {
+            const isHidden = mobileMenu.classList.contains('hidden');
+            const icon = mobileMenuBtn.querySelector('i');
 
             if (isHidden) {
-                dropdown.classList.remove('hidden');
-            }
-        }
-
-        let isMobileMenuOpen = false;
-        function toggleMobileMenu() {
-            const drawer = document.getElementById('mobile-drawer');
-            const content = drawer.querySelector('div:last-child');
-            const icon = document.getElementById('mobile-trigger-icon');
-
-            if (!isMobileMenuOpen) {
-                drawer.classList.remove('hidden');
-                setTimeout(() => content.classList.remove('translate-x-full'), 10);
+                mobileMenu.classList.remove('hidden');
+                gsap.fromTo(mobileMenu,
+                    { opacity: 0, y: -20 },
+                    { opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }
+                );
                 icon.className = 'fas fa-times';
             } else {
-                content.classList.add('translate-x-full');
-                setTimeout(() => drawer.classList.add('hidden'), 500);
-                icon.className = 'fas fa-bars-staggered';
+                gsap.to(mobileMenu, {
+                    opacity: 0, y: -20, duration: 0.3, ease: "power3.in",
+                    onComplete: () => mobileMenu.classList.add('hidden')
+                });
+                icon.className = 'fas fa-bars';
             }
-            isMobileMenuOpen = !isMobileMenuOpen;
         }
 
-        // Close dropdowns on outside click
-        window.addEventListener('click', (e) => {
-            if (!e.target.closest('.relative') && !e.target.closest('button')) {
-                document.querySelectorAll('[id$="-dropdown"]').forEach(d => d.classList.add('hidden'));
+        mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+
+        // --- Navigation Scroll Logic ---
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 80) {
+                navbar.classList.add('nav-scrolled');
+            } else {
+                navbar.classList.remove('nav-scrolled');
             }
         });
 
-        function logout() {
-            localStorage.removeItem('snlag_token');
-            window.location.href = `${PROJECT_BASE}/ui_layer/web_app/auth.html`;
-        }
+        // --- GSAP Engine Integration ---
+        gsap.registerPlugin(ScrollTrigger);
 
-        let recognition;
-        let isListening = false;
+        // Entrance Animations
+        gsap.from(".animate-hero-text", {
+            opacity: 0,
+            y: 40,
+            duration: 1.5,
+            ease: "power4.out"
+        });
 
-        // Initialize Web Speech API for real-time transcription
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
-            recognition.continuous = true;
-            recognition.interimResults = true;
-            recognition.lang = 'en-US';
+        // Section Reveal
+        gsap.utils.toArray('section').forEach(section => {
+            const children = section.querySelectorAll('.ui-card, .stat-card, h2, p, a, i, img');
+            if (children.length > 0) {
+                gsap.from(children, {
+                    opacity: 0,
+                    y: 60,
+                    duration: 1.2,
+                    stagger: 0.1,
+                    ease: "power3.out",
+                    scrollTrigger: {
+                        trigger: section,
+                        start: "top 85%",
+                        toggleActions: "play none none none"
+                    }
+                });
+            }
+        });
 
-            recognition.onresult = (event) => {
-                let interimTranscript = '';
-                let finalTranscript = '';
-
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    const transcript = event.results[i][0].transcript;
-                    if (event.results[i].isFinal) {
-                        finalTranscript = transcript;
-                        // Send final phrase to backend via WebSocket for translation
-                        if (socket && socket.readyState === WebSocket.OPEN) {
-                            socket.send(JSON.stringify({
-                                type: "speech_text",
-                                text: finalTranscript,
-                                language: currentLang
-                            }));
-                        }
-                        addTranscript("User", finalTranscript);
+        // --- Neural Counter Logic ---
+        const startCounters = () => {
+            const counters = document.querySelectorAll('.stat-counter');
+            counters.forEach(counter => {
+                const target = +counter.getAttribute('data-target');
+                const updateCounter = () => {
+                    const current = +counter.innerText.replace(/,/g, '').replace('+', '');
+                    const increment = target / 150;
+                    if (current < target) {
+                        counter.innerText = Math.ceil(current + increment).toLocaleString() + (target > 999 ? '+' : '');
+                        setTimeout(updateCounter, 10);
                     } else {
-                        interimTranscript += transcript;
+                        counter.innerText = target.toLocaleString() + (target > 999 ? '+' : '');
                     }
-                }
-
-                // Update UI live typing area
-                const liveArea = document.getElementById('live-typing-area');
-                const liveText = document.getElementById('live-typing-text');
-                if (interimTranscript || finalTranscript) {
-                    liveArea.classList.remove('hidden');
-                    liveText.innerText = interimTranscript || finalTranscript;
-                }
-            };
-
-            recognition.onerror = (event) => {
-                console.error("Speech Recognition Error:", event.error);
-                if (event.error === 'not-allowed') showToast("Mic access denied", "error");
-            };
-
-            recognition.onend = () => {
-                if (isListening) recognition.start(); // Keep listening if we didn't manually stop
-            };
-        }
-
-        function handleResult(sign, audio, conf) {
-            if (!sign || sign === "nothing") return;
-
-            const disp = document.getElementById('current-prediction');
-            const status = document.getElementById('neural-status');
-            const statusDot = status.querySelector('span:first-child');
-            const liveArea = document.getElementById('live-typing-area');
-            const liveText = document.getElementById('live-typing-text');
-
-            status.querySelector('span:last-child').innerText = 'Processing...';
-            statusDot.classList.replace('bg-slate-400', 'bg-emerald-500');
-
-            liveArea.classList.remove('hidden');
-            liveText.innerText = sign;
-
-            disp.innerText = sign;
-            disp.classList.add('animate__animated', 'animate__pulse');
-
-            document.getElementById('confidence-fill').style.width = (conf * 100) + '%';
-            document.getElementById('confidence-text').innerText = Math.round(conf * 100) + '%';
-
-            addTranscript("AI", sign.toUpperCase());
-
-            if (audio) new Audio("data:audio/wav;base64," + audio).play();
-            if (window.avatar) window.avatar.playSign(sign);
-
-            setTimeout(() => {
-                disp.classList.remove('animate__pulse');
-                status.querySelector('span:last-child').innerText = 'Idle';
-                statusDot.classList.replace('bg-emerald-500', 'bg-slate-400');
-            }, 2000);
-        }
-
-        // Add handler for the new translation_result message type
-        function connectWS(userId) {
-            const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
-            const host = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-                ? 'localhost:8000'
-                : window.location.host;
-            socket = new WebSocket(`${proto}://${host}/ws/translate/${userId}`);
-            socket.onopen = () => showToast("System Connected", "success");
-            socket.onmessage = (e) => {
-                const data = JSON.parse(e.data);
-                if (data.type === 'prediction') handleResult(data.sign, data.audio_base64, data.confidence);
-                if (data.type === 'translation_result') {
-                    // This comes from real-time speech
-                    if (data.result && data.result.sequence) {
-                        window.avatar.playSequence(data.result.sequence);
-                        // Also show the text in the feed
-                        const disp = document.getElementById('current-prediction');
-                        disp.innerText = data.original_text;
-                        document.getElementById('confidence-fill').style.width = '100%';
-                        document.getElementById('confidence-text').innerText = '100%';
-
-                        const status = document.getElementById('neural-status');
-                        const statusDot = status.querySelector('span:first-child');
-                        status.querySelector('span:last-child').innerText = 'Translating...';
-                        statusDot.classList.replace('bg-slate-400', 'bg-indigo-500');
-                        setTimeout(() => {
-                            status.querySelector('span:last-child').innerText = 'Idle';
-                            statusDot.classList.replace('bg-indigo-500', 'bg-slate-400');
-                        }, 2000);
-                    }
-                }
-            };
-            socket.onerror = () => showToast("Connection Error", "error");
-            socket.onclose = () => setTimeout(() => connectWS(userId), 3000);
-        }
-
-        const canvasElement = document.getElementById('output_canvas');
-        const canvasCtx = canvasElement.getContext('2d');
-        const videoElement = document.getElementById('webcam');
-        let frameCount = 0, lastTime = performance.now();
-
-        // Use Float32Array for high-speed binary transmission
-        function extractLandmarksBinary(results) {
-            const buffer = new Float32Array(1662);
-            let offset = 0;
-
-            // Pose (33 * 4)
-            if (results.poseLandmarks) {
-                for (const l of results.poseLandmarks) {
-                    buffer[offset++] = l.x; buffer[offset++] = l.y;
-                    buffer[offset++] = l.z; buffer[offset++] = l.visibility;
-                }
-            } else offset += 33 * 4;
-
-            // Face (468 * 3)
-            if (results.faceLandmarks) {
-                for (const l of results.faceLandmarks) {
-                    buffer[offset++] = l.x; buffer[offset++] = l.y; buffer[offset++] = l.z;
-                }
-            } else offset += 468 * 3;
-
-            // Left Hand (21 * 3)
-            if (results.leftHandLandmarks) {
-                for (const l of results.leftHandLandmarks) {
-                    buffer[offset++] = l.x; buffer[offset++] = l.y; buffer[offset++] = l.z;
-                }
-            } else offset += 21 * 3;
-
-            // Right Hand (21 * 3)
-            if (results.rightHandLandmarks) {
-                for (const l of results.rightHandLandmarks) {
-                    buffer[offset++] = l.x; buffer[offset++] = l.y; buffer[offset++] = l.z;
-                }
-            } else offset += 21 * 3;
-
-            return buffer;
-        }
-
-        async function onResults(results) {
-            frameCount++;
-            const now = performance.now();
-            if (now - lastTime >= 1000) {
-                document.getElementById('fps-badge').innerText = `FPS: ${frameCount}`;
-                frameCount = 0; lastTime = now;
-            }
-
-            if (canvasElement.width !== videoElement.videoWidth) {
-                canvasElement.width = videoElement.videoWidth;
-                canvasElement.height = videoElement.videoHeight;
-            }
-
-            canvasCtx.save();
-            canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-
-            if (showOverlays) {
-                // High-speed rendering
-                if (results.poseLandmarks) {
-                    drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {color: 'rgba(255,255,255,0.2)', lineWidth: 1});
-                }
-                if (results.faceLandmarks) {
-                    // Optimized face: only draw key contours if moving fast
-                    drawConnectors(canvasCtx, results.faceLandmarks, FACEMESH_CONTOURS, {color: 'rgba(99,102,241,0.3)', lineWidth: 0.5});
-                }
-                if (results.leftHandLandmarks) {
-                    drawConnectors(canvasCtx, results.leftHandLandmarks, HAND_CONNECTIONS, {color: '#6366f1', lineWidth: 2});
-                    drawLandmarks(canvasCtx, results.leftHandLandmarks, {color: '#fff', radius: 1});
-                }
-                if (results.rightHandLandmarks) {
-                    drawConnectors(canvasCtx, results.rightHandLandmarks, HAND_CONNECTIONS, {color: '#ec4899', lineWidth: 2});
-                    drawLandmarks(canvasCtx, results.rightHandLandmarks, {color: '#fff', radius: 1});
-                }
-            }
-            canvasCtx.restore();
-
-            // PERFORMANCE FIX: Binary transmission + Send every frame for fast signs
-            if (socket?.readyState === WebSocket.OPEN) {
-                const landmarks = extractLandmarksBinary(results);
-                socket.send(landmarks.buffer);
-            }
-        }
-
-        document.getElementById('start-btn').onclick = async () => {
-            document.getElementById('camera-overlay').classList.add('opacity-0', 'pointer-events-none');
-            document.getElementById('loading-overlay').classList.remove('hidden');
-
-            try {
-                if (!holistic) {
-                    holistic = new Holistic({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/holistic/${file}`});
-                    // ALIGNMENT FIX: Use modelComplexity 0 to match Backend CVModule training data
-                    holistic.setOptions({
-                        modelComplexity: 0,
-                        smoothLandmarks: true,
-                        enableSegmentation: false,
-                        refineFaceLandmarks: false
-                    });
-                    holistic.onResults(onResults);
-                }
-
-                if (!camera) {
-                    camera = new Camera(videoElement, {
-                        onFrame: async () => {
-                            await holistic.send({image: videoElement});
-                            document.getElementById('loading-overlay').classList.add('hidden');
-                        },
-                        width: 640, height: 360
-                    });
-                }
-                await camera.start();
-                document.getElementById('start-btn').classList.add('hidden');
-                document.getElementById('stop-btn').classList.remove('hidden');
-            } catch (e) {
-                showToast("Camera Access Denied", "error");
-                document.getElementById('loading-overlay').classList.add('hidden');
-            }
-        };
-
-        document.getElementById('stop-btn').onclick = () => {
-            if(camera) camera.stop();
-            document.getElementById('camera-overlay').classList.remove('opacity-0', 'pointer-events-none');
-            document.getElementById('start-btn').classList.remove('hidden');
-            document.getElementById('stop-btn').classList.add('hidden');
-        };
-
-        function setLanguage(lang) {
-            currentLang = lang;
-            document.querySelectorAll('.lang-card').forEach(btn => btn.classList.remove('active', 'text-white'));
-
-            // Find the clicked button and activate it
-            const target = Array.from(document.querySelectorAll('.lang-card')).find(b => b.innerText === (lang === 'English' ? 'EN' : lang === 'French' ? 'FR' : lang === 'Portuguese' ? 'PT' : lang === 'Twi' ? 'TWI' : lang));
-            if (target) target.classList.add('active', 'text-white');
-
-            // Update Speech Recognition Language
-            if (recognition) {
-                const langMap = {
-                    'English': 'en-US',
-                    'French': 'fr-FR',
-                    'Portuguese': 'pt-PT',
-                    'Spanish': 'es-ES',
-                    'GSL': 'en-GH',
-                    'Twi': 'ak-GH',
-                    'Ewe': 'ee-GH',
-                    'Ga': 'gaa-GH'
                 };
-                recognition.lang = langMap[lang] || 'en-US';
-
-                // Restart if listening to apply new language
-                if (isListening) {
-                    recognition.stop();
-                }
-            }
-
-            showToast(`Target: ${lang}`, "info");
-        }
-
-        function addTranscript(role, text) {
-            const container = document.getElementById('transcript-container');
-            const div = document.createElement('div');
-            div.className = `flex gap-3 p-3 rounded-2xl shadow-sm border border-slate-50 ${role === 'AI' ? 'bg-white' : 'bg-indigo-50/50 flex-row-reverse'} animate__animated animate__fadeInUp`;
-            div.innerHTML = `
-                <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${role === 'AI' ? 'bg-primary text-white' : 'bg-slate-800 text-white'}">
-                    <i class="fas ${role === 'AI' ? 'fa-robot' : 'fa-user'} text-[10px]"></i>
-                </div>
-                <div class="flex-1 ${role === 'User' ? 'text-right' : ''} overflow-hidden">
-                    <p class="text-[13px] font-700 text-slate-700 leading-tight break-words">${text}</p>
-                    <p class="text-[7px] font-900 text-slate-400 uppercase mt-1 tracking-widest">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
-                </div>
-            `;
-            container.prepend(div);
-        }
-
-        function showToast(msg, type) {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            const colors = { success: 'bg-emerald-500', error: 'bg-red-500', info: 'bg-primary' };
-            toast.className = `${colors[type]} text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate__animated animate__slideInRight font-900 text-[10px] uppercase tracking-wider`;
-            toast.innerHTML = `<i class="fas fa-satellite-dish"></i> ${msg}`;
-            container.appendChild(toast);
-            setTimeout(() => { toast.classList.replace('animate__slideInRight', 'animate__fadeOutRight'); setTimeout(() => toast.remove(), 500); }, 3000);
-        }
-
-        document.getElementById('overlay-toggle').onchange = (e) => {
-            showOverlays = e.target.checked;
-            showToast(showOverlays ? "Overlays Enabled" : "Clean Feed", "info");
+                updateCounter();
+            });
         };
 
-        function clearHistory() {
-            document.getElementById('transcript-container').innerHTML = '';
-            document.getElementById('live-typing-area').classList.add('hidden');
-        }
-
-        class AvatarEngine {
-            constructor(id) {
-                this.container = document.getElementById(id);
-                this.setupImageMode();
-            }
-
-            setupImageMode() {
-                this.container.innerHTML = `
-                    <div class="w-full h-full flex items-center justify-center p-4 bg-neutral-900/50">
-                        <div class="relative w-48 h-48">
-                            <div id="avatar-glow" class="absolute inset-0 bg-primary/20 rounded-full blur-2xl opacity-0 transition-opacity duration-500"></div>
-                            <img id="avatar-img" src="/public/image/3d.jpg"
-                                 class="w-full h-full object-cover rounded-full border-4 border-white/10 shadow-2xl relative z-10 transition-transform duration-300">
-                            <div id="avatar-status-ring" class="absolute -inset-2 border-2 border-primary/30 rounded-full animate-[spin_10s_linear_infinite]"></div>
-                        </div>
-                    </div>
-                `;
-                this.img = document.getElementById('avatar-img');
-                this.glow = document.getElementById('avatar-glow');
-            }
-
-            playSign(s) {
-                this.isAnimating = true;
-                this.glow.classList.remove('opacity-0');
-                this.img.style.transform = 'scale(1.05)';
-                setTimeout(() => {
-                    this.img.style.transform = 'scale(1)';
-                    this.glow.classList.add('opacity-0');
-                    this.isAnimating = false;
-                }, 1000);
-            }
-
-            async playSequence(sequence) {
-                this.isAnimating = true;
-                this.glow.classList.remove('opacity-0');
-                for (let i = 0; i < sequence.length; i++) {
-                    this.img.style.transform = 'scale(1.08) translateY(-5px)';
-                    await new Promise(r => setTimeout(r, 400));
-                    this.img.style.transform = 'scale(1) translateY(0)';
-                    await new Promise(r => setTimeout(r, 200));
-                }
-                this.glow.classList.add('opacity-0');
-                this.isAnimating = false;
-            }
-        }
-        window.avatar = new AvatarEngine('avatar-container');
-
-        document.getElementById('mic-btn').onclick = async () => {
-            if (recognition) {
-                isListening = true;
-                recognition.start();
-                document.getElementById('mic-btn').classList.add('hidden');
-                document.getElementById('mic-stop-btn').classList.remove('hidden');
-
-                const waves = document.getElementById('voice-waves');
-                if (waves) {
-                    waves.classList.remove('opacity-20');
-                    waves.querySelectorAll('div').forEach(d => d.classList.add('animate-bounce'));
-                }
-                showToast("Real-time Listening Active", "info");
-                return;
-            }
-
-            // Fallback to MediaRecorder if SpeechRecognition not supported
-            if (!window.isSecureContext && window.location.hostname !== 'localhost') {
-                showToast("HTTPS Required for Microphone", "error");
-                return;
-            }
-
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                mediaRecorder.start();
-
-                document.getElementById('mic-btn').classList.add('hidden');
-                document.getElementById('mic-stop-btn').classList.remove('hidden');
-
-                const waves = document.getElementById('voice-waves');
-                if (waves) {
-                    waves.classList.remove('opacity-20');
-                    waves.querySelectorAll('div').forEach(d => d.classList.add('animate-bounce'));
-                }
-            } catch (e) {
-                console.error("Mic Error:", e);
-                showToast("Microphone Access Denied", "error");
-            }
-        };
-
-        document.getElementById('mic-stop-btn').onclick = () => {
-            if (recognition) {
-                isListening = false;
-                recognition.stop();
-            }
-
-            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
-                mediaRecorder.stop();
-                mediaRecorder.onstop = async () => {
-                    const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
-                    const reader = new FileReader();
-                    reader.readAsDataURL(audioBlob);
-                    reader.onloadend = async () => {
-                        const base64 = reader.result.split(',')[1];
-                        try {
-                            showToast("Processing Voice...", "info");
-                            const res = await fetch(`${GATEWAY}/translate`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ user_id: CURRENT_USER_ID, source_type: 'speech', payload: base64, language: currentLang })
-                            });
-                            const data = await res.json();
-                            if (data.status === 'success') {
-                                if (data.original_text) {
-                                    addTranscript("User", data.original_text);
-                                    if (data.result && data.result.sequence) {
-                                        window.avatar.playSequence(data.result.sequence);
-                                    }
-                                }
-                            }
-                        } catch (e) {}
-                    };
-                };
-            }
-
-            document.getElementById('mic-btn').classList.remove('hidden');
-            document.getElementById('mic-stop-btn').classList.add('hidden');
-
-            const waves = document.getElementById('voice-waves');
-            if (waves) {
-                waves.classList.add('opacity-20');
-                waves.querySelectorAll('div').forEach(d => d.classList.remove('animate-bounce'));
-            }
-        };
+        ScrollTrigger.create({
+            trigger: ".stat-counter",
+            start: "top 90%",
+            onEnter: startCounters
+        });
     </script>
 </body>
 </html>

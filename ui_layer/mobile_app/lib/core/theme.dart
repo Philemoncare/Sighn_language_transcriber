@@ -8,23 +8,28 @@ class AppTheme {
   static const cardColor = Color(0xFFFFFFFF);
   static const darkColor = Color(0xFF171717);
 
-  static final lightTheme = ThemeData(
-    brightness: Brightness.light,
-    scaffoldBackgroundColor: backgroundColor,
+  static const darkBackgroundColor = Color(0xFF09090B);
+  static const darkSurfaceColor = Color(0xFF0C0C0D);
+  static const darkSurfaceRaisedColor = Color(0xFF121214);
+  static const darkBorderColor = Color(0x0FFFFFFF);
+
+  static final darkTheme = ThemeData(
+    brightness: Brightness.dark,
+    scaffoldBackgroundColor: darkBackgroundColor,
     primaryColor: primaryColor,
-    colorScheme: const ColorScheme.light(
+    colorScheme: const ColorScheme.dark(
       primary: primaryColor,
       secondary: secondaryColor,
-      surface: cardColor,
-      background: backgroundColor,
+      surface: darkSurfaceColor,
+      background: darkBackgroundColor,
       onPrimary: Colors.white,
     ),
     textTheme: GoogleFonts.plusJakartaSansTextTheme(
-      ThemeData.light().textTheme,
+      ThemeData.dark().textTheme,
     ),
     appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.white,
-      foregroundColor: darkColor,
+      backgroundColor: darkBackgroundColor,
+      foregroundColor: Colors.white,
       elevation: 0,
       centerTitle: false,
     ),
@@ -38,24 +43,23 @@ class AppTheme {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: const Color(0xFFF5F5F5),
+      fillColor: darkSurfaceRaisedColor,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
+        borderSide: const BorderSide(color: darkBorderColor),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
+        borderSide: const BorderSide(color: darkBorderColor),
       ),
     ),
     cardTheme: CardTheme(
-      color: cardColor,
+      color: darkSurfaceRaisedColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: Color(0xFFF5F5F5)),
+        side: const BorderSide(color: darkBorderColor),
       ),
-      elevation: 2,
-      shadowColor: Colors.black.withOpacity(0.05),
+      elevation: 0,
     ),
   );
 }

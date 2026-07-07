@@ -9,8 +9,11 @@ psycopg2-binary
 speechrecognition
 spacy
 pyttsx3
-tensorflow>=2.15.0
-numpy<2.0.0
+tensorflow==2.16.1
+ml-dtypes==0.3.1
+numpy>=1.23.5,<2.0.0
+jax<0.4.30
+jaxlib<0.4.30
 python-multipart
 python-jose[cryptography]
 passlib[bcrypt]
@@ -19,3 +22,8 @@ pydub
 websockets
 psutil
 scikit-learn
+faiss-cpu
+celery
+redis
+pillow
+alembic

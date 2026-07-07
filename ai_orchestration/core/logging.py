@@ -1,51 +1,57 @@
 import logging
 import asyncio
 import datetime
-from sqlalchemy.orm import Session
-from database_layer.db_manager import SessionLocal, SystemLogModel
 
 # High-speed log buffer to prevent DB bottleneck
 log_queue = asyncio.Queue()
 
 class DatabaseLogHandler(logging.Handler):
     def emit(self, record):
+        # FAST EXIT: Don't let logging block the main thread
         try:
-            # Non-blocking handoff to async queue with extended metadata
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                log_data = {
-                    "level": record.levelname,
-                    "service": getattr(record, "service", "kernel"),
-                    "category": getattr(record, "category", None),
-                    "message": record.getMessage(),
-                    "details": {
-                        "full_message": self.format(record),
-                        "pathname": record.pathname,
-                        "lineno": record.lineno,
-                        "funcName": record.funcName,
-                        "exc_info": record.exc_text if record.exc_info else None
-                    },
-                    "request_id": getattr(record, "request_id", None),
-                    "user_id": getattr(record, "user_id", None),
-                    "dataset_id": getattr(record, "dataset_id", None),
-                    "duration": getattr(record, "duration", None),
-                    "timestamp": datetime.datetime.utcnow()
-                }
-                loop.call_soon_threadsafe(log_queue.put_nowait, log_data)
+            log_data = {
+                "level": record.levelname,
+                "service": getattr(record, "service", "kernel"),
+                "category": getattr(record, "category", None),
+                "message": record.getMessage(),
+                "details": {
+                    "full_message": self.format(record),
+                    "pathname": record.pathname,
+                    "lineno": record.lineno,
+                    "funcName": record.funcName,
+                    "exc_info": record.exc_text if record.exc_info else None
+                },
+                "request_id": getattr(record, "request_id", None),
+                "user_id": getattr(record, "user_id", None),
+                "dataset_id": getattr(record, "dataset_id", None),
+                "duration": getattr(record, "duration", None),
+                "timestamp": datetime.datetime.utcnow()
+            }
 
-                # Real-time broadcast via WebSocket
+            # Put in queue for DB writer task (async)
+            try:
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    loop.call_soon_threadsafe(log_queue.put_nowait, log_data)
+            except: pass
+
+            # Real-time broadcast via WebSocket/Redis
+            import ai_orchestration.core.config as config
+
+            # Check for global loop first (preferred)
+            loop = getattr(config, 'GLOBAL_LOOP', None)
+            if loop and loop.is_running():
                 try:
                     from ai_orchestration.websocket.handler import manager
-                    import ai_orchestration.core.config as config
-
-                    ws_loop = getattr(config, 'GLOBAL_LOOP', None)
-                    if ws_loop:
-                        # Convert datetime to string for JSON serialization
-                        broadcast_data = log_data.copy()
-                        broadcast_data["timestamp"] = broadcast_data["timestamp"].isoformat()
-                        broadcast_data["type"] = "system_log"
-                        asyncio.run_coroutine_threadsafe(manager.broadcast_json(broadcast_data), ws_loop)
+                    broadcast_data = log_data.copy()
+                    broadcast_data["timestamp"] = broadcast_data["timestamp"].isoformat()
+                    broadcast_data["type"] = "system_log"
+                    asyncio.run_coroutine_threadsafe(manager.broadcast_json(broadcast_data, scope="admin"), loop)
                 except: pass
+            else:
+                # If no loop (startup/sync worker), don't block on Redis publish
+                # Celery workers should not be broadcasting logs via Redis during high load
+                pass
         except: pass
 
 def setup_logging():
@@ -59,11 +65,14 @@ def setup_logging():
         handlers=[logging.StreamHandler(), file_handler]
     )
     logger = logging.getLogger("SnLag_Core")
-    logger.addHandler(DatabaseLogHandler())
+    # logger.addHandler(DatabaseLogHandler()) # Temporarily disabled to prevent event loop interference
     return logger
 
 async def log_writer_task():
     """Background task to flush logs to DB in batches with high performance"""
+    # DEFERRED IMPORT to break potential circularity or timing issues during startup
+    from database_layer.db_manager import SessionLocal, SystemLogModel
+
     while True:
         try:
             logs_to_write = []

@@ -1,0 +1,104 @@
+.bubble-menu {
+  left: 0;
+  right: 0;
+  top: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 2rem;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.bubble-menu.fixed { position: fixed; }
+.bubble-menu.absolute { position: absolute; }
+
+.bubble-menu .bubble {
+  --bubble-size: 48px;
+  width: var(--bubble-size);
+  height: var(--bubble-size);
+  border-radius: 50%;
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  transition: var(--theme-transition);
+}
+
+.bubble-menu .menu-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.bubble-menu .menu-line {
+  width: 24px;
+  height: 2px;
+  background: var(--text);
+  border-radius: 2px;
+  display: block;
+  margin: 0 auto;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  transform-origin: center;
+}
+
+.bubble-menu .menu-line + .menu-line { margin-top: 6px; }
+
+.bubble-menu-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--surface-overlay);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 98;
+  transition: var(--theme-transition);
+}
+
+.bubble-menu-items .pill-link {
+  --pill-min-h: 120px;
+  width: 100%;
+  min-height: var(--pill-min-h);
+  font-size: clamp(1.2rem, 3vw, 2.5rem);
+  font-weight: 800;
+  border-radius: 999px;
+  background-color: var(--surface-raised);
+  color: var(--text);
+  border: 1px solid var(--border);
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s var(--transition-base);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.bubble-menu-items .pill-link:hover {
+  background-color: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  transform: scale(1.05);
+  box-shadow: var(--shadow-lg);
+}
+
+@media (max-width: 899px) {
+  .bubble-menu-overlay {
+    align-items: flex-start;
+    padding-top: 120px;
+  }
+  .bubble-menu-items .pill-col { flex: 0 0 100%; }
+  .bubble-menu-items .pill-link { min-height: 80px; }
+}

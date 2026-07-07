@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SnLag Neural Interface - Architecture Suite</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --primary: #1e2761;
+            --secondary: #c9a646;
+            --bg: #f4f7f6;
+            --card: #ffffff;
+            --text: #333;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--bg);
+        }
+        h1, h2 {
+            color: var(--primary);
+            border-bottom: 2px solid var(--secondary);
+            padding-bottom: 10px;
+        }
+        .diagram-container {
+            background-color: var(--card);
+            padding: 25px;
+            margin-bottom: 50px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            overflow-x: auto;
+        }
+        .description {
+            margin-bottom: 25px;
+            font-style: italic;
+            color: #555;
+            background: #eef2f1;
+            padding: 10px 15px;
+            border-left: 4px solid var(--secondary);
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+        nav {
+            position: sticky;
+            top: 0;
+            background: var(--primary);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            z-index: 1000;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 0.85em;
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        nav a:hover {
+            background: rgba(255,255,255,0.15);
+        }
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: #888;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <h1>SnLag Neural Interface: Technical Architecture Suite</h1>
+    <p>Complete architectural blueprint for the Signly (SnLag) project (Version 2.0.0). Designed for <strong>draw.io</strong> compatibility via Mermaid.js.</p>
+
+    <nav>
+        <a href="#use-case">Use Case</a>
+        <a href="#erd">ERD</a>
+        <a href="#flowchart">Flowchart</a>
+        <a href="#system-arch">System Arch</a>
+        <a href="#app-arch">App Arch</a>
+        <a href="#backend-arch">Backend Arch</a>
+        <a href="#api-arch">API Arch</a>
+        <a href="#micro-arch">Microservice</a>
+        <a href="#class-diag">Class Diag</a>
+        <a href="#dfd">DFD</a>
+        <a href="#state">State</a>
+        <a href="#cicd">CI/CD</a>
+        <a href="#sequence">Sequence</a>
+    </nav>
+
+    <!-- 1. USE CASE DIAGRAM -->
+    <h2 id="use-case">1. Use Case Diagram</h2>
+    <div class="diagram-container">
+        <div class="description">Core system interactions for Users (Deaf/Hearing) and Administrators.</div>
+        <div class="mermaid">
+        useCaseDiagram
+            actor User as "Standard User\n(Deaf/Hearing)"
+            actor Admin as "System Administrator"
+            actor AI as "Neural Inference Engine"
+
+            package "SnLag Neural Platform" {
+                usecase UC1 as "Register / JWT Authentication"
+                usecase UC2 as "Complete Accessibility Onboarding"
+                usecase UC3 as "Real-time Sign-to-Speech Translation"
+                usecase UC4 as "Real-time Speech-to-Sign (Avatar)"
+                usecase UC5 as "Multi-user Meeting with AI HUD"
+                usecase UC6 as "Review Translation History"
+                usecase UC7 as "Harvest High-Confidence Data"
+                usecase UC8 as "Train Neural Model (LSTM)"
+                usecase UC9 as "Manage Gesture Vocabulary"
+                usecase UC10 as "System Log Monitoring"
+            }
+
+            User --> UC1
+            User --> UC2
+            User --> UC3
+            User --> UC4
+            User --> UC5
+            User --> UC6
+
+            Admin --> UC1
+            Admin --> UC7
+            Admin --> UC8
+            Admin --> UC9
+            Admin --> UC10
+
+            AI --|> UC3
+            AI --|> UC4
+            AI --|> UC7
+        </div>
+    </div>
+
+    <!-- 2. ENTITY RELATIONSHIP DIAGRAM -->
+    <h2 id="erd">2. Entity Relationship Diagram (ERD)</h2>
+    <div class="diagram-container">
+        <div class="description">Comprehensive SQL schema derived from db_manager.py.</div>
+        <div class="mermaid">
+        erDiagram
+            USERS ||--o{ USER_SESSIONS : maintains
+            USERS ||--o{ USER_REFRESH_TOKENS : generates
+            USERS ||--|| ONBOARDING_PROFILES : defines
+            USERS ||--o{ CONVERSATIONS : logs
+            USERS ||--o{ COLLECTED_DATA : contributes
+
+            ADMINS ||--o{ ADMIN_SESSIONS : maintains
+            ADMINS ||--o{ ADMIN_REFRESH_TOKENS : generates
+
+            SIGN_DATASETS ||--o{ SIGN_DATASETS : "parent of"
+            SIGN_DATASETS ||--o{ DATASET_VERSIONS : "included in"
+
+            TRAINING_JOBS ||--o{ MODEL_VERSIONS : produces
+
+            USERS {
+                string id PK
+                string username
+                string email
+                string password_hash
+                string role
+                boolean is_active
+                json preferences
+                datetime created_at
+            }
+            ADMINS {
+                string id PK
+                string username
+                string email
+                string password_hash
+                boolean is_active
+                datetime created_at
+            }
+            ONBOARDING_PROFILES {
+                string id PK
+                string user_id FK
+                string usage_type
+                string accessibility_needs
+                string sign_language_focus
+                boolean data_opt_in
+                boolean completed
+            }
+            CONVERSATIONS {
+                string id PK
+                string user_id FK
+                string message_type
+                text original_content
+                text translated_content
+                float confidence
+                datetime timestamp
+            }
+            COLLECTED_DATA {
+                string id PK
+                string user_id FK
+                string data_type
+                json payload
+                string label
+                float confidence
+                boolean is_validated
+            }
+            SIGN_DATASETS {
+                string id PK
+                string parent_id FK
+                string label
+                string status
+                string landmark_path
+                float quality_score
+                datetime created_at
+            }
+            GESTURE_LIBRARIES {
+                string id PK
+                string gesture_name
+                string category
+                string language_code
+                boolean is_pretrained
+                json landmark_mapping
+            }
+            TRAINING_JOBS {
+                string id PK
+                string job_name
+                string status
+                integer progress
+                json metrics
+                datetime completed_at
+            }
+            SYSTEM_LOGS {
+                string id PK
+                string level
+                string service
+                string message
+                json details
+                float duration
+                datetime timestamp
+            }
+        </div>
+    </div>
+
+    <!-- 3. FLOWCHART -->
+    <h2 id="flowchart">3. Flowchart (Sign-to-Speech Pipeline)</h2>
+    <div class="diagram-container">
+        <div class="description">Step-by-step logic from camera capture to audio output.</div>
+        <div class="mermaid">
+        graph TD
+            Start[Camera Start] --> MP[MediaPipe Holistic Extraction]
+            MP --> Buf{Buffer == 30 Frames?}
+            Buf -- No --> MP
+            Buf -- Yes --> WS[Send Binary Landmarks via WS]
+            WS --> Orch[AI Orchestrator Receive]
+            Orch --> LSTM[LSTM Sequence Inference]
+            LSTM --> Conf{Confidence > 0.90?}
+            Conf -- No --> FAISS[FAISS Vector Hub Search]
+            FAISS --> Correct[Nearest Neighbor Correction]
+            Correct --> Final[Final Prediction]
+            Conf -- Yes --> Final
+            Final --> TTS[TTS Engine: Audio Generation]
+            Final --> Log[Async Database Logging]
+            Final --> Harvest{Confidence > 0.92?}
+            Harvest -- Yes --> Save[Save to Collected Data]
+            Final --> Broadcast[Broadcast to Meeting Room]
+            TTS --> Audio[Output Audio to Speaker]
+        </div>
+    </div>
+
+    <!-- 4. SYSTEM ARCHITECTURE DIAGRAM -->
+    <h2 id="system-arch">4. System Architecture Diagram</h2>
+    <div class="diagram-container">
+        <div class="description">Layered stack showing technologies and communication paths.</div>
+        <div class="mermaid">
+        graph TB
+            subgraph "Presentation Layer (Clients)"
+                Web[Web App: JS/Three.js]
+                Mobile[Mobile App: Flutter]
+                Dash[Admin Portal: HTML5]
+            end
+
+            subgraph "Application Layer (FastAPI)"
+                GW[API Gateway / Auth Middleware]
+                WSH[WebSocket Hub / Signaling]
+                Orch[AI Orchestrator Service]
+            end
+
+            subgraph "Domain Layer (AI Engines)"
+                M1[Module 1: Speech-to-Sign Pipeline]
+                M2[Module 2: Sign-to-Speech Pipeline]
+                Train[Neural Training Pipeline]
+                FAISS[FAISS Vector Search Hub]
+            end
+
+            subgraph "Infrastructure & Persistence"
+                SQL[(PostgreSQL / SQLite)]
+                Redis((Redis: Pub/Sub & Bus))
+                FileS[File Storage: .h5, .npy, .json]
+            end
+
+            Web <--> GW
+            Mobile <--> GW
+            Web <--> WSH
+            GW <--> Orch
+            WSH <--> Orch
+            Orch <--> M1
+            Orch <--> M2
+            Orch <--> SQL
+            Orch <--> Redis
+            Orch <--> FAISS
+            M1 <--> FileS
+            M2 <--> FileS
+            Train <--> SQL
+            Train <--> FileS
+        </div>
+    </div>
+
+    <!-- 5. APPLICATION ARCHITECTURE DIAGRAM -->
+    <h2 id="app-arch">5. Application Architecture Diagram</h2>
+    <div class="diagram-container">
+        <div class="description">Internal component structure of the SnLag client.</div>
+        <div class="mermaid">
+        graph LR
+            subgraph "Client App Core"
+                Vision[MediaPipe Holistic Engine]
+                Renderer[Three.js Avatar Controller]
+                Store[Local State Manager]
+                WSClient[WebSocket Binary Client]
+                RTC[WebRTC Peer Connection]
+            end
+
+            Vision --> WSClient
+            WSClient --> Store
+            Store --> Renderer
+            RTC <--> WSClient
+            Store --> UI[Tailwind UI Components]
+        </div>
+    </div>
+
+    <!-- 6. BACKEND ARCHITECTURE DIAGRAM -->
+    <h2 id="backend-arch">6. Backend Architecture Diagram</h2>
+    <div class="diagram-container">
+        <div class="description">FastAPI internal services and background task coordination.</div>
+        <div class="mermaid">
+        graph TB
+            Request((Request)) --> Uvicorn[Uvicorn / Gunicorn]
+            Uvicorn --> FastAPI[FastAPI Framework]
+
+            subgraph "FastAPI Internal"
+                Router[APIRouter: Auth, Meeting, Admin]
+                Middleware[Auth / Logging Middleware]
+                WSM[WebSocket Manager]
+                Life[Lifespan Manager: Stuck Job Cleanup]
+            end
+
+            Router --> Middleware
+            Middleware --> Services[Internal Services]
+            WSM <--> Services
+            Services --> Orch[AI Orchestrator]
+            Services --> DB[SQLAlchemy DB Manager]
+            Orch --> AI[AI Engine Modules]
+        </div>
+    </div>
+
+    <!-- 7. API ARCHITECTURE -->
+    <h2 id="api-arch">7. API Architecture</h2>
+    <div class="diagram-container">
+        <div class="description">REST Endpoints and WebSocket message types.</div>
+        <div class="mermaid">
+        graph LR
+            Client((Client)) --> REST[/api/]
+            Client --> WS[ws://translate]
+
+            subgraph "REST Endpoints"
+                REST --> A1[/user/auth/]
+                REST --> A2[/admin/auth/]
+                REST --> O[/onboarding/]
+                REST --> M[/meeting/]
+                REST --> T[/translation/]
+                REST --> AD[/admin/]
+            end
+
+            subgraph "WebSocket Payload Types"
+                WS --> P1[Binary: Landmark Buffer]
+                WS --> P2[JSON: Room Signaling]
+                WS --> P3[JSON: Translation Results]
+                WS --> P4[JSON: Meeting Actions]
+            end
+        </div>
+    </div>
+
+    <!-- 8. MICROSERVICE ARCHITECTURE -->
+    <h2 id="micro-arch">8. Microservice Architecture (AI Modules)</h2>
+    <div class="diagram-container">
+        <div class="description">Decomposition of the AI Orchestration layer into functional modules.</div>
+        <div class="mermaid">
+        graph TD
+            subgraph "Sign-to-Speech Micro-Modules"
+                CV[CV Module: MediaPipe]
+                SEQ[Sequence Model: LSTM]
+                CORR[Correction: FAISS Hub]
+                TTS[TTS Engine: Google/Local]
+            end
+
+            subgraph "Speech-to-Sign Micro-Modules"
+                REC[Speech Recognition]
+                NLP[NLP Processor]
+                TRANS[Sign Translator]
+                AV[Avatar Renderer]
+            end
+
+            CV --> SEQ --> CORR --> TTS
+            REC --> NLP --> TRANS --> AV
+        </div>
+    </div>
+
+    <!-- 9. CLASS DIAGRAM -->
+    <h2 id="class-diag">9. Class Diagram</h2>
+    <div class="diagram-container">
+        <div class="description">Core Python class hierarchy and dependencies.</div>
+        <div class="mermaid">
+        classDiagram
+            class AIOrchestrator {
+                +m1_pipeline: SpeechToSignPipeline
+                +m2_pipeline: SignToSpeechPipeline
+                +sync_vocabulary(db)
+                +sign_to_speech(landmarks)
+                +reload_model(path)
+            }
+            class ConnectionManager {
+                +active_connections: dict
+                +room_members: dict
+                +connect(ws, id)
+                +broadcast_to_room(room_id, data)
+                +init_redis()
+            }
+            class SequenceModel {
+                +model: KerasModel
+                +actions: ndarray
+                +predict(sequence)
+            }
+            class DBModel {
+                <<Base>>
+                +id: String
+                +created_at: DateTime
+            }
+            class SignToSpeechPipeline {
+                +cv_module: CVModule
+                +seq_model: SequenceModel
+                +tts_engine: TTSEngine
+                +execute(sequence)
+            }
+            AIOrchestrator --> SignToSpeechPipeline
+            SignToSpeechPipeline --> SequenceModel
+            AIOrchestrator --> ConnectionManager
+            DBModel <|-- UserModel
+            DBModel <|-- SignDatasetModel
+        </div>
+    </div>
+
+    <!-- 10. DATA FLOW DIAGRAM (DFD) -->
+    <h2 id="dfd">10. Data Flow Diagram</h2>
+    <div class="diagram-container">
+        <div class="description">Level 1 DFD showing the path of neural signals.</div>
+        <div class="mermaid">
+        graph LR
+            User((User)) -- "Raw Landmarks (Float32)" --> Inference[Process 1: Sequence Recognition]
+            Inference -- "Label (String)" --> Correction[Process 2: Semantic Hub Search]
+            Correction -- "Corrected Label" --> Storage[(History DB)]
+            Inference -- "Prediction Result" --> Broadcast[Process 3: Redis Room Sync]
+            Broadcast -- "JSON Update" --> Peers((Meeting Peers))
+            Inference -- "High-Conf Samples" --> Harvesting[(Harvesting Store)]
+            Harvesting -- "Validated Data" --> Training[Process 4: Model Training]
+            Training -- "New .h5 Model" --> ModelStore[(Model Registry)]
+        </div>
+    </div>
+
+    <!-- 11. STATE DIAGRAMS -->
+    <h2 id="state">11. State Diagram (AI Model Lifecycle)</h2>
+    <div class="diagram-container">
+        <div class="description">States of a neural model from data collection to active inference.</div>
+        <div class="mermaid">
+        stateDiagram-v2
+            [*] --> DataHarvesting
+            DataHarvesting --> Validation: Admin Review
+            Validation --> Preprocessing: Feature Engineering
+            Preprocessing --> Training: LSTM Backprop
+            Training --> Evaluating: Accuracy Metrics
+            Evaluating --> Failed: Metrics < Threshold
+            Evaluating --> Deployed: Metrics Valid
+            Failed --> DataHarvesting: Collect More
+            Deployed --> Active: Loaded by Orchestrator
+            Active --> [*]
+        </div>
+    </div>
+
+    <!-- 12. CI/CD ARCHITECTURE DIAGRAM -->
+    <h2 id="cicd">12. CI/CD Architecture Diagram</h2>
+    <div class="diagram-container">
+        <div class="description">Automated pipeline for continuous integration and delivery.</div>
+        <div class="mermaid">
+        graph LR
+            Dev[Developer Push] --> Git[GitHub Repository]
+            Git --> Actions[GitHub Actions Runner]
+            subgraph "Build & Test"
+                Actions --> Lint[Linting / Formatting]
+                Actions --> Unit[Unit Tests: pytest]
+                Actions --> Docker[Docker Image Build]
+            end
+            Docker --> Registry[Docker Hub / ECR]
+            Registry --> Deploy[Deployment: Cloud Instance]
+            Deploy --> Health[Health Check: /health]
+        </div>
+    </div>
+
+    <!-- 13. SEQUENTIAL DIAGRAM -->
+    <h2 id="sequence">13. Sequence Diagram (Real-time Meeting Sync)</h2>
+    <div class="diagram-container">
+        <div class="description">Distributed synchronization across multiple users via Redis.</div>
+        <div class="mermaid">
+        sequenceDiagram
+            participant U1 as Signer (Client A)
+            participant S as SnLag Backend
+            participant R as Redis (Pub/Sub)
+            participant U2 as Listener (Client B)
+
+            Note over U1, S: WebSocket Connected
+            U1->>S: Send Binary (30 frames, 1662 landmarks)
+            S->>S: AI Inference (LSTM + FAISS)
+            S->>U1: Send Local Ack (Prediction: "HELLO")
+            S->>R: Publish to 'snlag_broadcast' (Room ID: 101)
+            R-->>S: Distribute to other cluster nodes
+            S->>U2: Send Remote Translation (Signer A: "HELLO")
+            U2->>U2: Three.js Render + Local TTS Playback
+        </div>
+    </div>
+
+    <div class="footer">
+        &copy; 2024 SnLag Neural Interface Project. All diagrams generated via Mermaid.js.
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose',
+            flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis' }
+        });
+    </script>
+</body>
+</html>

@@ -1,15 +1,17 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SnLag Core | Neural Gateway</title>
+    <title>Identity | Signly</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="design_system.css">
+    <script src="theme_sync.js"></script>
     <script src="components.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="iridescence_bg.js"></script>
 
     <script>
         tailwind.config = {
@@ -17,12 +19,16 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: '#f97316',
-                        secondary: '#fbbf24',
-                        dark: '#0a0a0a',
-                    },
-                    borderRadius: {
-                        '4xl': '2rem',
+                        primary: 'var(--primary)',
+                        'primary-hover': 'var(--primary-hover)',
+                        'primary-alpha': 'var(--primary-alpha)',
+                        bg: 'var(--bg)',
+                        surface: 'var(--surface)',
+                        'surface-raised': 'var(--surface-raised)',
+                        border: 'var(--border)',
+                        muted: 'var(--muted)',
+                        'text-primary': 'var(--text)',
+                        'text-secondary': 'var(--text-secondary)'
                     }
                 }
             }
@@ -30,333 +36,698 @@
     </script>
 
     <style>
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #ffffff;
-            color: #171717;
-        }
-        .auth-container {
+        .auth-grid {
             display: grid;
-            grid-template-columns: 1.2fr 1fr;
-            min-height: 100vh;
+            grid-template-columns: 1fr 1fr;
+            height: 100vh;
         }
         @media (max-width: 1024px) {
-            .auth-container { grid-template-columns: 1fr; }
+            .auth-grid { grid-template-columns: 1fr; }
             .auth-hero { display: none; }
         }
-        .auth-hero {
-            background: #0a0a0a;
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 80px;
-        }
-        .neural-network {
-            position: absolute;
-            inset: 0;
-            opacity: 0.3;
-            background-image: radial-gradient(circle at 2px 2px, rgba(249, 115, 22, 0.2) 1px, transparent 0);
-            background-size: 50px 50px;
-            animation: flow 60s linear infinite;
-        }
-        @keyframes flow {
-            from { background-position: 0 0; }
-            to { background-position: 1000px 1000px; }
-        }
-        .glow-sphere {
-            position: absolute;
-            width: 800px;
-            height: 800px;
-            background: radial-gradient(circle, rgba(249, 115, 22, 0.1) 0%, transparent 70%);
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            filter: blur(100px);
-        }
         .input-premium {
-            background: #f8f9fa;
-            border: 2px solid transparent;
-            border-radius: 20px;
-            padding: 18px 24px 18px 60px;
+            background-color: transparent;
+            border: 1.5px solid var(--border);
+            border-radius: 0.875rem;
+            padding: 1rem 1rem 1rem 3.5rem;
             width: 100%;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            font-weight: 600;
+            color: var(--text);
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.9rem;
         }
         .input-premium:focus {
-            background: white;
-            border-color: #f97316;
-            box-shadow: 0 15px 30px -10px rgba(249, 115, 22, 0.15);
+            border-color: #f36f21;
             outline: none;
+            box-shadow: 0 0 0 4px rgba(243, 111, 33, 0.08);
+        }
+        .auth-hero {
+            background-color: #0b0f17;
+            color: white;
+            position: relative;
+        }
+
+        .social-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            padding: 0.85rem;
+            border-radius: 0.875rem;
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            color: #1e293b;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+        .social-btn:hover {
+            background-color: #f1f5f9;
             transform: translateY(-2px);
         }
-        .btn-premium {
-            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 20px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            box-shadow: 0 20px 40px -10px rgba(249, 115, 22, 0.4);
-            transition: all 0.3s;
-        }
-        .btn-premium:hover {
-            transform: translateY(-3px) scale(1.01);
-            box-shadow: 0 30px 60px -12px rgba(249, 115, 22, 0.5);
-            filter: brightness(1.1);
-        }
-        .btn-premium:active { transform: translateY(0) scale(0.98); }
 
-        .feature-card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 28px;
-            padding: 24px;
-            transition: all 0.3s;
+        /* Tabs */
+        .tab-btn {
+            padding: 0.5rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.3s ease;
         }
-        .feature-card:hover {
-            background: rgba(255, 255, 255, 0.05);
-            transform: translateX(10px);
+        .tab-btn.active {
+            background-color: #fff4ed;
+            color: #f36f21;
+        }
+        .tab-btn.inactive {
+            color: #94a3b8;
+        }
+
+        #splash-loader {
+            position: fixed;
+            inset: 0;
+            background: #ffffff;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease;
         }
     </style>
 </head>
-<body class="h-full">
+<body class="bg-white transition-colors duration-500 overflow-hidden antialiased font-['Inter']">
 
-    <div class="auth-container">
-        <!-- LEFT PANEL: PREMIUM INTRODUCTION -->
-        <div class="auth-hero">
-            <div class="neural-network"></div>
-            <div class="glow-sphere"></div>
-
-            <div class="relative z-10">
-                <div id="brand-root"></div>
-                <script>document.getElementById('brand-root').innerHTML = SnLagUI.getLogo('lg', true);</script>
+    <div class="auth-grid relative z-10">
+        <!-- Hero Section -->
+        <div class="auth-hero relative overflow-hidden flex flex-col justify-between">
+            <!-- Background Image -->
+            <div class="absolute inset-0 z-0">
+                <img src="https://images.unsplash.com/photo-1516733725897-1aa73b87c8e8?q=80&w=2070&auto=format&fit=crop" class="w-full h-full object-cover opacity-60" alt="Sign Language Hero">
+                <div class="absolute inset-0 bg-gradient-to-br from-black/80 via-black/40 to-transparent"></div>
             </div>
 
-            <div class="relative z-10 space-y-8">
-                <h2 class="text-7xl font-800 text-white tracking-tighter leading-none animate__animated animate__fadeInUp">
-                    Neural <br> <span class="text-primary italic">Bridge</span> v3.0
-                </h2>
-                <p class="text-xl text-neutral-400 font-500 leading-relaxed max-w-md animate__animated animate__fadeInUp animate__delay-1s">
-                    Empowering global communication through ultra-low latency sign-to-speech synchronization.
-                </p>
-
-                <div class="grid gap-4 pt-10 animate__animated animate__fadeInUp animate__delay-2s">
-                    <div class="feature-card flex items-center gap-5">
-                        <div class="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary shadow-lg shadow-primary/10">
-                            <i class="fas fa-bolt text-lg"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-white font-800 text-sm">Predictive Inference</h4>
-                            <p class="text-neutral-500 text-xs mt-0.5">Real-time prediction with 99.8% precision.</p>
-                        </div>
+            <div class="relative z-10 p-16 flex flex-col h-full justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-[#f36f21] flex items-center justify-center text-white">
+                        <i class="fas fa-hand-holding-heart"></i>
                     </div>
-                    <div class="feature-card flex items-center gap-5">
-                        <div class="w-12 h-12 rounded-2xl bg-secondary/20 flex items-center justify-center text-secondary shadow-lg shadow-secondary/10">
-                            <i class="fas fa-shield-alt text-lg"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-white font-800 text-sm">Secure Neural Link</h4>
-                            <p class="text-neutral-500 text-xs mt-0.5">End-to-End encrypted data handshakes.</p>
-                        </div>
+                    <div>
+                        <span class="text-2xl font-black text-white block leading-none">Signly</span>
+                        <span class="text-[8px] font-bold text-white/50 uppercase tracking-[0.2em]">Neural Engine</span>
                     </div>
                 </div>
-            </div>
 
-            <div class="relative z-10 flex justify-between items-end border-t border-white/5 pt-10">
-                <p class="text-[10px] font-800 text-neutral-600 uppercase tracking-[0.4em]">Neural Core Protocol Active</p>
-                <div class="flex gap-4 text-neutral-500">
-                    <i class="fab fa-github hover:text-white transition-colors cursor-pointer"></i>
-                    <i class="fab fa-twitter hover:text-white transition-colors cursor-pointer"></i>
+                <div class="space-y-6">
+                    <h1 class="text-white text-[6rem] leading-[0.8] font-black tracking-tighter">
+                        Vision<br><span class="text-[#f36f21]">into</span><br>Voice.
+                    </h1>
+                    <p class="text-lg text-white/70 max-w-sm font-medium leading-relaxed">
+                        Experience the future of universal interaction with our next-gen AI translation engine.
+                    </p>
+                    <div class="flex gap-4">
+                        <span class="px-4 py-2 rounded-full border border-white/20 bg-white/5 text-[10px] font-bold text-white/60 uppercase tracking-widest">Neural Synthesis</span>
+                        <span class="px-4 py-2 rounded-full border border-[#f36f21]/30 bg-[#f36f21]/10 text-[10px] font-bold text-[#f36f21] uppercase tracking-widest">Real-time Vision</span>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center opacity-40">
+                    <span class="text-[9px] font-bold text-white uppercase tracking-[0.3em]">Signly Intelligence V2.0</span>
                 </div>
             </div>
         </div>
 
-        <!-- RIGHT PANEL: AUTH FORMS -->
-        <div class="bg-white flex flex-col justify-center px-12 md:px-24 py-20 relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
+        <!-- Form Section -->
+        <div class="flex flex-col h-full bg-white relative overflow-y-auto px-8 md:px-16 py-12 justify-center">
+            <div class="max-w-sm w-full mx-auto space-y-8">
 
-            <div class="max-w-md w-full mx-auto space-y-12 relative z-10">
-
-                <!-- Tab Switcher -->
-                <div class="flex justify-between items-end">
-                    <div class="space-y-2">
-                        <h3 id="auth-title" class="text-5xl font-900 text-neutral-900 tracking-tighter">Access</h3>
-                        <p id="auth-sub" class="text-neutral-400 font-600">Secure node synchronization.</p>
+                <div class="flex justify-between items-start">
+                    <div class="space-y-1">
+                        <h2 id="view-title" class="text-[#1e293b] text-3xl font-bold tracking-tight">Welcome back</h2>
+                        <p id="view-subtitle" class="text-[#64748b] text-sm font-medium">Continue your journey where you left off</p>
                     </div>
-                    <div class="bg-neutral-100 p-1.5 rounded-[1.5rem] flex gap-1">
-                        <button id="tab-login" onclick="toggleAuth('login')" class="px-6 py-2.5 rounded-2xl text-[11px] font-900 uppercase tracking-widest transition-all bg-white text-primary shadow-sm">Login</button>
-                        <button id="tab-reg" onclick="toggleAuth('register')" class="px-6 py-2.5 rounded-2xl text-[11px] font-900 uppercase tracking-widest transition-all text-neutral-500">Join</button>
+
+                    <div id="auth-tabs" class="flex bg-[#f1f5f9] p-1 rounded-xl">
+                        <button onclick="switchAuthMode('login')" id="btn-tab-login" class="tab-btn active">Login</button>
+                        <button onclick="switchAuthMode('register')" id="btn-tab-register" class="tab-btn inactive">Join</button>
                     </div>
                 </div>
 
-                <!-- LOGIN FORM -->
-                <form id="form-login" onsubmit="handleFinalAuth(event, 'login')" class="space-y-6 animate__animated animate__fadeIn">
-                    <div class="relative group">
-                        <i class="fas fa-id-badge absolute left-7 top-1/2 -translate-y-1/2 text-neutral-300 group-focus-within:text-primary transition-all"></i>
-                        <input type="text" id="login-node" placeholder="Identity Node" class="input-premium" required>
-                    </div>
-                    <div class="relative group">
-                        <i class="fas fa-shield-halved absolute left-7 top-1/2 -translate-y-1/2 text-neutral-300 group-focus-within:text-primary transition-all"></i>
-                        <input type="password" id="login-secret" placeholder="Secret Key" class="input-premium" required>
-                        <button type="button" onclick="revealPass('login-secret')" class="absolute right-6 top-1/2 -translate-y-1/2 text-neutral-300 hover:text-neutral-600 transition-colors">
-                            <i class="fas fa-eye-low-vision"></i>
-                        </button>
-                    </div>
-                    <div class="flex justify-between items-center px-2">
-                        <label class="flex items-center gap-3 cursor-pointer group">
-                            <input type="checkbox" class="w-5 h-5 rounded-lg border-neutral-200 text-primary focus:ring-primary/20 transition-all">
-                            <span class="text-xs font-700 text-neutral-400 group-hover:text-neutral-600">Persistent Link</span>
-                        </label>
-                        <button type="button" class="text-xs font-800 text-primary hover:underline">Signal Lost?</button>
-                    </div>
-                    <button type="submit" class="btn-premium w-full flex items-center justify-center gap-4 group">
-                        <span>Establish Connection</span>
-                        <i class="fas fa-arrow-right text-sm transition-transform group-hover:translate-x-2"></i>
-                    </button>
-                </form>
+                <div id="auth-forms-container" class="space-y-5">
+                    <div id="auth-error-msg" class="hidden p-4 rounded-xl bg-rose-50 border border-rose-100 text-rose-500 text-xs font-bold text-center"></div>
 
-                <!-- REGISTER FORM -->
-                <form id="form-reg" onsubmit="handleFinalAuth(event, 'register')" class="hidden space-y-6 animate__animated animate__fadeIn">
-                    <div class="relative group">
-                        <i class="fas fa-user-plus absolute left-7 top-1/2 -translate-y-1/2 text-neutral-300 group-focus-within:text-primary transition-all"></i>
-                        <input type="text" id="reg-node" placeholder="Define Node Identity" class="input-premium" required>
-                    </div>
-                    <div class="relative group">
-                        <i class="fas fa-at absolute left-7 top-1/2 -translate-y-1/2 text-neutral-300 group-focus-within:text-primary transition-all"></i>
-                        <input type="email" id="reg-email" placeholder="Communication Path (Email)" class="input-premium" required>
-                    </div>
-                    <div class="relative group">
-                        <i class="fas fa-key absolute left-7 top-1/2 -translate-y-1/2 text-neutral-300 group-focus-within:text-primary transition-all"></i>
-                        <input type="password" id="reg-secret" placeholder="Create Secret Key" class="input-premium" required>
-                    </div>
-                    <button type="submit" class="btn-premium w-full flex items-center justify-center gap-4 group">
-                        <span>Initialize Protocol</span>
-                        <i class="fas fa-rocket text-sm transition-transform group-hover:-translate-y-1"></i>
-                    </button>
-                </form>
+                    <!-- Login Form -->
+                    <form id="login-form" onsubmit="handleAuth(event, 'login')" class="space-y-6">
+                        <div class="relative group" id="login-id-container">
+                            <i class="fas fa-envelope absolute left-5 top-1/2 -translate-y-1/2 text-[#94a3b8] group-focus-within:text-[#f36f21] transition-colors"></i>
+                            <input type="text" id="login-username" class="input-premium" placeholder="Email address" required>
+                        </div>
+                        <div class="relative group" id="login-pass-container">
+                            <i class="fas fa-shield-alt absolute left-5 top-1/2 -translate-y-1/2 text-[#94a3b8] group-focus-within:text-[#f36f21] transition-colors"></i>
+                            <input type="password" id="login-password" class="input-premium" placeholder="Password" required>
+                            <i class="far fa-eye absolute right-5 top-1/2 -translate-y-1/2 text-[#94a3b8] cursor-pointer hover:text-[#64748b]" onclick="togglePassword('login-password', this)"></i>
+                        </div>
 
-                <div class="pt-10 space-y-8">
-                    <div class="relative flex items-center justify-center">
-                        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-neutral-100"></div></div>
-                        <span class="relative bg-white px-6 text-[9px] font-900 text-neutral-400 uppercase tracking-[0.3em]">External Sync</span>
+                        <!-- Login OTP Step (Hidden by default) -->
+                        <div id="login-otp-container" class="hidden space-y-4">
+                            <div class="p-4 rounded-xl bg-orange-50 border border-orange-100 text-center">
+                                <p class="text-[10px] font-black text-[#f36f21] uppercase tracking-[0.2em]">Verify Your Identity</p>
+                                <p class="text-xs text-[#64748b] mt-1">Check your email for the verification code.</p>
+                            </div>
+                            <div class="relative group">
+                                <i class="fas fa-key absolute left-6 top-1/2 -translate-y-1/2 text-muted group-focus-within:text-primary transition-colors"></i>
+                                <input type="text" id="login-otp" class="input-premium" placeholder="Enter 6-digit code" maxlength="6">
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between" id="login-options">
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <input type="checkbox" class="w-4 h-4 rounded border-[#cbd5e1] text-[#f36f21] focus:ring-[#f36f21]/20">
+                                <span class="text-sm font-medium text-[#64748b] group-hover:text-[#1e293b]">Remember me</span>
+                            </label>
+                            <button type="button" onclick="switchAuthMode('forgot')" class="text-sm font-semibold text-[#f36f21] hover:text-[#e05e1b]">Forgot password?</button>
+                        </div>
+
+                        <button type="submit" id="login-btn" class="w-full py-3.5 bg-[#f36f21] text-white rounded-xl font-bold text-sm hover:bg-[#e05e1b] transition-all flex items-center justify-center gap-2 shadow-lg shadow-orange-200">
+                            Sign In <i class="fas fa-arrow-right text-xs"></i>
+                        </button>
+                    </form>
+
+                    <!-- Register Form -->
+                    <form id="register-form" onsubmit="handleAuth(event, 'register')" class="space-y-5 hidden">
+                        <div id="register-fields" class="space-y-4">
+                            <div class="relative group">
+                                <i class="fas fa-user absolute left-5 top-1/2 -translate-y-1/2 text-[#94a3b8] group-focus-within:text-[#f36f21] transition-colors"></i>
+                                <input type="text" id="register-name" class="input-premium" placeholder="Full Name" required>
+                            </div>
+                            <div class="relative group">
+                                <i class="fas fa-at absolute left-5 top-1/2 -translate-y-1/2 text-[#94a3b8] group-focus-within:text-[#f36f21] transition-colors"></i>
+                                <input type="text" id="register-username" class="input-premium" placeholder="Username" required>
+                            </div>
+                            <div class="relative group">
+                                <i class="fas fa-envelope absolute left-5 top-1/2 -translate-y-1/2 text-[#94a3b8] group-focus-within:text-[#f36f21] transition-colors"></i>
+                                <input type="email" id="register-email" class="input-premium" placeholder="Email Address" required>
+                            </div>
+                            <div class="relative group">
+                                <i class="fas fa-lock absolute left-5 top-1/2 -translate-y-1/2 text-[#94a3b8] group-focus-within:text-[#f36f21] transition-colors"></i>
+                                <input type="password" id="register-password" class="input-premium" placeholder="Password" required>
+                            </div>
+                        </div>
+
+                        <!-- Register OTP Step (Hidden by default) -->
+                        <div id="register-otp-container" class="hidden space-y-4">
+                            <div class="p-4 rounded-xl bg-orange-50 border border-orange-100 text-center">
+                                <p class="text-[10px] font-black text-[#f36f21] uppercase tracking-[0.2em]">Verify Email</p>
+                                <p class="text-xs text-[#64748b] mt-1">Please enter the code sent to your email.</p>
+                            </div>
+                            <input type="text" id="register-otp" class="input-premium text-center tracking-[1em] font-bold" placeholder="000000" maxlength="6">
+                        </div>
+
+                        <button type="submit" id="register-btn" class="w-full py-3.5 bg-[#f36f21] text-white rounded-xl font-bold text-sm hover:bg-[#e05e1b] transition-all">Create Account</button>
+                    </form>
+
+                    <!-- Forgot Password Form -->
+                    <form id="forgot-form" onsubmit="handleAuth(event, 'forgot')" class="space-y-5 hidden">
+                         <div id="forgot-fields">
+                             <div class="relative group">
+                                <i class="fas fa-envelope absolute left-5 top-1/2 -translate-y-1/2 text-[#94a3b8] group-focus-within:text-[#f36f21] transition-colors"></i>
+                                <input type="email" id="forgot-email" class="input-premium" placeholder="Email address" required>
+                            </div>
+                         </div>
+                         <div id="forgot-otp-container" class="hidden">
+                             <input type="text" id="forgot-otp" class="input-premium text-center" placeholder="Recovery Code" maxlength="6">
+                         </div>
+                         <div id="reset-fields" class="hidden">
+                             <input type="password" id="reset-password" class="input-premium" placeholder="New Password" required>
+                         </div>
+                         <button type="submit" id="forgot-btn" class="w-full py-3.5 bg-[#f36f21] text-white rounded-xl font-bold text-sm hover:bg-[#e05e1b] transition-all">Send Recovery Link</button>
+                         <button type="button" onclick="switchAuthMode('login')" class="w-full text-center text-sm font-bold text-[#64748b]">Return to Login</button>
+                    </form>
+
+                    <div class="text-center">
+                        <p class="text-sm font-medium text-[#64748b]">Don't have an account? <button onclick="switchAuthMode('register')" class="text-[#f36f21] font-bold hover:underline">Create one</button></p>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <button class="flex items-center justify-center gap-3 py-4 rounded-2xl border border-neutral-100 hover:bg-neutral-50 transition-all font-800 text-xs">
-                            <i class="fab fa-google text-red-500"></i> Google
-                        </button>
-                        <button class="flex items-center justify-center gap-3 py-4 rounded-2xl border border-neutral-100 hover:bg-neutral-50 transition-all font-800 text-xs">
-                            <i class="fab fa-apple text-neutral-900"></i> Apple ID
-                        </button>
+
+                    <div class="relative py-2">
+                        <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-[#e2e8f0]"></div></div>
+                        <div class="relative flex justify-center text-[9px] uppercase font-bold tracking-widest text-[#94a3b8] bg-white px-4">External Identity Provider</div>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <button class="social-btn"><img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5" alt="Google logo"> Google</button>
+                        <button class="social-btn"><i class="fab fa-apple text-xl"></i> Apple ID</button>
                     </div>
                 </div>
 
-                <div class="text-center">
-                    <p class="text-[10px] font-800 text-neutral-400 uppercase tracking-widest">Authorized Access Only • Proprietary v3.0</p>
+                <div class="text-center opacity-40">
+                    <span class="text-[9px] font-bold text-[#64748b] uppercase tracking-[0.3em]">Neural Gateway Security V3.0</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="toast-root"></div>
     <script>
-        const GATEWAY = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-            ? `http://${window.location.hostname}:8000` : window.location.origin;
+        // ARCHITECTURE FIX: Use relative API pathing to support both Direct and Gateway access
+        const API_URL = window.location.port === '8001'
+            ? window.location.origin  // Use Gateway proxy if on port 8001
+            : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+                ? `http://${window.location.hostname}:8000`
+                : window.location.origin;
 
-        // Detection for IDE server path prefix (e.g. /SnLag/)
-        const PROJECT_BASE = window.location.pathname.startsWith('/SnLag/') ? '/SnLag' : '';
+        let authState = {
+            mode: 'login',
+            step: 1, // 1: credentials/email, 2: otp, 3: new_password (for reset)
+            email: '',
+            otp: ''
+        };
 
-        function toggleAuth(mode) {
-            const login = document.getElementById('form-login');
-            const reg = document.getElementById('form-reg');
-            const tLogin = document.getElementById('tab-login');
-            const tReg = document.getElementById('tab-reg');
-            const title = document.getElementById('auth-title');
-            const sub = document.getElementById('auth-sub');
+        function showError(msg) {
+            const errDiv = document.getElementById('auth-error-msg');
+            errDiv.innerText = msg;
+            errDiv.classList.remove('hidden');
+            setTimeout(() => {
+                errDiv.classList.add('animate__animated', 'animate__shakeX');
+            }, 10);
+            setTimeout(() => {
+                errDiv.classList.remove('animate__shakeX');
+            }, 1000);
+        }
 
-            if (mode === 'register') {
-                login.classList.add('hidden');
-                reg.classList.remove('hidden');
-                tReg.classList.add('bg-white', 'text-primary', 'shadow-sm');
-                tLogin.classList.remove('bg-white', 'text-primary', 'shadow-sm');
-                tLogin.classList.add('text-neutral-500');
-                title.innerText = "Initialize";
-                sub.innerText = "Provision your new neural node.";
+        function clearError() {
+            document.getElementById('auth-error-msg').classList.add('hidden');
+        }
+
+        function togglePassword(inputId, icon) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
             } else {
-                reg.classList.add('hidden');
-                login.classList.remove('hidden');
-                tLogin.classList.add('bg-white', 'text-primary', 'shadow-sm');
-                tReg.classList.remove('bg-white', 'text-primary', 'shadow-sm');
-                tReg.classList.add('text-neutral-500');
-                title.innerText = "Access";
-                sub.innerText = "Secure node synchronization.";
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
             }
         }
 
-        function revealPass(id) {
-            const input = document.getElementById(id);
-            input.type = input.type === 'password' ? 'text' : 'password';
+        function switchAuthMode(view) {
+            authState.mode = view;
+            authState.step = 1;
+            clearError();
+
+            const isLogin = view === 'login';
+            const isRegister = view === 'register';
+            const isForgot = view === 'forgot';
+
+            const title = document.getElementById('view-title');
+            const subtitle = document.getElementById('view-subtitle');
+
+            if (isLogin) {
+                title.innerText = "Welcome back";
+                subtitle.innerText = "Continue your journey where you left off";
+            } else if (isRegister) {
+                title.innerText = "Join Network";
+                subtitle.innerText = "Create your profile to start translating";
+            } else if (isForgot) {
+                title.innerText = "Recover Access";
+                subtitle.innerText = "Restore your profile via secure verification";
+            }
+
+            const activeClass = "tab-btn active";
+            const inactiveClass = "tab-btn inactive";
+
+            const btnLogin = document.getElementById('btn-tab-login');
+            const btnRegister = document.getElementById('btn-tab-register');
+
+            if (btnLogin) btnLogin.className = isLogin ? activeClass : inactiveClass;
+            if (btnRegister) btnRegister.className = isRegister ? activeClass : inactiveClass;
+
+            document.getElementById('auth-tabs').classList.toggle('hidden', isForgot);
+
+            document.getElementById('login-form').classList.toggle('hidden', !isLogin);
+            document.getElementById('register-form').classList.toggle('hidden', !isRegister);
+            document.getElementById('forgot-form').classList.toggle('hidden', !isForgot);
+
+            resetAuthUI();
         }
 
-        async function handleFinalAuth(e, mode) {
-            e.preventDefault();
-            const btn = e.target.querySelector('button[type="submit"]');
-            const original = btn.innerHTML;
+        function resetAuthUI() {
+            // Login reset
+            const idCont = document.getElementById('login-id-container');
+            const passCont = document.getElementById('login-pass-container');
+            if (idCont) idCont.classList.remove('hidden');
+            if (passCont) passCont.classList.remove('hidden');
+
+            document.getElementById('login-options').classList.remove('hidden');
+            document.getElementById('login-otp-container').classList.add('hidden');
+            document.getElementById('login-btn').innerHTML = 'Sign In <i class="fas fa-arrow-right text-xs"></i>';
+            document.getElementById('login-btn').classList.remove('hidden');
+            document.getElementById('login-btn').disabled = false;
+
+            // Register reset
+            document.getElementById('register-fields').classList.remove('hidden');
+            document.getElementById('register-otp-container').classList.add('hidden');
+            document.getElementById('register-btn').innerText = "Create Account";
+            document.getElementById('register-btn').classList.remove('hidden');
+            document.getElementById('register-btn').disabled = false;
+
+            // Forgot reset
+            document.getElementById('forgot-fields').classList.remove('hidden');
+            document.getElementById('forgot-otp-container').classList.add('hidden');
+            document.getElementById('reset-fields').classList.add('hidden');
+            document.getElementById('forgot-btn').innerText = "Send Recovery Link";
+            document.getElementById('forgot-btn').classList.remove('hidden');
+            document.getElementById('forgot-btn').disabled = false;
+        }
+
+        async function handleAuth(e, mode) {
+            if(e) e.preventDefault();
+            clearError();
+            const btn = document.getElementById(mode === 'login' ? 'login-btn' : (mode === 'register' ? 'register-btn' : 'forgot-btn'));
+            const originalText = btn.innerHTML; // Store full HTML
+            btn.innerText = "Synchronizing...";
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-circle-notch animate-spin"></i> SYNCING...';
 
             try {
                 if (mode === 'login') {
-                    const node = document.getElementById('login-node').value;
-                    const secret = document.getElementById('login-secret').value;
-                    const res = await fetch(`${GATEWAY}/token`, {
-                        method: 'POST',
-                        body: new URLSearchParams({ username: node, password: secret })
-                    });
-                    const data = await res.json();
-
-                    if (res.ok) {
-                        localStorage.setItem('snlag_token', data.access_token);
-                        btn.innerHTML = '<i class="fas fa-check"></i> SYNCED';
-                        btn.classList.replace('btn-premium', 'bg-emerald-500');
-
-                        const userRes = await fetch(`${GATEWAY}/users/me`, { headers: { 'Authorization': `Bearer ${data.access_token}` } });
-                        const user = await userRes.json();
-
-                        setTimeout(() => {
-                            window.location.href = user.role === 'admin'
-                                ? `${PROJECT_BASE}/ui_layer/admin_dashboard/dashboard.html`
-                                : `${PROJECT_BASE}/ui_layer/web_app/index.html`;
-                        }, 600);
-                    } else throw new Error(data.detail || "Authentication Failed");
-                } else {
-                    const node = document.getElementById('reg-node').value;
-                    const email = document.getElementById('reg-email').value;
-                    const secret = document.getElementById('reg-secret').value;
-                    const res = await fetch(`${GATEWAY}/register`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username: node, email, password: secret })
-                    });
-                    if (res.ok) {
-                        alert("Node initialized. Establishing first link...");
-                        toggleAuth('login');
-                        btn.disabled = false;
-                        btn.innerHTML = original;
-                    } else throw new Error((await res.json()).detail);
+                    if (authState.step === 1) {
+                        await loginStep1();
+                    } else {
+                        await loginStep2();
+                    }
+                } else if (mode === 'register') {
+                    if (authState.step === 1) {
+                        await registerStep1();
+                    } else {
+                        await registerStep2();
+                    }
+                } else if (mode === 'forgot') {
+                    if (authState.step === 1) {
+                        await forgotStep1();
+                    } else if (authState.step === 2) {
+                        await forgotStep2();
+                    } else {
+                        await forgotStep3();
+                    }
                 }
             } catch (err) {
-                const msg = (err.message && err.message.toLowerCase().includes('fetch'))
-                    ? "Kernel offline. Please run 'python main.py' to start the backend services."
-                    : err.message;
-                alert(msg);
+                console.error("Auth Failure:", err);
+                showError(err.message || "Neural link failure. Please retry.");
+                btn.innerHTML = originalText;
                 btn.disabled = false;
-                btn.innerHTML = original;
             }
         }
+
+        // --- Login Logic ---
+        async function loginStep1() {
+            const user = document.getElementById('login-username').value;
+            const pass = document.getElementById('login-password').value;
+            if(!user || !pass) throw new Error("Credentials required");
+
+            const params = new URLSearchParams();
+            params.append('username', user);
+            params.append('password', pass);
+
+            const response = await fetch(`${API_URL}/api/user/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params
+            });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.detail || "Authentication failed");
+
+            if (data.status === 'otp_required') {
+                authState.email = data.email;
+                authState.step = 2;
+                document.getElementById('login-id-container').classList.add('hidden');
+                document.getElementById('login-pass-container').classList.add('hidden');
+                document.getElementById('login-options').classList.add('hidden');
+                document.getElementById('login-otp-container').classList.remove('hidden');
+
+                const btn = document.getElementById('login-btn');
+                btn.innerHTML = 'Verify & Sign In <i class="fas fa-check text-xs"></i>';
+                btn.disabled = false;
+
+                gsap.from("#login-otp-container", { opacity: 0, y: 20, duration: 0.5 });
+            }
+        }
+
+        async function loginStep2() {
+            const otp = document.getElementById('login-otp').value;
+            if(!otp) throw new Error("Verification code required");
+
+            const response = await fetch(`${API_URL}/api/user/auth/verify-login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: authState.email, otp: otp })
+            });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.detail || "Invalid verification code");
+
+            localStorage.setItem('snlag_token', data.access_token);
+
+            if (data.role === 'admin') {
+                localStorage.setItem('admin_token', data.access_token);
+                window.location.href = '/admin/dashboard';
+            } else {
+                // Check onboarding status before redirecting to ensure correct landing
+                try {
+                    const statusRes = await fetch(`${API_URL}/api/onboarding/status`, {
+                        headers: { 'Authorization': `Bearer ${data.access_token}` }
+                    });
+                    const status = await statusRes.json();
+                    if (status.completed) {
+                        window.location.href = 'workspace.html';
+                    } else {
+                        window.location.href = 'welcome.html';
+                    }
+                } catch (e) {
+                    window.location.href = 'welcome.html';
+                }
+            }
+        }
+
+        // --- Register Logic ---
+        async function registerStep1() {
+            const email = document.getElementById('register-email').value;
+            if(!email) throw new Error("Email protocol required");
+
+            const response = await fetch(`${API_URL}/api/user/auth/request-otp`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, purpose: 'registration' })
+            });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.detail || "Failed to transmit OTP");
+
+            authState.email = email;
+            authState.step = 2;
+            document.getElementById('register-fields').classList.add('hidden');
+            document.getElementById('register-otp-container').classList.remove('hidden');
+            document.getElementById('register-btn').classList.add('hidden');
+            gsap.from("#register-otp-container", { opacity: 0, y: 20, duration: 0.5 });
+        }
+
+        async function registerStep2() {
+            const otp = document.getElementById('register-otp').value;
+            if(!otp) throw new Error("Verification code required");
+
+            const response = await fetch(`${API_URL}/api/user/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    fullname: document.getElementById('register-name').value,
+                    username: document.getElementById('register-username').value,
+                    email: authState.email,
+                    password: document.getElementById('register-password').value,
+                    otp: otp
+                })
+            });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.detail || "Registration protocol failed");
+            alert("Your account is ready! Please sign in to enter your workspace.");
+            switchAuthMode('login');
+        }
+
+        // --- Forgot Password Logic ---
+        async function forgotStep1() {
+            const email = document.getElementById('forgot-email').value;
+            if(!email) throw new Error("Email required for recovery");
+
+            const response = await fetch(`${API_URL}/api/user/auth/request-otp`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, purpose: 'forgot_password' })
+            });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.detail || "Recovery transmission failed");
+
+            authState.email = email;
+            authState.step = 2;
+            document.getElementById('forgot-fields').classList.add('hidden');
+            document.getElementById('forgot-otp-container').classList.remove('hidden');
+            document.getElementById('forgot-btn').classList.add('hidden');
+            gsap.from("#forgot-otp-container", { opacity: 0, y: 20, duration: 0.5 });
+        }
+
+        async function forgotStep2() {
+            const otp = document.getElementById('forgot-otp').value;
+            if(!otp) throw new Error("Recovery code required");
+
+            const response = await fetch(`${API_URL}/api/user/auth/verify-otp`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: authState.email, otp: otp, purpose: 'forgot_password' })
+            });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.detail || "Invalid recovery code");
+
+            authState.otp = otp;
+            authState.step = 3;
+            document.getElementById('forgot-otp-container').classList.add('hidden');
+            document.getElementById('reset-fields').classList.remove('hidden');
+
+            const btn = document.getElementById('forgot-btn');
+            btn.innerText = "Synchronize New Password";
+            btn.classList.remove('hidden');
+            btn.disabled = false;
+            gsap.from("#reset-fields", { opacity: 0, y: 20, duration: 0.5 });
+        }
+
+        async function forgotStep3() {
+            const pass = document.getElementById('reset-password').value;
+            if(!pass) throw new Error("New password required");
+
+            const response = await fetch(`${API_URL}/api/user/auth/reset-password`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    email: authState.email,
+                    otp: authState.otp,
+                    new_password: pass
+                })
+            });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.detail || "Password synchronization failed");
+            alert("Password restored! Access granted via new credentials.");
+            switchAuthMode('login');
+        }
+
+        // --- Auto-Verification Listeners ---
+        document.getElementById('login-otp').addEventListener('input', (e) => {
+            if(e.target.value.length === 6) handleAuth(null, 'login');
+        });
+        document.getElementById('register-otp').addEventListener('input', (e) => {
+            if(e.target.value.length === 6) handleAuth(null, 'register');
+        });
+        document.getElementById('forgot-otp').addEventListener('input', (e) => {
+            if(e.target.value.length === 6) handleAuth(null, 'forgot');
+        });
+
+        // --- Auto-Submit Helper ---
+        function validateEmail(email) {
+            return String(email)
+                .toLowerCase()
+                .match(
+                    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+                );
+        }
+
+        document.getElementById('forgot-email').addEventListener('input', (e) => {
+            if (validateEmail(e.target.value)) {
+                e.target.classList.add('border-emerald-500');
+                setTimeout(() => {
+                    if (validateEmail(e.target.value) && authState.step === 1 && authState.mode === 'forgot') {
+                        handleAuth(null, 'forgot');
+                    }
+                }, 1000);
+            } else {
+                e.target.classList.remove('border-emerald-500');
+            }
+        });
+
+        document.getElementById('login-username').addEventListener('input', (e) => {
+            if (validateEmail(e.target.value)) {
+                e.target.classList.add('border-emerald-500');
+            } else {
+                e.target.classList.remove('border-emerald-500');
+            }
+        });
+
+        document.getElementById('register-email').addEventListener('input', (e) => {
+            if (validateEmail(e.target.value)) {
+                setTimeout(() => {
+                    if (validateEmail(e.target.value) && authState.step === 1) {
+                        // For registration, we don't auto-submit because other fields are needed.
+                        // But we can highlight it.
+                        e.target.classList.add('border-emerald-500');
+                    }
+                }, 500);
+            }
+        });
+
+        window.addEventListener('load', () => {
+            // --- Loader Logic ---
+            const loaderFill = document.getElementById('loader-fill');
+            const loaderOverlay = document.getElementById('loader-overlay');
+
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 30;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        loaderOverlay.style.opacity = '0';
+                        loaderOverlay.style.visibility = 'hidden';
+                    }, 400);
+                }
+                loaderFill.style.width = `${progress}%`;
+            }, 100);
+
+            // Parse URL params for view mode
+            const urlParams = new URLSearchParams(window.location.search);
+            const view = urlParams.get('view');
+            if (view && ['login', 'register', 'forgot'].includes(view)) {
+                switchAuthMode(view);
+            }
+
+            if (window.IridescenceBackground) {
+                new IridescenceBackground('iridescence-bg', {
+                    color: [0.95, 0.57, 0.0],
+                    speed: 0.2,
+                    amplitude: 0.05
+                });
+            }
+
+            // GSAP Entrance Animations
+            gsap.to(".animate-left", {
+                opacity: 1,
+                x: 0,
+                duration: 1.2,
+                stagger: 0.2,
+                ease: "power4.out",
+                startAt: { x: -50 }
+            });
+
+            gsap.to(".animate-bottom", {
+                opacity: 1,
+                y: 0,
+                duration: 1.2,
+                stagger: 0.15,
+                ease: "power4.out",
+                startAt: { y: 50 },
+                delay: 0.4
+            });
+        });
     </script>
 </body>
 </html>

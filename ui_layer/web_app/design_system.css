@@ -1,0 +1,280 @@
+/*
+ * Signly Global Design System v13.0
+ * Production-Grade Dark Mode Architecture
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+    /* --- Core Design Tokens (Light Mode) --- */
+    --bg: #ffffff;
+    --surface: #f8fafc;
+    --surface-raised: #ffffff;
+    --surface-overlay: rgba(255, 255, 255, 0.9);
+
+    --text: #111827;
+    --text-secondary: #4b5563;
+    --muted: #94a3b8;
+
+    --primary: #f39200;
+    --primary-hover: #e08600;
+    --primary-alpha: rgba(243, 146, 0, 0.1);
+    --primary-glow: rgba(243, 146, 0, 0.2);
+
+    --border: #e2e8f0;
+    --border-bright: #cbd5e1;
+
+    /* Spacing & Geometry */
+    --radius-sm: 0.75rem;
+    --radius-md: 1rem;
+    --radius-lg: 1.5rem;
+    --radius-xl: 2.5rem;
+    --radius-full: 9999px;
+
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+    --shadow-premium: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+
+    --transition-base: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    --theme-transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease, box-shadow 0.4s ease;
+
+    --z-nav: 1000;
+    --z-overlay: 2000;
+}
+
+/* --- Dark Mode Semantic Overrides --- */
+.dark {
+    --bg: #020617;
+    --surface: #0f172a;
+    --surface-raised: #1e293b;
+    --surface-overlay: rgba(2, 6, 23, 0.85);
+
+    --text: #f8fafc;
+    --text-secondary: #94a3b8;
+    --muted: #64748b;
+
+    --primary: #f97316;
+    --primary-hover: #fb923c;
+    --primary-alpha: rgba(249, 115, 22, 0.15);
+    --primary-glow: rgba(249, 115, 22, 0.25);
+
+    --border: #1e293b;
+    --border-bright: #334155;
+
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.6);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.7);
+}
+
+/* 1. Global Reset & Base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+    min-height: 100%;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg);
+    color: var(--text);
+    transition: var(--theme-transition);
+    -webkit-font-smoothing: antialiased;
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+    line-height: 1.5;
+}
+
+section {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    padding: 80px 0;
+}
+
+/* Nav Link Active State */
+.nav-link-active {
+    color: var(--primary) !important;
+}
+
+/* Visual Card Environment Layer */
+.card-environment-layer {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 4rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* 2. Typography */
+h1, h2, h3, h4, .font-display {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    transition: color 0.4s ease;
+}
+
+/* 3. Layout Structure */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.main-wrapper {
+    flex: 1;
+    width: 100%;
+}
+
+/* 4. Navigation System */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 72px;
+    background-color: var(--surface-overlay);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 1.5rem;
+    z-index: var(--z-nav);
+    transition: var(--theme-transition);
+}
+
+.sidebar {
+    display: none;
+}
+
+@media (min-width: 1024px) {
+    .app-container { flex-direction: row; }
+    .bottom-nav { display: none; }
+    .sidebar {
+        display: flex;
+        flex-direction: column;
+        width: 280px;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        background-color: var(--surface);
+        border-right: 1px solid var(--border);
+        padding: 1.5rem;
+        z-index: var(--z-nav);
+        transition: var(--theme-transition);
+    }
+    .main-wrapper {
+        margin-left: 280px;
+        padding: 2.5rem;
+    }
+}
+
+/* 5. Components */
+.ui-card {
+    background-color: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    transition: var(--theme-transition), transform 0.4s var(--transition-base);
+    position: relative;
+    overflow: hidden;
+}
+
+.ui-card-hover:hover {
+    border-color: var(--border-bright);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-modern {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1.75rem;
+    border-radius: var(--radius-sm);
+    font-weight: 700;
+    font-size: 0.875rem;
+    transition: all 0.4s var(--transition-base);
+    cursor: pointer;
+    border: 1px solid transparent;
+    text-decoration: none;
+}
+
+.btn-modern-primary {
+    background: var(--primary);
+    color: white !important;
+    box-shadow: 0 4px 15px var(--primary-alpha);
+}
+
+.btn-modern-primary:hover {
+    background: var(--primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px var(--primary-glow);
+}
+
+.btn-modern-secondary {
+    background-color: var(--surface-raised);
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+
+.btn-modern-secondary:hover {
+    background-color: var(--bg);
+    border-color: var(--primary);
+    color: var(--primary);
+    transform: translateY(-1px);
+}
+
+/* Theme Toggle */
+.theme-toggle {
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-md);
+    background-color: var(--surface-raised);
+    border: 1px solid var(--border);
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--theme-transition);
+}
+
+.theme-toggle:hover {
+    background-color: var(--bg);
+    border-color: var(--border-bright);
+}
+
+/* 6. Motion */
+.motion-entrance {
+    opacity: 0;
+    animation: entranceFadeUp 0.8s var(--transition-base) forwards;
+}
+
+@keyframes entranceFadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 7. Scrollbar Refinement */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+    background: var(--border-bright);
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }

@@ -52,11 +52,20 @@ class SequenceModel:
             if path and os.path.exists(path):
                 try:
                     # Robust loading for different TF/Keras versions (Requirement 9)
-                    if hasattr(tf, 'keras'):
+                    # We try multiple import strategies to handle various environments
+                    try:
+                        # Strategy 1: Standard TF 2.x
                         self.model = tf.keras.models.load_model(path)
-                    else:
-                        import keras
-                        self.model = keras.models.load_model(path)
+                    except (AttributeError, ImportError):
+                        try:
+                            # Strategy 2: Explicit Keras package
+                            import keras
+                            self.model = keras.models.load_model(path)
+                        except:
+                            # Strategy 3: Legacy TF
+                            from tensorflow import keras as tf_keras
+                            self.model = tf_keras.models.load_model(path)
+
                     print(f"SequenceModel: Model loaded successfully from {path}")
                     break
                 except Exception as e:
