@@ -498,6 +498,13 @@
                     const statusRes = await fetch(`${API_URL}/api/onboarding/status`, {
                         headers: { 'Authorization': `Bearer ${data.access_token}` }
                     });
+
+                    if (!statusRes.ok) {
+                        // If status check fails (e.g. 500), go to welcome to allow retry/setup
+                        window.location.href = 'welcome.html';
+                        return;
+                    }
+
                     const status = await statusRes.json();
                     if (status.completed) {
                         window.location.href = 'workspace.html';
@@ -505,6 +512,7 @@
                         window.location.href = 'welcome.html';
                     }
                 } catch (e) {
+                    console.warn("Handshake warning:", e);
                     window.location.href = 'welcome.html';
                 }
             }

@@ -131,8 +131,11 @@
 
     <script>
         const SnLagConfig = {
-            API_URL: (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-                ? `http://${window.location.hostname}:8000` : window.location.origin
+            API_URL: window.location.port === '8001'
+                ? window.location.origin
+                : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+                    ? `http://${window.location.hostname}:8000`
+                    : window.location.origin
         };
 
         const SnLagAPI = {
