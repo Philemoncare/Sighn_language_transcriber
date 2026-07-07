@@ -4,7 +4,7 @@ import asyncio
 import logging
 from contextlib import asynccontextmanager
 
-python launch_all.pyfrom fastapi import FastAPI, Depends, WebSocket, Query, Request
+from fastapi import FastAPI, Depends, WebSocket, Query, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
@@ -212,5 +212,11 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    # Production-grade: reload=False prevents background task termination on file changes
-    uvicorn.run("ai_orchestration.main:app", host="0.0.0.0", port=8000, reload=False)
+    try:
+        # Production-grade: reload=False prevents background task termination on file changes
+        uvicorn.run("ai_orchestration.main:app", host="0.0.0.0", port=8000, reload=False)
+    except Exception as e:
+        print(f"Server crash: {e}")
+        import traceback
+        traceback.print_exc()
+        input("Press Enter to exit...")

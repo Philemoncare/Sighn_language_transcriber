@@ -250,5 +250,68 @@ const SnLagUI = {
                 ${actionLabel ? `<button onclick="${onAction}" class="btn-modern btn-modern-primary px-8">${actionLabel}</button>` : ''}
             </div>
         `;
+    },
+
+    /**
+     * Modern Notification System (Toast)
+     */
+    showNotification(message, type = 'success', duration = 5000) {
+        // Create container if not exists
+        let container = document.getElementById('notification-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'notification-container';
+            container.className = 'fixed top-8 right-8 z-[9999] flex flex-col gap-4 pointer-events-none w-full max-w-sm px-8 md:px-0';
+            document.body.appendChild(container);
+        }
+
+        const id = 'notif-' + Date.now();
+        const colors = {
+            success: { bg: 'bg-emerald-50', border: 'border-emerald-100', text: 'text-emerald-800', icon: 'fa-check-circle', iconColor: 'text-emerald-500' },
+            error: { bg: 'bg-rose-50', border: 'border-rose-100', text: 'text-rose-800', icon: 'fa-exclamation-circle', iconColor: 'text-rose-500' },
+            warning: { bg: 'bg-orange-50', border: 'border-orange-100', text: 'text-orange-800', icon: 'fa-info-circle', iconColor: 'text-orange-500' }
+        };
+
+        const config = colors[type] || colors.success;
+
+        const notif = document.createElement('div');
+        notif.id = id;
+        notif.className = `${config.bg} ${config.border} border-2 p-4 rounded-2xl shadow-xl shadow-black/5 flex items-start gap-4 pointer-events-auto transform`;
+        notif.innerHTML = `
+            <div class="${config.iconColor} mt-0.5">
+                <i class="fas ${config.icon} text-lg"></i>
+            </div>
+            <div class="flex-1">
+                <p class="text-[10px] font-black uppercase tracking-[0.2em] opacity-40 mb-0.5">${type} Signal</p>
+                <p class="text-xs font-bold ${config.text} leading-relaxed">${message}</p>
+            </div>
+            <button onclick="this.parentElement.remove()" class="text-muted hover:text-primary transition-colors">
+                <i class="fas fa-times text-[10px]"></i>
+            </button>
+        `;
+
+        container.appendChild(notif);
+
+        // GSAP Animation
+        if (window.gsap) {
+            gsap.from(notif, {
+                x: 100,
+                opacity: 0,
+                duration: 0.8,
+                ease: 'power4.out'
+            });
+
+            setTimeout(() => {
+                gsap.to(notif, {
+                    x: 100,
+                    opacity: 0,
+                    duration: 0.6,
+                    ease: 'power4.in',
+                    onComplete: () => notif.remove()
+                });
+            }, duration);
+        } else {
+            setTimeout(() => notif.remove(), duration);
+        }
     }
 };

@@ -524,6 +524,10 @@
             const data = await response.json();
             if (!response.ok) throw new Error(data.detail || "Failed to transmit OTP");
 
+            if (window.SnLagUI) {
+                SnLagUI.showNotification("Verification code transmitted to your email.", "warning");
+            }
+
             authState.email = email;
             authState.step = 2;
             document.getElementById('register-fields').classList.add('hidden');
@@ -550,8 +554,17 @@
 
             const data = await response.json();
             if (!response.ok) throw new Error(data.detail || "Registration protocol failed");
-            alert("Your account is ready! Please sign in to enter your workspace.");
-            switchAuthMode('login');
+
+            // Modern Notification Replacement
+            if (window.SnLagUI) {
+                SnLagUI.showNotification("Your account is ready! Please sign in to enter your workspace.", "success");
+            } else {
+                alert("Your account is ready! Please sign in to enter your workspace.");
+            }
+
+            setTimeout(() => {
+                switchAuthMode('login');
+            }, 1000);
         }
 
         // --- Forgot Password Logic ---
@@ -567,6 +580,10 @@
 
             const data = await response.json();
             if (!response.ok) throw new Error(data.detail || "Recovery transmission failed");
+
+            if (window.SnLagUI) {
+                SnLagUI.showNotification("Recovery token sent to your registered email.", "warning");
+            }
 
             authState.email = email;
             authState.step = 2;
@@ -617,8 +634,16 @@
 
             const data = await response.json();
             if (!response.ok) throw new Error(data.detail || "Password synchronization failed");
-            alert("Password restored! Access granted via new credentials.");
-            switchAuthMode('login');
+
+            if (window.SnLagUI) {
+                SnLagUI.showNotification("Password restored! Access granted via new credentials.", "success");
+            } else {
+                alert("Password restored! Access granted via new credentials.");
+            }
+
+            setTimeout(() => {
+                switchAuthMode('login');
+            }, 1000);
         }
 
         // --- Auto-Verification Listeners ---

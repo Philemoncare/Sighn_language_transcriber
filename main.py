@@ -23,3 +23,4 @@ if __name__ == "__main__":
         print(f"FATAL ERROR during startup: {e}")
         import traceback
         traceback.print_exc()
+        input("\nPress Enter to close this window...")
