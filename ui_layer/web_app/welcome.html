@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome | Signly</title>
+    <title>Calibration | Signly</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -35,20 +35,47 @@
     </script>
 
     <style>
-        .auth-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+        body {
+            background-color: #020617; /* Always dark base for this unique page */
             height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
-        @media (max-width: 1024px) {
-            .auth-grid { grid-template-columns: 1fr; }
-            .auth-hero { display: none; }
+
+        .unique-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background-image: url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070&auto=format&fit=crop');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.3;
+            filter: blur(5px);
         }
-        .auth-hero {
-            background-color: #0b0f17;
-            color: white;
+
+        .unique-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            background: radial-gradient(circle at center, transparent 0%, #020617 100%);
+        }
+
+        .onboarding-card {
+            width: 100%;
+            max-width: 480px;
+            background: var(--surface-overlay);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 2.5rem;
+            padding: 3rem;
+            box-shadow: 0 40px 100px -20px rgba(0,0,0,0.5);
             position: relative;
+            z-index: 10;
         }
+
         .question-option {
             background: var(--surface);
             border: 1.5px solid var(--border);
@@ -59,7 +86,6 @@
             display: flex;
             align-items: center;
             gap: 1rem;
-            position: relative;
         }
         .question-option:hover {
             border-color: var(--primary);
@@ -85,10 +111,11 @@
             outline: none;
             box-shadow: 0 0 0 4px var(--primary-alpha);
         }
+
         #splash-loader {
             position: fixed;
             inset: 0;
-            background: var(--bg);
+            background: #020617;
             z-index: 9999;
             display: flex;
             align-items: center;
@@ -97,9 +124,8 @@
         }
     </style>
 </head>
-<body class="bg-bg transition-colors duration-500 overflow-hidden antialiased">
+<body class="transition-colors duration-500 antialiased">
 
-    <!-- Splash Loader -->
     <div id="splash-loader">
         <div class="flex flex-col items-center gap-6">
             <div class="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center text-white shadow-2xl animate-pulse">
@@ -109,102 +135,74 @@
         </div>
     </div>
 
-    <div class="auth-grid relative z-10">
-        <!-- Hero Section -->
-        <div class="auth-hero relative overflow-hidden flex flex-col justify-between">
-            <div class="absolute inset-0 z-0">
-                <img src="https://images.unsplash.com/photo-1516733725897-1aa73b87c8e8?q=80&w=2070&auto=format&fit=crop" class="w-full h-full object-cover opacity-50" alt="Hero">
-                <div class="absolute inset-0 bg-gradient-to-br from-black/90 via-black/40 to-transparent"></div>
+    <div class="unique-bg"></div>
+    <div class="unique-overlay"></div>
+
+    <!-- Centered Content Card -->
+    <div class="onboarding-card animate__animated animate__fadeInUp">
+
+        <!-- Header -->
+        <div class="flex items-center gap-3 mb-10">
+            <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white text-sm">
+                <i class="fas fa-hand-holding-heart"></i>
+            </div>
+            <span class="text-lg font-black tracking-tighter text-primary">Signly</span>
+        </div>
+
+        <!-- Welcome View -->
+        <div id="welcome-screen" class="space-y-8">
+            <div class="space-y-2">
+                <h2 class="text-3xl font-black tracking-tight leading-tight">Handshake <br><span class="text-primary italic">Verified.</span></h2>
+                <p class="text-muted text-xs font-medium">Your account is active. Let's perform a quick system calibration before you enter.</p>
             </div>
 
-            <div class="relative z-10 p-16 flex flex-col h-full justify-between">
+            <div class="p-6 rounded-2xl bg-surface border border-border space-y-4">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-lg">
-                        <i class="fas fa-hand-holding-heart"></i>
+                    <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20 text-xs">
+                        <i class="fas fa-shield-alt"></i>
                     </div>
-                    <div>
-                        <span class="text-2xl font-black text-white block leading-none">Signly</span>
-                        <span class="text-[8px] font-bold text-white/50 uppercase tracking-[0.2em]">Neural Engine</span>
-                    </div>
+                    <span class="text-[10px] font-black uppercase tracking-widest text-emerald-500">Security Stable</span>
                 </div>
+                <div class="space-y-3 opacity-60">
+                    <div class="flex items-center gap-3 text-[10px] font-bold text-muted"><i class="fas fa-check-circle text-emerald-500"></i> Account Identity</div>
+                    <div class="flex items-center gap-3 text-[10px] font-bold text-muted"><i class="fas fa-check-circle text-emerald-500"></i> Network Token</div>
+                    <div class="flex items-center gap-3 text-[10px] font-bold text-primary"><i class="fas fa-circle-notch animate-spin"></i> Calibration</div>
+                </div>
+            </div>
 
-                <div class="space-y-6">
-                    <h1 class="text-white text-6xl leading-[1] font-black tracking-tighter uppercase italic">
-                        Personalize<br><span class="text-primary">Your</span><br>Space.
-                    </h1>
-                    <p class="text-lg text-white/60 max-w-sm font-medium">
-                        Let's configure your neural interface to match your unique communication style.
-                    </p>
-                </div>
+            <button onclick="startOnboarding()" class="w-full py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-primary-hover transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3 group">
+                Begin Calibration <i class="fas fa-bolt group-hover:scale-110 transition-transform"></i>
+            </button>
+        </div>
 
-                <div class="opacity-40">
-                    <span class="text-[9px] font-bold text-white uppercase tracking-[0.3em]">Setup Protocol Active</span>
+        <!-- Onboarding Wizard -->
+        <div id="onboarding-flow" class="hidden space-y-8">
+            <div class="flex justify-between items-end">
+                <div class="space-y-1">
+                    <h3 id="step-title" class="text-xl font-black tracking-tight uppercase">Calibration</h3>
+                    <p id="step-subtitle" class="text-muted text-[10px] font-black uppercase tracking-widest">Phase 1 of 6</p>
                 </div>
+                <div id="save-status" class="text-[8px] font-black text-emerald-500 uppercase tracking-widest opacity-0 transition-opacity">
+                    <i class="fas fa-sync-alt animate-spin"></i> Syncing
+                </div>
+            </div>
+
+            <div class="h-1 bg-border rounded-full overflow-hidden">
+                <div id="progress-fill" class="h-full bg-primary transition-all duration-700" style="width: 0%"></div>
+            </div>
+
+            <div id="questions-container" class="min-h-[200px]">
+                <!-- Questions Injected Here -->
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <button id="btn-back" onclick="goToPrevStep()" class="w-12 h-12 rounded-xl border border-border flex items-center justify-center text-muted hover:text-primary hover:bg-primary-alpha transition-all disabled:opacity-0" title="Previous Phase">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button id="btn-next" onclick="goToNextStep()" class="flex-1 py-4 bg-primary text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg disabled:opacity-50">Next Phase</button>
             </div>
         </div>
 
-        <!-- Onboarding Flow Section -->
-        <div class="flex flex-col h-full bg-bg relative overflow-y-auto px-8 md:px-16 py-12 justify-center">
-            <div class="max-w-md w-full mx-auto">
-
-                <!-- Welcome Summary Screen -->
-                <div id="welcome-screen" class="space-y-8 animate__animated animate__fadeIn">
-                    <div class="space-y-2">
-                        <h2 class="text-3xl font-black tracking-tight">Identity Verified</h2>
-                        <p class="text-muted text-sm font-medium">Welcome back, <span id="user-name-display" class="text-primary">User</span>. Your account is ready for final calibration.</p>
-                    </div>
-
-                    <div class="p-6 rounded-3xl bg-surface-raised border border-border space-y-6">
-                        <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
-                                <i class="fas fa-user-check"></i>
-                            </div>
-                            <div>
-                                <p class="text-[10px] font-black uppercase tracking-widest text-emerald-500">Security Handshake Success</p>
-                                <p class="text-xs text-muted" id="date-display">Today</p>
-                            </div>
-                        </div>
-                        <div class="space-y-3">
-                            <div class="flex items-center gap-3 text-xs font-bold text-muted opacity-60"><i class="fas fa-check-circle text-emerald-500"></i> Account Created</div>
-                            <div class="flex items-center gap-3 text-xs font-bold text-muted opacity-60"><i class="fas fa-check-circle text-emerald-500"></i> Email Verified</div>
-                            <div class="flex items-center gap-3 text-xs font-bold text-primary"><i class="fas fa-circle-notch animate-spin"></i> Final Calibration</div>
-                        </div>
-                    </div>
-
-                    <button onclick="startOnboarding()" class="w-full py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-primary-hover transition-all shadow-xl shadow-primary/20 flex items-center justify-center gap-3 group">
-                        Begin Calibration <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
-                    </button>
-                </div>
-
-                <!-- Onboarding Wizard -->
-                <div id="onboarding-flow" class="hidden space-y-8 animate__animated animate__fadeIn">
-                    <!-- Progress -->
-                    <div class="flex justify-between items-end">
-                        <div class="space-y-1">
-                            <h3 id="step-title" class="text-2xl font-black tracking-tight">Calibration</h3>
-                            <p id="step-subtitle" class="text-muted text-xs font-medium">Step 1 of 6</p>
-                        </div>
-                        <div id="save-status" class="text-[8px] font-black text-emerald-500 uppercase tracking-widest opacity-0 transition-opacity">
-                            <i class="fas fa-check-circle"></i> Syncing
-                        </div>
-                    </div>
-
-                    <div class="h-1 bg-border rounded-full overflow-hidden">
-                        <div id="progress-fill" class="h-full bg-primary transition-all duration-700" style="width: 0%"></div>
-                    </div>
-
-                    <div id="questions-container" class="min-h-[300px]">
-                        <!-- Questions Injected Here -->
-                    </div>
-
-                    <div class="flex gap-4 pt-4">
-                        <button id="btn-back" onclick="goToPrevStep()" class="flex-1 py-4 rounded-2xl border border-border text-[10px] font-black uppercase tracking-widest hover:bg-surface transition-all disabled:opacity-0">Back</button>
-                        <button id="btn-next" onclick="goToNextStep()" class="flex-[2] py-4 bg-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg disabled:opacity-50">Next Step</button>
-                    </div>
-                </div>
-
-            </div>
-        </div>
     </div>
 
     <script>
@@ -221,37 +219,19 @@
         let isSaving = false;
 
         const questions = [
-            { id: 'preferred_name', title: "Preferred Name", subtitle: "How should the network identify you?", type: 'text', field: 'preferred_name', placeholder: "Your name", icon: 'fa-signature' },
+            { id: 'preferred_name', title: "Profile Handle", subtitle: "Define your network identifier.", type: 'text', field: 'preferred_name', placeholder: "Enter name", icon: 'fa-signature' },
             {
-                id: 'purpose', title: "Primary Goal", subtitle: "What is your main use case?", type: 'choice', field: 'purpose',
+                id: 'purpose', title: "Target Protocol", subtitle: "Primary usage scenario.", type: 'choice', field: 'purpose',
                 options: [
-                    { id: 'personal', label: 'Personal', desc: 'Daily communication', icon: 'fa-heart' },
-                    { id: 'work', label: 'Professional', desc: 'Meetings & Work', icon: 'fa-briefcase' },
-                    { id: 'learning', label: 'Learning', desc: 'Mastering signs', icon: 'fa-graduation-cap' }
+                    { id: 'personal', label: 'Personal', desc: 'Communication', icon: 'fa-heart' },
+                    { id: 'work', label: 'Professional', desc: 'Enterprise', icon: 'fa-briefcase' },
+                    { id: 'learning', label: 'Learning', desc: 'Acquisition', icon: 'fa-graduation-cap' }
                 ]
             },
-            {
-                id: 'experience_level', title: "Proficiency", subtitle: "Your current sign language level.", type: 'choice', field: 'experience_level',
-                options: [
-                    { id: 'beginner', label: 'Beginner', desc: 'Starting out', icon: 'fa-seedling' },
-                    { id: 'advanced', label: 'Fluent', desc: 'Expert user', icon: 'fa-crown' }
-                ]
-            },
-            { id: 'preferred_language', title: "Focus Language", subtitle: "Target sign language dialect.", type: 'select', field: 'preferred_language', options: ['American Sign Language (ASL)', 'British Sign Language (BSL)', 'International Sign'] },
-            {
-                id: 'accessibility_needs', title: "Interface Focus", subtitle: "Tailor the visual experience.", type: 'choice', field: 'accessibility_needs',
-                options: [
-                    { id: 'deaf', label: 'Visual Focus', desc: 'Optimized for Deaf', icon: 'fa-deaf' },
-                    { id: 'hearing', label: 'Standard', desc: 'Standard UI', icon: 'fa-user' }
-                ]
-            },
-            {
-                id: 'recognition_preference', title: "Input Mode", subtitle: "How will you provide signs?", type: 'choice', field: 'recognition_preference',
-                options: [
-                    { id: 'camera', label: 'Live Camera', desc: 'Real-time tracking', icon: 'fa-video' },
-                    { id: 'upload', label: 'File Upload', desc: 'Process videos', icon: 'fa-file-upload' }
-                ]
-            }
+            { id: 'experience_level', title: "Neural Base", subtitle: "Current proficiency level.", type: 'choice', field: 'experience_level', options: [{ id: 'beginner', label: 'Standard', desc: 'New Node', icon: 'fa-seedling' }, { id: 'advanced', label: 'Advanced', desc: 'Expert Node', icon: 'fa-crown' }] },
+            { id: 'preferred_language', title: "Focus Dialect", subtitle: "Sign language target.", type: 'select', field: 'preferred_language', options: ['American Sign Language (ASL)', 'British Sign Language (BSL)', 'International Sign'] },
+            { id: 'accessibility_needs', title: "UI Filter", subtitle: "Tailor visual output.", type: 'choice', field: 'accessibility_needs', options: [{ id: 'deaf', label: 'Visual Focus', desc: 'Deaf Optimized', icon: 'fa-deaf' }, { id: 'hearing', label: 'Standard', desc: 'Default UI', icon: 'fa-user' }] },
+            { id: 'recognition_preference', title: "Input Node", subtitle: "Sensor configuration.", type: 'choice', field: 'recognition_preference', options: [{ id: 'camera', label: 'Live Core', desc: 'Real-time', icon: 'fa-video' }, { id: 'upload', label: 'Data Port', desc: 'File Ingest', icon: 'fa-file-upload' }] }
         ];
 
         async function initApp() {
@@ -260,8 +240,6 @@
                 const userRes = await fetch(`${API_URL}/api/user/auth/me`, { headers: { 'Authorization': `Bearer ${token}` } });
                 if (!userRes.ok) throw new Error("Auth failed");
                 currentUser = await userRes.json();
-                document.getElementById('user-name-display').innerText = currentUser.name || currentUser.username;
-                document.getElementById('date-display').innerText = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
                 const statusRes = await fetch(`${API_URL}/api/onboarding/status`, { headers: { 'Authorization': `Bearer ${token}` } });
                 const status = await statusRes.json();
@@ -285,24 +263,24 @@
             const step = questions[currentStepIndex];
             const container = document.getElementById('questions-container');
             document.getElementById('step-title').innerText = step.title;
-            document.getElementById('step-subtitle').innerText = `Step ${currentStepIndex + 1} of ${questions.length}`;
+            document.getElementById('step-subtitle').innerText = `Phase ${currentStepIndex + 1} of ${questions.length}`;
             document.getElementById('progress-fill').style.width = `${((currentStepIndex + 1) / questions.length) * 100}%`;
             document.getElementById('btn-back').disabled = currentStepIndex === 0;
-            document.getElementById('btn-next').innerText = currentStepIndex === questions.length - 1 ? 'Complete Setup' : 'Next Step';
+            document.getElementById('btn-next').innerText = currentStepIndex === questions.length - 1 ? 'Execute Link' : 'Next Phase';
             document.getElementById('btn-next').disabled = !onboardingData[step.field];
 
             let html = '';
             if (step.type === 'text') {
                 html = `<input type="text" class="input-premium mt-4" placeholder="${step.placeholder}" value="${onboardingData[step.field] || ''}" oninput="updateValue('${step.field}', this.value)">`;
             } else if (step.type === 'choice') {
-                html = `<div class="space-y-3 mt-4">${step.options.map(opt => `
+                html = `<div class="grid grid-cols-1 gap-2 mt-4">${step.options.map(opt => `
                     <div onclick="updateValue('${step.field}', '${opt.id}')" class="question-option ${onboardingData[step.field] === opt.id ? 'selected' : ''}">
-                        <div class="w-10 h-10 rounded-xl bg-primary-alpha flex items-center justify-center text-primary"><i class="fas ${opt.icon}"></i></div>
-                        <div><p class="text-sm font-bold">${opt.label}</p><p class="text-[10px] text-muted font-medium">${opt.desc}</p></div>
+                        <div class="w-8 h-8 rounded-lg bg-primary-alpha flex items-center justify-center text-primary text-xs"><i class="fas ${opt.icon}"></i></div>
+                        <div><p class="text-xs font-bold">${opt.label}</p><p class="text-[9px] text-muted font-bold uppercase tracking-tighter opacity-70">${opt.desc}</p></div>
                     </div>`).join('')}</div>`;
             } else if (step.type === 'select') {
                 html = `<select class="input-premium mt-4" onchange="updateValue('${step.field}', this.value)">
-                    <option value="" disabled ${!onboardingData[step.field] ? 'selected' : ''}>Select language...</option>
+                    <option value="" disabled ${!onboardingData[step.field] ? 'selected' : ''}>Select Dialect...</option>
                     ${step.options.map(opt => `<option value="${opt}" ${onboardingData[step.field] === opt ? 'selected' : ''}>${opt}</option>`).join('')}
                 </select>`;
             }
@@ -338,7 +316,7 @@
 
         async function finishOnboarding() {
             await saveToBackend(true);
-            if (window.SnLagUI) SnLagUI.showNotification("Calibration complete. Welcome to the neural network.", "success");
+            if (window.SnLagUI) SnLagUI.showNotification("Neural link established. Access granted.", "success");
             setTimeout(() => window.location.href = 'workspace.html', 1500);
         }
 
